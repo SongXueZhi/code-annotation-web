@@ -49,7 +49,12 @@ export async function getInitialState(): Promise<{
 }
 
 function shouldLogin(path: string) {
-  return path !== loginPath && path !== '/user/register' && path !== '/user/register-result' && path !== '/code';
+  return (
+    path !== loginPath &&
+    path !== '/user/register' &&
+    path !== '/user/register-result' &&
+    path !== '/code'
+  );
 }
 
 // ProLayout 支持的api https://procomponents.ant.design/components/layout
@@ -123,4 +128,5 @@ const errorHandler = (error: ResponseError) => {
 // https://umijs.org/zh-CN/plugins/plugin-request
 export const request: RequestConfig = {
   errorHandler,
+  prefix: 'http://10.177.210.179:8080',
 };
