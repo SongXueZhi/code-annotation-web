@@ -103,7 +103,7 @@ const TableList: React.FC<{}> = () => {
                 pathname: '/editor',
                 search: stringify({
                   regressionUuid,
-                })
+                }),
               }}
             >
               {regressionUuid}
