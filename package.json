@@ -124,5 +124,6 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "proxy": "http://10.177.21.179:8080"
 }

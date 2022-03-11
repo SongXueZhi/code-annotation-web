@@ -128,5 +128,5 @@ const errorHandler = (error: ResponseError) => {
 // https://umijs.org/zh-CN/plugins/plugin-request
 export const request: RequestConfig = {
   errorHandler,
-  prefix: `http://10.177.21.179:8080`,
+  // prefix: `http://10.177.21.179:8080`,
 };

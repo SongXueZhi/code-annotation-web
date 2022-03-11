@@ -23,7 +23,7 @@ import { handleResponse } from '../response';
 
 /** 登录接口 POST /api/account/login */
 export async function login(body: API.LoginParams, options?: { [key: string]: any }) {
-  return request<API.RegResponse<API.LoginResult | null>>(`/api/account/login`, {
+  return request<API.RegResponse<API.LoginResult | null>>('/api/account/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
