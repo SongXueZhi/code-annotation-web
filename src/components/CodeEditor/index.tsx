@@ -21,7 +21,7 @@ interface IProps {
   depandencies?: Depandency[];
   original?: string;
   value?: string;
-  onRunCode?: (code: string) => string;
+  onRunCode?: (code: string, version: string) => string;
 }
 interface IState {
   showConsole: boolean;
@@ -95,8 +95,12 @@ class CodeEditor extends React.Component<IProps, IState> {
         ? this.editorRef.current?.editor?.getOriginalEditor()
         : this.editorRef.current?.editor?.getModifiedEditor()
     )?.getValue();
+    const version =
+      this.state.version === 'left'
+        ? this.props.oldVersionText ?? 'left'
+        : this.props.newVersionText ?? 'right';
     if (typeof content === 'undefined') content = '';
-    const output = this.props.onRunCode?.call(this, content);
+    const output = this.props.onRunCode?.call(this, content, version);
     this.setState(
       {
         console: output,
@@ -133,21 +137,22 @@ class CodeEditor extends React.Component<IProps, IState> {
             <div className="project-title">
               <EllipsisMiddle suffixCount={12}>{title}</EllipsisMiddle>
             </div>
-            <div>
+            <div className="run-button" style={{ border: 'solid', borderColor: 'green' }}>
               {extra}
-              <Radio.Group value={version} onChange={this.handleVersionChange}>
-                <Radio value="left">{oldVersionText ?? '左'}</Radio>
-                <Radio value="right">{newVersionText ?? '右'}</Radio>
-              </Radio.Group>
               <Button
                 id="run-code-btn"
                 data-imitate
-                style={{ height: '30px' }}
-                icon="play"
-                text="Run"
+                style={{ height: '30px', marginRight: '10px' }}
                 intent="success"
+                icon="play"
                 onClick={this.handleRunClick}
-              />
+              >
+                Run With
+              </Button>
+              <Radio.Group value={version} buttonStyle="solid" onChange={this.handleVersionChange}>
+                <Radio value="left">{oldVersionText ?? 'left'}</Radio>
+                <Radio value="right">{newVersionText ?? 'right'}</Radio>
+              </Radio.Group>
             </div>
           </div>
           <div className="EditorView">
