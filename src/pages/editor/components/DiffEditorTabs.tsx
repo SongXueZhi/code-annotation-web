@@ -16,7 +16,7 @@ interface IProps {
   activeKey: string;
   onPanesChange: (panes: FilePaneItem[]) => void;
   onActiveKey: (v: string) => void;
-  onRunCode?: (v: string) => string;
+  onRunCode?: (v: string, version: string) => Promise<string>;
 }
 
 const DiffEditorTabs: React.FC<IProps> = ({
@@ -61,7 +61,7 @@ const DiffEditorTabs: React.FC<IProps> = ({
 
   return (
     <Tabs
-      style={{ flex: 1 , margin: 10}}
+      style={{ flex: 1, margin: 10 }}
       tabBarStyle={{
         margin: 0,
       }}
@@ -71,21 +71,23 @@ const DiffEditorTabs: React.FC<IProps> = ({
       onEdit={onEdit}
       hideAdd
     >
-      {panes.map(({ newPath, key, oldCode, newCode }) => (
-        <Tabs.TabPane tab={newPath} key={key}>
-          <div style={{ width: '100%', height: '86vh', display: 'flex' }}>
-            <CodeEditor
-              title={`${commit}`}
-              darkTheme={false}
-              original={oldCode}
-              value={newCode}
-              oldVersionText={oldVersionText}
-              newVersionText={newVersionText}
-              onRunCode={onRunCode}
-            />
-          </div>
-        </Tabs.TabPane>
-      ))}
+      {panes.map(({ key, oldCode, newCode }) => {
+        return (
+          <Tabs.TabPane tab={key.split(`${commit}-`)} key={key}>
+            <div style={{ width: '100%', height: '86vh', display: 'flex' }}>
+              <CodeEditor
+                title={commit === 'BIC' ? 'Bug Inducing Commit' : 'Bug Fixing Commit'}
+                darkTheme={false}
+                original={oldCode}
+                value={newCode}
+                oldVersionText={oldVersionText}
+                newVersionText={newVersionText}
+                onRunCode={onRunCode}
+              />
+            </div>
+          </Tabs.TabPane>
+        );
+      })}
     </Tabs>
   );
 };

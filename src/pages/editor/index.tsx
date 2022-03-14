@@ -1,10 +1,16 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
 import { Card, Descriptions, Menu, Radio, Tag, Typography } from 'antd';
 import { AppstoreOutlined } from '@ant-design/icons';
 import DiffEditorTabs from './components/DiffEditorTabs';
 import type { IRouteComponentProps } from 'umi';
-import { queryRegressionCode, queryRegressionDetail } from './service';
+import {
+  getRegressionConsole,
+  queryRegressionCode,
+  queryRegressionDetail,
+  getRegressionPath,
+  regressionCheckout,
+} from './service';
 import type { CommitItem } from './data';
 import { parse } from 'query-string';
 
@@ -53,10 +59,31 @@ export interface FilePaneItem extends CommitFile {
 //   }
 // }
 
+// // 轮询函数
+// function useInterval(callback: any, delay: number | null | undefined) {
+//   // useEffect(() => {
+//   savedCallback.current = callback;
+//   // });
+//   // useEffect(() => {
+//   function tick() {
+//     savedCallback.current();
+//   }
+//   if (delay !== null) {
+//     const id = setInterval(tick, delay);
+//     return () => clearInterval(id);
+//   }
+//   console.log('end: ' + counter);
+//   // }, [delay]);
+// }
+
 const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   const HISTORY_SEARCH = parse(location.search) as unknown as IHistorySearch;
+  // const savedCallback = useRef<any>();
   const [activeBICKey, setActiveBICKey] = useState<string>();
   const [activeBFCKey, setActiveBFCKey] = useState<string>();
+  // const [BICConsoleResult, setBICConsoleResult] = useState<string>();
+  // const [BFCConsoleResult, setBFCConsoleResult] = useState<string>();
+  const [testTabKey, setTestTabKey] = useState('testcase');
   const [panesBIC, setPanesBIC] = useState<FilePaneItem[]>([]);
   const [panesBFC, setPanesBFC] = useState<FilePaneItem[]>([]);
   const [listBIC, setListBIC] = useState<CommitItem[]>([]);
@@ -64,6 +91,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   const [projectFullName, setProjectFullName] = useState<string>();
   const [BIC, setBIC] = useState<string>();
   const [BFC, setBFC] = useState<string>();
+  const [isRunning, setIsRunning] = useState<boolean>(true);
 
   const bicFile: CommitFile = {
     newPath: 'src/main/java/org/jsoup/parser/Tokeniser.java',
@@ -71,36 +99,36 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
     newCode: `package org.jsoup.parser;
     import org.jsoup.helper.Validate;
     import org.jsoup.nodes.Entities;
-    
+
     import java.util.ArrayList;
     import java.util.List;
-    
+
     /**
      * Readers the input stream into tokens.
      */
     class Tokeniser {
         static final char replacementChar = '\uFFFD'; // replaces null character
-    
+
         private CharacterReader reader; // html input
         private boolean trackErrors = true;
         private List<ParseError> errors = new ArrayList<ParseError>(); // errors found while tokenising
-    
+
         private TokeniserState state = TokeniserState.Data; // current tokenisation state
         private Token emitPending; // the token we are about to emit on next read
         private boolean isEmitPending = false;
         private StringBuilder charBuffer = new StringBuilder(); // buffers characters to output as one token
         StringBuilder dataBuffer; // buffers data looking for </script>
-    
+
         Token.Tag tagPending; // tag we are building up
         Token.Doctype doctypePending; // doctype building up
         Token.Comment commentPending; // comment building up
         private Token.StartTag lastStartTag; // the last start tag emitted, to test appropriate end tag
         private boolean selfClosingFlagAcknowledged = true;
-    
+
         Tokeniser(CharacterReader reader) {
             this.reader = reader;
         }
-    
+
         Token read() {
             if (!selfClosingFlagAcknowledged) {
                 error("Self closing flag not acknowledged");
@@ -108,7 +136,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
             }
             while (!isEmitPending)
             tate.read(this, reader);
-  
+
           // if emit is pending, a non-character token was found: return any chars in buffer, and leave token for next read:
           if (charBuffer.length() > 0) {
               String str = charBuffer.toString();
@@ -119,13 +147,13 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
               return emitPending;
           }
       }
-  
+
       void emit(Token token) {
           Validate.isFalse(isEmitPending, "There is an unread token pending!");
-  
+
           emitPending = token;
           isEmitPending = true;
-  
+
           if (token.type == Token.TokenType.StartTag) {
               Token.StartTag startTag = (Token.StartTag) token;
               lastStartTag = startTag;
@@ -137,17 +165,17 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                   error("Attributes incorrectly present on end tag");
           }
       }
-  
+
       void emit(String str) {
           // buffer strings up until last string token found, to emit only one token for a run of character refs etc.
           // does not set isEmitPending; read checks that
           charBuffer.append(str);
       }
-  
+
       void emit(char c) {
           charBuffer.append(c);
       }
-  
+
       TokeniserState getState() {
           return state;
       }`,
@@ -208,7 +236,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
             assertEquals("?foo=bar&mid&lt=true", els.first().attr("href"));
             assertEquals("?foo=bar<qux&lg=1", els.last().attr("href"));
         }
-    
+
         @Test public void moreAttributeUnescapes() {
             String html = "<a href='&wr_id=123&mid-size=true&ok=&wr'>Check</a>";
             Elements els = Jsoup.parse(html).select("a");
@@ -267,7 +295,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
             assertEquals("?foo=bar∣&lt=true", els.first().attr("href")); // &mid gets to ∣ because not tailed by =; lt is so not unescaped
             assertEquals("?foo=bar<qux&lg=1", els.last().attr("href"));
         }
-    
+
         @Test public void moreAttributeUnescapes() {
             String html = "<a href='&wr_id=123&mid-size=true&ok=&wr'>Check</a>";
             Elements els = Jsoup.parse(html).select("a");
@@ -281,17 +309,19 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
     repoUuid: string;
     bugId: string;
     filename: string;
+    newPath: string;
+    oldPath: string;
   }) => {
     if (params.commit === 'BFC') {
       return (
         queryRegressionCode({
           regression_uuid: HISTORY_SEARCH.regressionUuid,
-          filename: 'AttributeParseTest.java',
+          filename: params.filename,
           userToken: '123',
-          old_path: 'src/test/java/org/jsoup/parser/AttributeParseTest.java',
-          new_path: 'src/test/java/org/jsoup/parser/AttributeParseTest.java',
+          new_path: params.newPath,
+          old_path: params.oldPath,
           revisionFlag: 'bfc',
-        }) ?? bfcFile
+        }) ?? bicFile
       );
       // return bicFile;
     }
@@ -299,28 +329,144 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
       return (
         queryRegressionCode({
           regression_uuid: HISTORY_SEARCH.regressionUuid,
-          filename: 'Tokeniser.java',
+          filename: params.filename,
           userToken: '123',
-          old_path: '/dev/null',
-          new_path: 'src/main/java/org/jsoup/parser/Tokeniser.java',
+          new_path: params.newPath,
+          old_path: params.oldPath,
           revisionFlag: 'bic',
-        }) ?? bicFile
+        }) ?? bfcFile
         // return bfcFile;
       );
     }
     return {};
   };
 
+  const getConsoleResult = async (params: {
+    regression_uuid: string;
+    revisionFlag: string; // work | bic | buggy | bfc
+    userToken: string;
+  }) => {
+    if (params.revisionFlag === 'work') {
+      const path = await getRegressionPath({
+        regression_uuid: params.regression_uuid,
+        revisionFlag: params.revisionFlag,
+        userToken: '123',
+      }).then((resp) => {
+        if (resp !== null && resp !== undefined) {
+          return resp;
+        } else {
+          return null;
+        }
+      });
+      if (path !== null && path !== undefined) {
+        const result = await intervalLoop(path);
+        if (result !== undefined) {
+          return result;
+        } else {
+          return undefined;
+        }
+      }
+    }
+
+    if (params.revisionFlag === 'bug introduce') {
+      const path = await getRegressionPath({
+        regression_uuid: params.regression_uuid,
+        revisionFlag: 'bic',
+        userToken: '123',
+      }).then((resp) => {
+        if (resp !== null && resp !== undefined) {
+          return resp;
+        } else {
+          return null;
+        }
+      });
+      if (path !== null && path !== undefined) {
+        const result = await intervalLoop(path);
+        if (result !== undefined) {
+          return result;
+        } else {
+          return undefined;
+        }
+      }
+    }
+
+    if (params.revisionFlag === 'buggy') {
+      const path = await getRegressionPath({
+        regression_uuid: params.regression_uuid,
+        revisionFlag: params.revisionFlag,
+        userToken: '123',
+      }).then((resp) => {
+        if (resp !== null && resp !== undefined) {
+          return resp;
+        } else {
+          return null;
+        }
+      });
+      if (path !== null && path !== undefined) {
+        const result = await intervalLoop(path);
+        if (result !== undefined) {
+          return result;
+        } else {
+          return undefined;
+        }
+      }
+    }
+
+    if (params.revisionFlag === 'bug fix') {
+      const path = await getRegressionPath({
+        regression_uuid: params.regression_uuid,
+        revisionFlag: 'bfc',
+        userToken: '123',
+      }).then((resp) => {
+        if (resp !== null && resp !== undefined) {
+          return resp;
+        } else {
+          return null;
+        }
+      });
+      if (path !== null && path !== undefined) {
+        const result = await intervalLoop(path);
+        if (result !== undefined) {
+          return result;
+        } else {
+          return undefined;
+        }
+      }
+    }
+  };
+
+  // 计时器
+  // function wait(ms: number) {
+  //   return new Promise((resolve) => {
+  //     setTimeout(() => {
+  //       resolve(true);
+  //     }, ms);
+  //   });
+  // }
+
+  // 假轮询
+  async function intervalLoop(path: string) {
+    while (isRunning) {
+      const data = await getRegressionConsole({ path: path }).then((resp) => resp);
+      if (data && data?.search('REGMINER-TEST-END') !== -1) {
+        setIsRunning(false);
+        return data;
+      }
+    }
+  }
+
   const handleMenuClick = useCallback(
-    ({ keyPath }) => {
-      const [key, commit] = keyPath;
-      const [_, filename] = key.split(`${commit}-`);
-      console.log(key, commit, filename);
+    (commit, filename, oldPath, newPath) => {
+      const key = `${commit}-${filename}`;
+      // const [key, commit] = keyPath;
+      // const [_, filename] = key.split(`${commit}-`);
       getFile({
-        commit,
+        commit: commit,
         repoUuid: '',
         bugId: '',
-        filename,
+        filename: filename,
+        newPath: newPath,
+        oldPath: oldPath,
       })
         .then((resp: any) => {
           if (commit === 'BIC') setPanesBIC(panesBIC.concat({ ...resp, key }));
@@ -331,14 +477,66 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
           if (commit === 'BFC') setActiveBFCKey(key);
         });
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [panesBFC, panesBIC],
   );
-  const [testTabKey, setTestTabKey] = useState('testcase');
+
+  const handleBICRunClick = useCallback(
+    async (content, version) => {
+      const result = await getConsoleResult({
+        regression_uuid: HISTORY_SEARCH.regressionUuid,
+        revisionFlag: version,
+        userToken: '123',
+      }).then((resp) => {
+        if (resp) {
+          console.log(resp + ' after function');
+          return resp;
+        } else {
+          return `
+          -------------------------------------------------------
+          F A I L E D   T O   R U N
+          P L E A S E   T R Y   A G A I N
+          -------------------------------------------------------
+          `;
+        }
+      });
+      return result;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  const handleBFCRunClick = useCallback(
+    async (content, version) => {
+      const result = await getConsoleResult({
+        regression_uuid: HISTORY_SEARCH.regressionUuid,
+        revisionFlag: version,
+        userToken: '123',
+      }).then((resp) => {
+        if (resp) {
+          console.log(resp + ' after function');
+          return resp;
+        } else {
+          return `
+        -------------------------------------------------------
+        F A I L E D   T O   R U N
+        P L E A S E   T R Y   A G A I N
+        -------------------------------------------------------
+        `;
+        }
+      });
+      return result;
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
   const onTestTabChange = (key: React.SetStateAction<string>) => {
     setTestTabKey(key);
   };
 
   useEffect(() => {
+    regressionCheckout({ regression_uuid: HISTORY_SEARCH.regressionUuid, userToken: '123' });
     queryRegressionDetail({ regression_uuid: HISTORY_SEARCH.regressionUuid }).then((data) => {
       if (data !== null && data !== undefined) {
         setListBFC(data.bfcChangedFiles);
@@ -350,13 +548,27 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
     });
   }, [HISTORY_SEARCH.regressionUuid]);
 
+  // useInterval(
+  //   () => {
+  //     setCounter(counter + 1);
+  //     console.log('current: ' + counter);
+  //     // counter === 0 时，会执行一边
+  //     if (counter === 5) {
+  //       setIsRunning(false);
+  //     }
+  //   },
+  //   isRunning ? timer : null,
+  // );
+
   return (
     <>
       <PageContainer
         fixedHeader
         header={{
           title: 'Regression verfication',
-          subTitle: <Typography.Text>{HISTORY_SEARCH.regressionUuid}</Typography.Text>,
+          subTitle: (
+            <Typography.Text>Regression UUID: {HISTORY_SEARCH.regressionUuid}</Typography.Text>
+          ),
           footer: (
             <div style={{ display: 'inline-flex', alignItems: 'center' }}>
               <Descriptions column={3} style={{ flex: 1 }}>
@@ -365,26 +577,26 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                     {projectFullName}
                   </Typography.Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="BIC">
+                <Descriptions.Item label="Bug Inducing Commit">
                   <div>
                     <Typography.Text keyboard strong>
                       {BIC}
                     </Typography.Text>
                     <br />
-                    <Typography.Text type="secondary" strong>
+                    {/* <Typography.Text type="secondary" strong>
                       2 Jul 2011
-                    </Typography.Text>
+                    </Typography.Text> */}
                   </div>
                 </Descriptions.Item>
-                <Descriptions.Item label="BFC">
+                <Descriptions.Item label="Bug Fixing Commit">
                   <div>
                     <Typography.Text keyboard strong>
                       {BFC}
                     </Typography.Text>
                     <br />
-                    <Typography.Text type="secondary" strong>
+                    {/* <Typography.Text type="secondary" strong>
                       24 Sep 2012
-                    </Typography.Text>
+                    </Typography.Text> */}
                   </div>
                 </Descriptions.Item>
               </Descriptions>
@@ -414,13 +626,13 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
             <Card title="Changed files" bordered={false} bodyStyle={{ padding: 0 }}>
               <Menu
                 title="菜单"
-                onClick={handleMenuClick}
+                // onClick={handleMenuClick}
                 style={{ width: 256, maxHeight: '60vh', overflow: 'auto' }}
                 defaultOpenKeys={['BIC', 'BFC']}
                 mode="inline"
               >
-                <SubMenu key="BIC" icon={<AppstoreOutlined />} title="bic">
-                  {listBIC.map(({ filename, matchStatus }) => {
+                <SubMenu key="BIC" icon={<AppstoreOutlined />} title="BIC">
+                  {listBIC.map(({ filename, matchStatus, oldPath, newPath }) => {
                     let tag: any;
                     let mark: any;
                     if (matchStatus === true) {
@@ -439,7 +651,10 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                       tag = <Tag color="green">test</Tag>;
                     }
                     return (
-                      <Menu.Item key={`BIC-${filename}`}>
+                      <Menu.Item
+                        key={`BIC-${filename}`}
+                        onClick={() => handleMenuClick('BIC', filename, oldPath, newPath)}
+                      >
                         {tag}
                         {/* <Text style={{wordSpacing: "20px"}}>{filename}</Text> */}
                         {filename}
@@ -448,8 +663,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                     );
                   })}
                 </SubMenu>
-                <SubMenu key="BFC" icon={<AppstoreOutlined />} title="bfc">
-                  {listBFC.map(({ filename, matchStatus }) => {
+                <SubMenu key="BFC" icon={<AppstoreOutlined />} title="BFC">
+                  {listBFC.map(({ filename, matchStatus, oldPath, newPath }) => {
                     let tag: any;
                     let mark: any;
                     if (matchStatus === true) {
@@ -468,7 +683,10 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                       tag = <Tag color="green">test</Tag>;
                     }
                     return (
-                      <Menu.Item key={`BFC-${filename}`}>
+                      <Menu.Item
+                        key={`BFC-${filename}`}
+                        onClick={() => handleMenuClick('BFC', filename, oldPath, newPath)}
+                      >
                         {tag}
                         {filename}
                         {mark}
@@ -488,74 +706,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
               onPanesChange={setPanesBIC}
               oldVersionText="work"
               newVersionText="bug introduce"
-              onRunCode={() => {
-                return `
--------------------------------------------------------
- T E S T S
--------------------------------------------------------
-Running org.jsoup.parser.AttributeParseTest
-Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.104 sec <<< FAILURE!
-strictAttributeUnescapes(org.jsoup.parser.AttributeParseTest)  Time elapsed: 0.065 sec  <<< FAILURE!
-org.junit.ComparisonFailure: expected:<?foo=bar[&mid]&lt=true> but was:<?foo=bar[▒O]&lt=true>
-        at org.junit.Assert.assertEquals(Assert.java:123)
-        at org.junit.Assert.assertEquals(Assert.java:145)
-        at org.jsoup.parser.AttributeParseTest.strictAttributeUnescapes(AttributeParseTest.java:60)
-        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-        at java.lang.reflect.Method.invoke(Method.java:498)
-        at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:44)
-        at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)
-        at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:41)
-        at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)
-        at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:28)
-        at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:31)
-        at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:73)
-        at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:46)
-        at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:180)
-        at org.junit.runners.ParentRunner.access$000(ParentRunner.java:41)
-        at org.junit.runners.ParentRunner$1.evaluate(ParentRunner.java:173)
-        at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:28)
-        at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:31)
-        at org.junit.runners.ParentRunner.run(ParentRunner.java:220)
-        at org.apache.maven.surefire.junit4.JUnit4Provider.execute(JUnit4Provider.java:242)
-        at org.apache.maven.surefire.junit4.JUnit4Provider.executeTestSet(JUnit4Provider.java:137)
-        at org.apache.maven.surefire.junit4.JUnit4Provider.invoke(JUnit4Provider.java:112)
-        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-        at java.lang.reflect.Method.invoke(Method.java:498)
-        at org.apache.maven.surefire.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:189)
-        at org.apache.maven.surefire.booter.ProviderFactory$ProviderProxy.invoke(ProviderFactory.java:165)
-        at org.apache.maven.surefire.booter.ProviderFactory.invokeProvider(ProviderFactory.java:85)
-        at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:115)
-        at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:75)
-
-
-Results :
-
-Failed tests:   strictAttributeUnescapes(org.jsoup.parser.AttributeParseTest): expected:<?foo=bar[&mid]&lt=true> but was:<?foo=bar[▒O]&lt=true>
-
-Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
-
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD FAILURE
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  2.824 s
-[INFO] Finished at: 2022-01-18T16:09:04+08:00
-[INFO] ------------------------------------------------------------------------
-[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:2.12.4:test (default-test) on project jsoup: There are test failures.
-[ERROR]
-[ERROR] Please refer to E:\reg\tmp\a3ec0\bic\target\surefire-reports for the individual test results.
-[ERROR] -> [Help 1]
-[ERROR]
-[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
-[ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR]
-[ERROR] For more information about the errors and possible solutions, please read the following articles:
-[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
-             `;
-              }}
+              onRunCode={handleBICRunClick}
             />
           )}
           {activeBFCKey !== undefined && activeBFCKey !== '' && (
@@ -567,75 +718,7 @@ Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
               onPanesChange={setPanesBFC}
               oldVersionText="buggy"
               newVersionText="bug fix"
-              onRunCode={() => {
-                return `
--------------------------------------------------------
- T E S T S
--------------------------------------------------------
-Running org.jsoup.parser.AttributeParseTest
-Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.161 sec <<< FAILURE!
-strictAttributeUnescapes(org.jsoup.parser.AttributeParseTest)  Time elapsed: 0.1 sec  <<< FAILURE!
-org.junit.ComparisonFailure: expected:<?foo=bar[&mid]&lt=true> but was:<?foo=bar[▒O]&lt=true>
-        at org.junit.Assert.assertEquals(Assert.java:123)
-        at org.junit.Assert.assertEquals(Assert.java:145)
-        at org.jsoup.parser.AttributeParseTest.strictAttributeUnescapes(AttributeParseTest.java:60)
-        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-        at java.lang.reflect.Method.invoke(Method.java:498)
-        at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:44)
-        at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:15)
-        at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:41)
-        at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:20)
-        at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:28)
-        at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:31)
-        at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:73)
-        at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:46)
-        at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:180)
-        at org.junit.runners.ParentRunner.access$000(ParentRunner.java:41)
-        at org.junit.runners.ParentRunner$1.evaluate(ParentRunner.java:173)
-        at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:28)
-        at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:31)
-        at org.junit.runners.ParentRunner.run(ParentRunner.java:220)
-        at org.apache.maven.surefire.junit4.JUnit4Provider.execute(JUnit4Provider.java:242)
-        at org.apache.maven.surefire.junit4.JUnit4Provider.executeTestSet(JUnit4Provider.java:137)
-        at org.apache.maven.surefire.junit4.JUnit4Provider.invoke(JUnit4Provider.java:112)
-        at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-        at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-        at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-        at java.lang.reflect.Method.invoke(Method.java:498)
-        at org.apache.maven.surefire.util.ReflectionUtils.invokeMethodWithArray(ReflectionUtils.java:189)
-        at org.apache.maven.surefire.booter.ProviderFactory$ProviderProxy.invoke(ProviderFactory.java:165)
-        at org.apache.maven.surefire.booter.ProviderFactory.invokeProvider(ProviderFactory.java:85)
-        at org.apache.maven.surefire.booter.ForkedBooter.runSuitesInProcess(ForkedBooter.java:115)
-        at org.apache.maven.surefire.booter.ForkedBooter.main(ForkedBooter.java:75)
-
-
-Results :
-
-Failed tests:   strictAttributeUnescapes(org.jsoup.parser.AttributeParseTest): expected:<?foo=bar[&mid]&lt=true> but was:<?foo=bar[▒O]&lt=true>
-
-Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
-
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD FAILURE
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  5.367 s
-[INFO] Finished at: 2022-01-18T16:13:16+08:00
-[INFO] ------------------------------------------------------------------------
-[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:2.12.4:test (default-test) on project jsoup: There are test failures.
-[ERROR]
-[ERROR] Please refer to E:\reg\tmp\a3ec0\buggy\target\surefire-reports for the individual test results.
-[ERROR] -> [Help 1]
-[ERROR]
-[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
-[ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR]
-[ERROR] For more information about the errors and possible solutions, please read the following articles:
-[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
-
-              `;
-              }}
+              onRunCode={handleBFCRunClick}
             />
           )}
         </div>

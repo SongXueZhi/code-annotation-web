@@ -34,7 +34,7 @@ declare namespace API {
     // phone?: string;
   };
 
-  type LoginResult = UserItem;
+  type LoginResult = AccountItem;
 
   type AccountItem = {
     uuid: string;

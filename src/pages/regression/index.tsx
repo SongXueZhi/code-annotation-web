@@ -8,9 +8,7 @@ import CreateForm from './components/CreateForm';
 import { queryRegressionList, addRegression, removeRegression } from './service';
 import { Link } from 'react-router-dom';
 import { stringify } from 'query-string';
-// import { Select } from 'antd';
-
-// const { Option } = Select;
+import { useIntl } from 'umi';
 
 /**
  * 添加节点
@@ -83,6 +81,7 @@ function withSkeleton(element: JSX.Element | string | number | number | undefine
 }
 
 const TableList: React.FC<{}> = () => {
+  const intl = useIntl();
   const [createModalVisible, handleModalVisible] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
   const columns: ProColumns<API.RegressionItem>[] = [
@@ -103,7 +102,7 @@ const TableList: React.FC<{}> = () => {
                 pathname: '/editor',
                 search: stringify({
                   regressionUuid,
-                })
+                }),
               }}
             >
               {regressionUuid}
@@ -118,9 +117,12 @@ const TableList: React.FC<{}> = () => {
       // tip: '设备ID',
     },
     {
-      title: 'project name',
+      title: intl.formatMessage({
+        id: 'pages.searchTable.projectTable',
+        // defaultMessage: '',
+      }),
       dataIndex: 'projectFullName',
-      sorter: true,
+      // sorter: true,
       // hideInForm: true,
       renderText: (val: string) => `${val} `,
       tip: '所属项目名称',
@@ -136,9 +138,25 @@ const TableList: React.FC<{}> = () => {
     //   },
     // },
     {
+      title: 'bic',
+      dataIndex: 'bic',
+      // sorter: true,
+      tip: 'bug inducing commit',
+      ellipsis: true,
+      hideInSearch: true,
+    },
+    {
+      title: 'work',
+      dataIndex: 'work',
+      // sorter: true,
+      tip: 'a random working commit',
+      ellipsis: true,
+      hideInSearch: true,
+    },
+    {
       title: 'bfc',
       dataIndex: 'bfc',
-      sorter: true,
+      // sorter: true,
       // hideInForm: true,
       //  renderText: (val: string) => `${val} `,
       tip: 'bug fixing commit',
@@ -149,27 +167,12 @@ const TableList: React.FC<{}> = () => {
     {
       title: 'buggy commit',
       dataIndex: 'buggy',
-      sorter: true,
+      // sorter: true,
       tip: 'the parent of bug fixing commit',
       ellipsis: true,
       hideInSearch: true,
     },
-    {
-      title: 'bic',
-      dataIndex: 'bic',
-      sorter: true,
-      tip: 'bug inducing commit',
-      ellipsis: true,
-      hideInSearch: true,
-    },
-    {
-      title: 'work',
-      dataIndex: 'work',
-      sorter: true,
-      tip: 'a random working commit',
-      ellipsis: true,
-      hideInSearch: true,
-    },
+
     // {
     //   title: 'bug id',
     //   dataIndex: 'bugId',

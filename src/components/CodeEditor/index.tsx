@@ -21,9 +21,10 @@ interface IProps {
   depandencies?: Depandency[];
   original?: string;
   value?: string;
-  onRunCode?: (code: string) => string;
+  onRunCode?: (code: string, version: string) => Promise<string>;
 }
 interface IState {
+  isRunning: boolean;
   showConsole: boolean;
   version: 'left' | 'right';
   console?: string;
@@ -61,6 +62,7 @@ class CodeEditor extends React.Component<IProps, IState> {
   constructor(props: IProps) {
     super(props);
     this.state = {
+      isRunning: false,
       showConsole: false,
       version: 'left',
       console: '',
@@ -89,14 +91,21 @@ class CodeEditor extends React.Component<IProps, IState> {
       version: target.value as 'left' | 'right',
     });
   };
-  private handleRunClick = () => {
+  private handleRunClick = async () => {
+    this.setState({
+      isRunning: !this.state.isRunning,
+    });
     let content: string | undefined = (
       this.state.version === 'left'
         ? this.editorRef.current?.editor?.getOriginalEditor()
         : this.editorRef.current?.editor?.getModifiedEditor()
     )?.getValue();
+    const version =
+      this.state.version === 'left'
+        ? this.props.oldVersionText ?? 'left'
+        : this.props.newVersionText ?? 'right';
     if (typeof content === 'undefined') content = '';
-    const output = this.props.onRunCode?.call(this, content);
+    const output = await this.props.onRunCode?.call(this, content, version);
     this.setState(
       {
         console: output,
@@ -116,11 +125,14 @@ class CodeEditor extends React.Component<IProps, IState> {
     if (this.state.showConsole) nextH = height + consoleHeight - REVEAL_CONSOLE_HEIHGT;
     // true => false
     else nextH = height - consoleHeight + REVEAL_CONSOLE_HEIHGT; // false => true
-    this.setState({ showConsole: !this.state.showConsole, monacoSize: { width, height: nextH } });
+    this.setState({
+      showConsole: !this.state.showConsole,
+      monacoSize: { width, height: nextH },
+    });
   };
   render() {
     const { darkTheme, original, value, title, extra, oldVersionText, newVersionText } = this.props;
-    const { showConsole, version, console } = this.state;
+    const { isRunning, showConsole, version, console } = this.state;
     const { width, height } = this.state.monacoSize;
     const logs = <pre className="log output">{console}</pre>;
     return (
@@ -133,21 +145,23 @@ class CodeEditor extends React.Component<IProps, IState> {
             <div className="project-title">
               <EllipsisMiddle suffixCount={12}>{title}</EllipsisMiddle>
             </div>
-            <div>
+            <div className="run-button" style={{ border: 'solid', borderColor: 'green' }}>
               {extra}
-              <Radio.Group value={version} onChange={this.handleVersionChange}>
-                <Radio value="left">{oldVersionText ?? '左'}</Radio>
-                <Radio value="right">{newVersionText ?? '右'}</Radio>
-              </Radio.Group>
               <Button
                 id="run-code-btn"
                 data-imitate
-                style={{ height: '30px' }}
-                icon="play"
-                text="Run"
+                style={{ height: '30px', marginRight: '10px' }}
                 intent="success"
+                icon="play"
                 onClick={this.handleRunClick}
-              />
+                loading={isRunning}
+              >
+                Run migrate with
+              </Button>
+              <Radio.Group value={version} buttonStyle="solid" onChange={this.handleVersionChange}>
+                <Radio value="left">{oldVersionText ?? 'left'}</Radio>
+                <Radio value="right">{newVersionText ?? 'right'}</Radio>
+              </Radio.Group>
             </div>
           </div>
           <div className="EditorView">
