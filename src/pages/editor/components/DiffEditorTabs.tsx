@@ -16,7 +16,7 @@ interface IProps {
   activeKey: string;
   onPanesChange: (panes: FilePaneItem[]) => void;
   onActiveKey: (v: string) => void;
-  onRunCode?: (v: string, version: string) => string;
+  onRunCode?: (v: string, version: string) => Promise<string>;
 }
 
 const DiffEditorTabs: React.FC<IProps> = ({
@@ -72,7 +72,6 @@ const DiffEditorTabs: React.FC<IProps> = ({
       hideAdd
     >
       {panes.map(({ key, oldCode, newCode }) => {
-        console.log(key);
         return (
           <Tabs.TabPane tab={key.split(`${commit}-`)} key={key}>
             <div style={{ width: '100%', height: '86vh', display: 'flex' }}>

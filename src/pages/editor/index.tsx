@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
 import { Card, Descriptions, Menu, Radio, Tag, Typography } from 'antd';
 import { AppstoreOutlined } from '@ant-design/icons';
@@ -59,12 +59,30 @@ export interface FilePaneItem extends CommitFile {
 //   }
 // }
 
+// // 轮询函数
+// function useInterval(callback: any, delay: number | null | undefined) {
+//   // useEffect(() => {
+//   savedCallback.current = callback;
+//   // });
+//   // useEffect(() => {
+//   function tick() {
+//     savedCallback.current();
+//   }
+//   if (delay !== null) {
+//     const id = setInterval(tick, delay);
+//     return () => clearInterval(id);
+//   }
+//   console.log('end: ' + counter);
+//   // }, [delay]);
+// }
+
 const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   const HISTORY_SEARCH = parse(location.search) as unknown as IHistorySearch;
+  // const savedCallback = useRef<any>();
   const [activeBICKey, setActiveBICKey] = useState<string>();
   const [activeBFCKey, setActiveBFCKey] = useState<string>();
-  const [BICConsoleResult, setBICConsoleResult] = useState<string>();
-  const [BFCConsoleResult, setBFCConsoleResult] = useState<string>();
+  // const [BICConsoleResult, setBICConsoleResult] = useState<string>();
+  // const [BFCConsoleResult, setBFCConsoleResult] = useState<string>();
   const [testTabKey, setTestTabKey] = useState('testcase');
   const [panesBIC, setPanesBIC] = useState<FilePaneItem[]>([]);
   const [panesBFC, setPanesBFC] = useState<FilePaneItem[]>([]);
@@ -73,6 +91,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   const [projectFullName, setProjectFullName] = useState<string>();
   const [BIC, setBIC] = useState<string>();
   const [BFC, setBFC] = useState<string>();
+  const [isRunning, setIsRunning] = useState<boolean>(true);
 
   const bicFile: CommitFile = {
     newPath: 'src/main/java/org/jsoup/parser/Tokeniser.java',
@@ -340,11 +359,12 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         }
       });
       if (path !== null && path !== undefined) {
-        getRegressionConsole({ path: path }).then((resp) => {
-          if (resp) {
-            setBICConsoleResult(resp);
-          }
-        });
+        const result = await intervalLoop(path);
+        if (result !== undefined) {
+          return result;
+        } else {
+          return undefined;
+        }
       }
     }
 
@@ -361,11 +381,12 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         }
       });
       if (path !== null && path !== undefined) {
-        getRegressionConsole({ path: path }).then((resp) => {
-          if (resp) {
-            setBICConsoleResult(resp);
-          }
-        });
+        const result = await intervalLoop(path);
+        if (result !== undefined) {
+          return result;
+        } else {
+          return undefined;
+        }
       }
     }
 
@@ -382,11 +403,12 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         }
       });
       if (path !== null && path !== undefined) {
-        getRegressionConsole({ path: path }).then((resp) => {
-          if (resp) {
-            setBFCConsoleResult(resp);
-          }
-        });
+        const result = await intervalLoop(path);
+        if (result !== undefined) {
+          return result;
+        } else {
+          return undefined;
+        }
       }
     }
 
@@ -403,18 +425,38 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         }
       });
       if (path !== null && path !== undefined) {
-        getRegressionConsole({ path: path }).then((resp) => {
-          if (resp) {
-            setBFCConsoleResult(resp);
-          }
-        });
+        const result = await intervalLoop(path);
+        if (result !== undefined) {
+          return result;
+        } else {
+          return undefined;
+        }
       }
     }
   };
 
+  // 计时器
+  // function wait(ms: number) {
+  //   return new Promise((resolve) => {
+  //     setTimeout(() => {
+  //       resolve(true);
+  //     }, ms);
+  //   });
+  // }
+
+  // 假轮询
+  async function intervalLoop(path: string) {
+    while (isRunning) {
+      const data = await getRegressionConsole({ path: path }).then((resp) => resp);
+      if (data && data?.search('REGMINER-TEST-END') !== -1) {
+        setIsRunning(false);
+        return data;
+      }
+    }
+  }
+
   const handleMenuClick = useCallback(
     (commit, filename, oldPath, newPath) => {
-      // console.log(commit, filename, oldPath, newPath);
       const key = `${commit}-${filename}`;
       // const [key, commit] = keyPath;
       // const [_, filename] = key.split(`${commit}-`);
@@ -440,43 +482,53 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   );
 
   const handleBICRunClick = useCallback(
-    (content, version) => {
-      getConsoleResult({
+    async (content, version) => {
+      const result = await getConsoleResult({
         regression_uuid: HISTORY_SEARCH.regressionUuid,
         revisionFlag: version,
         userToken: '123',
+      }).then((resp) => {
+        if (resp) {
+          console.log(resp + ' after function');
+          return resp;
+        } else {
+          return `
+          -------------------------------------------------------
+          F A I L E D   T O   R U N
+          P L E A S E   T R Y   A G A I N
+          -------------------------------------------------------
+          `;
+        }
       });
-      return (
-        BICConsoleResult ??
-        `
-      -------------------------------------------------------
-      R U N N I N G
-      -------------------------------------------------------
-      `
-      );
+      return result;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [BICConsoleResult],
+    [],
   );
 
   const handleBFCRunClick = useCallback(
-    (content, version) => {
-      getConsoleResult({
+    async (content, version) => {
+      const result = await getConsoleResult({
         regression_uuid: HISTORY_SEARCH.regressionUuid,
         revisionFlag: version,
         userToken: '123',
+      }).then((resp) => {
+        if (resp) {
+          console.log(resp + ' after function');
+          return resp;
+        } else {
+          return `
+        -------------------------------------------------------
+        F A I L E D   T O   R U N
+        P L E A S E   T R Y   A G A I N
+        -------------------------------------------------------
+        `;
+        }
       });
-      return (
-        BFCConsoleResult ??
-        `
-      -------------------------------------------------------
-      R U N N I N G
-      -------------------------------------------------------
-      `
-      );
+      return result;
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [BFCConsoleResult],
+    [],
   );
 
   const onTestTabChange = (key: React.SetStateAction<string>) => {
@@ -496,13 +548,27 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
     });
   }, [HISTORY_SEARCH.regressionUuid]);
 
+  // useInterval(
+  //   () => {
+  //     setCounter(counter + 1);
+  //     console.log('current: ' + counter);
+  //     // counter === 0 时，会执行一边
+  //     if (counter === 5) {
+  //       setIsRunning(false);
+  //     }
+  //   },
+  //   isRunning ? timer : null,
+  // );
+
   return (
     <>
       <PageContainer
         fixedHeader
         header={{
           title: 'Regression verfication',
-          subTitle: <Typography.Text>{HISTORY_SEARCH.regressionUuid}</Typography.Text>,
+          subTitle: (
+            <Typography.Text>Regression UUID: {HISTORY_SEARCH.regressionUuid}</Typography.Text>
+          ),
           footer: (
             <div style={{ display: 'inline-flex', alignItems: 'center' }}>
               <Descriptions column={3} style={{ flex: 1 }}>
