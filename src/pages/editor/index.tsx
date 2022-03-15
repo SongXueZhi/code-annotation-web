@@ -81,8 +81,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   // const savedCallback = useRef<any>();
   const [activeBICKey, setActiveBICKey] = useState<string>();
   const [activeBFCKey, setActiveBFCKey] = useState<string>();
-  // const [BICConsoleResult, setBICConsoleResult] = useState<string>();
-  // const [BFCConsoleResult, setBFCConsoleResult] = useState<string>();
+  const [BICConsoleResult, setBICConsoleResult] = useState<string>();
+  const [BFCConsoleResult, setBFCConsoleResult] = useState<string>();
   const [testTabKey, setTestTabKey] = useState('testcase');
   const [panesBIC, setPanesBIC] = useState<FilePaneItem[]>([]);
   const [panesBFC, setPanesBFC] = useState<FilePaneItem[]>([]);
@@ -91,7 +91,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   const [projectFullName, setProjectFullName] = useState<string>();
   const [BIC, setBIC] = useState<string>();
   const [BFC, setBFC] = useState<string>();
-  const [isRunning, setIsRunning] = useState<boolean>(true);
+  const [BICisRunning, setBICIsRunning] = useState<boolean>(false);
+  const [BFCisRunning, setBFCIsRunning] = useState<boolean>(false);
 
   const bicFile: CommitFile = {
     newPath: 'src/main/java/org/jsoup/parser/Tokeniser.java',
@@ -346,7 +347,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
     revisionFlag: string; // work | bic | buggy | bfc
     userToken: string;
   }) => {
-    if (params.revisionFlag === 'work') {
+    if (params.revisionFlag === 'work' || params.revisionFlag === 'bug introduce') {
       const path = await getRegressionPath({
         regression_uuid: params.regression_uuid,
         revisionFlag: params.revisionFlag,
@@ -359,38 +360,20 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         }
       });
       if (path !== null && path !== undefined) {
-        const result = await intervalLoop(path);
-        if (result !== undefined) {
-          return result;
-        } else {
-          return undefined;
+        setBICIsRunning(true);
+        while (true) {
+          const data = await getRegressionConsole({ path: path });
+          await wait(500);
+          setBICConsoleResult(data ?? '');
+          if (data && data.includes('REGMINER-TEST-END')) {
+            break;
+          }
         }
+        setBICIsRunning(false);
       }
     }
 
-    if (params.revisionFlag === 'bug introduce') {
-      const path = await getRegressionPath({
-        regression_uuid: params.regression_uuid,
-        revisionFlag: 'bic',
-        userToken: '123',
-      }).then((resp) => {
-        if (resp !== null && resp !== undefined) {
-          return resp;
-        } else {
-          return null;
-        }
-      });
-      if (path !== null && path !== undefined) {
-        const result = await intervalLoop(path);
-        if (result !== undefined) {
-          return result;
-        } else {
-          return undefined;
-        }
-      }
-    }
-
-    if (params.revisionFlag === 'buggy') {
+    if (params.revisionFlag === 'buggy' || params.revisionFlag === 'bug fix') {
       const path = await getRegressionPath({
         regression_uuid: params.regression_uuid,
         revisionFlag: params.revisionFlag,
@@ -403,56 +386,28 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         }
       });
       if (path !== null && path !== undefined) {
-        const result = await intervalLoop(path);
-        if (result !== undefined) {
-          return result;
-        } else {
-          return undefined;
+        setBFCIsRunning(true);
+        while (true) {
+          const data = await getRegressionConsole({ path: path });
+          await wait(500);
+          setBFCConsoleResult(data ?? '');
+          if (data && data.includes('REGMINER-TEST-END')) {
+            break;
+          }
         }
-      }
-    }
-
-    if (params.revisionFlag === 'bug fix') {
-      const path = await getRegressionPath({
-        regression_uuid: params.regression_uuid,
-        revisionFlag: 'bfc',
-        userToken: '123',
-      }).then((resp) => {
-        if (resp !== null && resp !== undefined) {
-          return resp;
-        } else {
-          return null;
-        }
-      });
-      if (path !== null && path !== undefined) {
-        const result = await intervalLoop(path);
-        if (result !== undefined) {
-          return result;
-        } else {
-          return undefined;
-        }
+        setBFCIsRunning(false);
       }
     }
   };
 
   // 计时器
-  // function wait(ms: number) {
-  //   return new Promise((resolve) => {
-  //     setTimeout(() => {
-  //       resolve(true);
-  //     }, ms);
-  //   });
-  // }
-
-  // 假轮询
-  async function intervalLoop(path: string) {
-    while (isRunning) {
-      const data = await getRegressionConsole({ path: path }).then((resp) => resp);
-      if (data && data?.search('REGMINER-TEST-END') !== -1) {
-        setIsRunning(false);
-        return data;
-      }
-    }
+  function wait(ms: number) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        console.log('running');
+        resolve(true);
+      }, ms);
+    });
   }
 
   const handleMenuClick = useCallback(
@@ -483,52 +438,28 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
 
   const handleBICRunClick = useCallback(
     async (content, version) => {
-      const result = await getConsoleResult({
+      setBICConsoleResult('');
+      const consoleResult = getConsoleResult({
         regression_uuid: HISTORY_SEARCH.regressionUuid,
         revisionFlag: version,
         userToken: '123',
-      }).then((resp) => {
-        if (resp) {
-          console.log(resp + ' after function');
-          return resp;
-        } else {
-          return `
-          -------------------------------------------------------
-          F A I L E D   T O   R U N
-          P L E A S E   T R Y   A G A I N
-          -------------------------------------------------------
-          `;
-        }
-      });
-      return result;
+      }).then((resp) => resp);
+      return consoleResult;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [getConsoleResult],
   );
 
   const handleBFCRunClick = useCallback(
     async (content, version) => {
-      const result = await getConsoleResult({
+      setBFCConsoleResult('');
+      const consoleResult = getConsoleResult({
         regression_uuid: HISTORY_SEARCH.regressionUuid,
         revisionFlag: version,
         userToken: '123',
-      }).then((resp) => {
-        if (resp) {
-          console.log(resp + ' after function');
-          return resp;
-        } else {
-          return `
-        -------------------------------------------------------
-        F A I L E D   T O   R U N
-        P L E A S E   T R Y   A G A I N
-        -------------------------------------------------------
-        `;
-        }
-      });
-      return result;
+      }).then((resp) => resp);
+      return consoleResult;
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [getConsoleResult],
   );
 
   const onTestTabChange = (key: React.SetStateAction<string>) => {
@@ -547,18 +478,6 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
       }
     });
   }, [HISTORY_SEARCH.regressionUuid]);
-
-  // useInterval(
-  //   () => {
-  //     setCounter(counter + 1);
-  //     console.log('current: ' + counter);
-  //     // counter === 0 时，会执行一边
-  //     if (counter === 5) {
-  //       setIsRunning(false);
-  //     }
-  //   },
-  //   isRunning ? timer : null,
-  // );
 
   return (
     <>
@@ -707,6 +626,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
               oldVersionText="work"
               newVersionText="bug introduce"
               onRunCode={handleBICRunClick}
+              isRunning={BICisRunning}
+              console={BICConsoleResult}
             />
           )}
           {activeBFCKey !== undefined && activeBFCKey !== '' && (
@@ -719,6 +640,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
               oldVersionText="buggy"
               newVersionText="bug fix"
               onRunCode={handleBFCRunClick}
+              isRunning={BFCisRunning}
+              console={BFCConsoleResult}
             />
           )}
         </div>
