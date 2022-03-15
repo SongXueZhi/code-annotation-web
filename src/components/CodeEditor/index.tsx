@@ -21,13 +21,14 @@ interface IProps {
   depandencies?: Depandency[];
   original?: string;
   value?: string;
-  onRunCode?: (code: string, version: string) => Promise<string>;
+  isRunning: boolean;
+  console?: string;
+  onRunCode?: (code: string, version: string) => void;
 }
 interface IState {
-  isRunning: boolean;
   showConsole: boolean;
   version: 'left' | 'right';
-  console?: string;
+  console?: string | null;
   monacoSize: { width: string | number; height: string | number };
 }
 
@@ -62,10 +63,8 @@ class CodeEditor extends React.Component<IProps, IState> {
   constructor(props: IProps) {
     super(props);
     this.state = {
-      isRunning: false,
       showConsole: false,
       version: 'left',
-      console: '',
       monacoSize: { width: 0, height: 0 },
     };
   }
@@ -73,6 +72,7 @@ class CodeEditor extends React.Component<IProps, IState> {
     this.uuid = 'editor' + uuidv4();
     this.editor = this.editorRef.current?.editor;
   }
+
   private handleResizeMonacoEditor = (entries: ResizeEntry[]) => {
     const e = entries[0] as ResizeEntry;
     const width = e.contentRect.width;
@@ -92,9 +92,6 @@ class CodeEditor extends React.Component<IProps, IState> {
     });
   };
   private handleRunClick = async () => {
-    this.setState({
-      isRunning: !this.state.isRunning,
-    });
     let content: string | undefined = (
       this.state.version === 'left'
         ? this.editorRef.current?.editor?.getOriginalEditor()
@@ -105,17 +102,10 @@ class CodeEditor extends React.Component<IProps, IState> {
         ? this.props.oldVersionText ?? 'left'
         : this.props.newVersionText ?? 'right';
     if (typeof content === 'undefined') content = '';
-    const output = await this.props.onRunCode?.call(this, content, version);
-    this.setState(
-      {
-        console: output,
-      },
-      () => {
-        if (!this.state.showConsole) {
-          this.handleShowConsole();
-        }
-      },
-    );
+    this.props.onRunCode?.call(this, content, version);
+    if (!this.state.showConsole) {
+      this.handleShowConsole();
+    }
   };
   private handleShowConsole = () => {
     const width = this.state.monacoSize.width as number;
@@ -131,8 +121,18 @@ class CodeEditor extends React.Component<IProps, IState> {
     });
   };
   render() {
-    const { darkTheme, original, value, title, extra, oldVersionText, newVersionText } = this.props;
-    const { isRunning, showConsole, version, console } = this.state;
+    const {
+      darkTheme,
+      original,
+      value,
+      title,
+      extra,
+      oldVersionText,
+      newVersionText,
+      console,
+      isRunning,
+    } = this.props;
+    const { showConsole, version } = this.state;
     const { width, height } = this.state.monacoSize;
     const logs = <pre className="log output">{console}</pre>;
     return (
@@ -169,7 +169,7 @@ class CodeEditor extends React.Component<IProps, IState> {
               ref={this.editorRef}
               width={width}
               height={height}
-              language="javascript"
+              language={'javascript'}
               theme={darkTheme ? 'vs-dark' : 'vs-light'}
               options={this.options}
               original={original}
@@ -192,7 +192,7 @@ class CodeEditor extends React.Component<IProps, IState> {
                   <Button minimal icon={showConsole ? 'chevron-down' : 'chevron-up'} />
                 </div>
               </div>
-              <div className="Logs auto" style={{ overflow: 'auto' }}>
+              <div id="logsFlow" className="Logs">
                 {logs}
               </div>
             </section>
