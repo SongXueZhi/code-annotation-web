@@ -347,7 +347,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
     revisionFlag: string; // work | bic | buggy | bfc
     userToken: string;
   }) => {
-    if (params.revisionFlag === 'work' || params.revisionFlag === 'bug introduce') {
+    if (params.revisionFlag === 'work') {
       const path = await getRegressionPath({
         regression_uuid: params.regression_uuid,
         revisionFlag: params.revisionFlag,
@@ -372,11 +372,61 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         setBICIsRunning(false);
       }
     }
+    if (params.revisionFlag === 'bug introduce') {
+      const path = await getRegressionPath({
+        regression_uuid: params.regression_uuid,
+        revisionFlag: 'bic',
+        userToken: '123',
+      }).then((resp) => {
+        if (resp !== null && resp !== undefined) {
+          return resp;
+        } else {
+          return null;
+        }
+      });
+      if (path !== null && path !== undefined) {
+        setBICIsRunning(true);
+        while (true) {
+          const data = await getRegressionConsole({ path: path });
+          await wait(500);
+          setBICConsoleResult(data ?? '');
+          if (data && data.includes('REGMINER-TEST-END')) {
+            break;
+          }
+        }
+        setBICIsRunning(false);
+      }
+    }
 
-    if (params.revisionFlag === 'buggy' || params.revisionFlag === 'bug fix') {
+    if (params.revisionFlag === 'buggy') {
       const path = await getRegressionPath({
         regression_uuid: params.regression_uuid,
         revisionFlag: params.revisionFlag,
+        userToken: '123',
+      }).then((resp) => {
+        if (resp !== null && resp !== undefined) {
+          return resp;
+        } else {
+          return null;
+        }
+      });
+      if (path !== null && path !== undefined) {
+        setBFCIsRunning(true);
+        while (true) {
+          const data = await getRegressionConsole({ path: path });
+          await wait(500);
+          setBFCConsoleResult(data ?? '');
+          if (data && data.includes('REGMINER-TEST-END')) {
+            break;
+          }
+        }
+        setBFCIsRunning(false);
+      }
+    }
+    if (params.revisionFlag === 'bug fix') {
+      const path = await getRegressionPath({
+        regression_uuid: params.regression_uuid,
+        revisionFlag: 'bfc',
         userToken: '123',
       }).then((resp) => {
         if (resp !== null && resp !== undefined) {
@@ -446,6 +496,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
       }).then((resp) => resp);
       return consoleResult;
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [getConsoleResult],
   );
 
@@ -459,6 +510,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
       }).then((resp) => resp);
       return consoleResult;
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [getConsoleResult],
   );
 

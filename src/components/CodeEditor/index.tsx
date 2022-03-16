@@ -169,7 +169,7 @@ class CodeEditor extends React.Component<IProps, IState> {
               ref={this.editorRef}
               width={width}
               height={height}
-              language={'javascript'}
+              language={'java'}
               theme={darkTheme ? 'vs-dark' : 'vs-light'}
               options={this.options}
               original={original}
