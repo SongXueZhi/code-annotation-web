@@ -242,6 +242,7 @@ const TableList: React.FC<{}> = () => {
     {
       title: '',
       hideInForm: true,
+      hideInTable: true,
       fixed: 'right',
       render: (_, { regressionUuid: regressionUuid }) => [
         <Divider type="vertical" />,

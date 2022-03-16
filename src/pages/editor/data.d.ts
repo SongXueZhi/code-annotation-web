@@ -1,4 +1,4 @@
-import { List } from "lodash";
+import { List } from 'lodash';
 
 export type TableListItem = {
   key: number;
@@ -31,7 +31,8 @@ export type CommitItem = {
   // testCases: string[];
   newPath: string;
   oldPath: string;
-  matchStatus?: boolean;
+  match?: number;
+  type?: string;
 };
 
 export type RegressionDetail = {
@@ -47,4 +48,4 @@ export type RegressionCode = {
   regressionUuid: string;
   oldCode: string;
   newCode: string;
-}
+};

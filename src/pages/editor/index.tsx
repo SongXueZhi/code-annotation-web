@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Card, Descriptions, Menu, Radio, Tag, Typography } from 'antd';
+import { Card, Descriptions, Menu, Radio, Tag, Tooltip, Typography } from 'antd';
 import { AppstoreOutlined } from '@ant-design/icons';
 import DiffEditorTabs from './components/DiffEditorTabs';
 import type { IRouteComponentProps } from 'umi';
@@ -603,10 +603,11 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 mode="inline"
               >
                 <SubMenu key="BIC" icon={<AppstoreOutlined />} title="BIC">
-                  {listBIC.map(({ filename, matchStatus, oldPath, newPath }) => {
+                  {listBIC.map(({ filename, match, oldPath, newPath, type }) => {
                     let tag: any;
                     let mark: any;
-                    if (matchStatus === true) {
+                    let tip: any;
+                    if (match === 1) {
                       mark = (
                         <Text
                           italic
@@ -621,6 +622,13 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                     if (filename.includes('Test')) {
                       tag = <Tag color="green">test</Tag>;
                     }
+                    if (type !== null && type !== undefined) {
+                      tip = (
+                        <Tooltip overlay placement="topRight">
+                          {type}
+                        </Tooltip>
+                      );
+                    }
                     return (
                       <Menu.Item
                         key={`BIC-${filename}`}
@@ -630,15 +638,17 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                         {/* <Text style={{wordSpacing: "20px"}}>{filename}</Text> */}
                         {filename}
                         {mark}
+                        {tip}
                       </Menu.Item>
                     );
                   })}
                 </SubMenu>
                 <SubMenu key="BFC" icon={<AppstoreOutlined />} title="BFC">
-                  {listBFC.map(({ filename, matchStatus, oldPath, newPath }) => {
+                  {listBFC.map(({ filename, match, oldPath, newPath, type }) => {
                     let tag: any;
                     let mark: any;
-                    if (matchStatus === true) {
+                    let tip: any;
+                    if (match === 1) {
                       mark = (
                         <Text
                           italic
@@ -648,6 +658,13 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                         >
                           match
                         </Text>
+                      );
+                    }
+                    if (type !== null && type !== undefined) {
+                      tip = (
+                        <Tooltip overlay placement="topRight">
+                          {type}
+                        </Tooltip>
                       );
                     }
                     if (filename.includes('Test')) {
@@ -661,6 +678,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                         {tag}
                         {filename}
                         {mark}
+                        {tip}
                       </Menu.Item>
                     );
                   })}
