@@ -474,12 +474,36 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         oldPath: oldPath,
       })
         .then((resp: any) => {
-          if (commit === 'BIC') setPanesBIC(panesBIC.concat({ ...resp, key }));
-          if (commit === 'BFC') setPanesBFC(panesBFC.concat({ ...resp, key }));
+          if (commit === 'BIC') {
+            if (
+              panesBIC.some((data) => {
+                return data.key === key;
+              })
+            ) {
+              setPanesBIC(panesBIC);
+            } else {
+              setPanesBIC(panesBIC.concat({ ...resp, key }));
+            }
+          }
+          if (commit === 'BFC') {
+            if (
+              panesBFC.some((data) => {
+                return data.key === key;
+              })
+            ) {
+              setPanesBFC(panesBFC);
+            } else {
+              setPanesBFC(panesBFC.concat({ ...resp, key }));
+            }
+          }
         })
         .then(() => {
-          if (commit === 'BIC') setActiveBICKey(key);
-          if (commit === 'BFC') setActiveBFCKey(key);
+          if (commit === 'BIC') {
+            setActiveBICKey(key);
+          }
+          if (commit === 'BFC') {
+            setActiveBFCKey(key);
+          }
         });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -619,15 +643,16 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                         </Text>
                       );
                     }
-                    if (filename.includes('Test')) {
-                      tag = <Tag color="green">test</Tag>;
-                    }
                     if (type !== null && type !== undefined) {
-                      tip = (
-                        <Tooltip overlay placement="topRight">
-                          {type}
-                        </Tooltip>
-                      );
+                      if (type === 'test suite') {
+                        tag = <Tag color="green">test</Tag>;
+                      } else {
+                        tip = (
+                          <Tooltip overlay placement="topRight">
+                            {type}
+                          </Tooltip>
+                        );
+                      }
                     }
                     return (
                       <Menu.Item
@@ -635,7 +660,6 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                         onClick={() => handleMenuClick('BIC', filename, oldPath, newPath)}
                       >
                         {tag}
-                        {/* <Text style={{wordSpacing: "20px"}}>{filename}</Text> */}
                         {filename}
                         {mark}
                         {tip}
@@ -661,14 +685,15 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                       );
                     }
                     if (type !== null && type !== undefined) {
-                      tip = (
-                        <Tooltip overlay placement="topRight">
-                          {type}
-                        </Tooltip>
-                      );
-                    }
-                    if (filename.includes('Test')) {
-                      tag = <Tag color="green">test</Tag>;
+                      if (type === 'test suite') {
+                        tag = <Tag color="green">test</Tag>;
+                      } else {
+                        tip = (
+                          <Tooltip overlay placement="topRight">
+                            {type}
+                          </Tooltip>
+                        );
+                      }
                     }
                     return (
                       <Menu.Item
