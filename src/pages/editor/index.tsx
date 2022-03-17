@@ -22,10 +22,10 @@ const testMethodList = [
     key: 'testcase',
     tab: 'test cases',
   },
-  {
-    key: 'features',
-    tab: 'features',
-  },
+  // {
+  //   key: 'features',
+  //   tab: 'features',
+  // },
 ];
 
 const contentListNoTitle = {
