@@ -22,16 +22,11 @@ const testMethodList = [
     key: 'testcase',
     tab: 'test cases',
   },
-  // {
-  //   key: 'features',
-  //   tab: 'features',
-  // },
+  {
+    key: 'features',
+    tab: 'features',
+  },
 ];
-
-const contentListNoTitle = {
-  testcase: <p>strictAttributeUnescapesTest()</p>,
-  features: <p>strictAttributeUnescapes()</p>,
-};
 
 interface IHistorySearch {
   regressionUuid: string;
@@ -79,11 +74,12 @@ export interface FilePaneItem extends CommitFile {
 const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   const HISTORY_SEARCH = parse(location.search) as unknown as IHistorySearch;
   // const savedCallback = useRef<any>();
+  const [testCaseName, setTestCaseName] = useState<string>();
+  const [testTabKey, setTestTabKey] = useState('testcase');
   const [activeBICKey, setActiveBICKey] = useState<string>();
   const [activeBFCKey, setActiveBFCKey] = useState<string>();
   const [BICConsoleResult, setBICConsoleResult] = useState<string>();
   const [BFCConsoleResult, setBFCConsoleResult] = useState<string>();
-  const [testTabKey, setTestTabKey] = useState('testcase');
   const [panesBIC, setPanesBIC] = useState<FilePaneItem[]>([]);
   const [panesBFC, setPanesBFC] = useState<FilePaneItem[]>([]);
   const [listBIC, setListBIC] = useState<CommitItem[]>([]);
@@ -93,6 +89,11 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   const [BFC, setBFC] = useState<string>();
   const [BICisRunning, setBICIsRunning] = useState<boolean>(false);
   const [BFCisRunning, setBFCIsRunning] = useState<boolean>(false);
+
+  const contentListNoTitle = {
+    testcase: <p style={{ marginRight: 200 }}>{testCaseName}() </p>,
+    features: <p>N.A.</p>,
+  };
 
   const bicFile: CommitFile = {
     newPath: 'src/main/java/org/jsoup/parser/Tokeniser.java',
@@ -551,6 +552,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         setBFC(data.bfc);
         setBIC(data.bic);
         setProjectFullName(data.projectFullName);
+        setTestCaseName(data.testCaseName);
       }
     });
   }, [HISTORY_SEARCH.regressionUuid]);
@@ -608,7 +610,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
           <div>
             <Card
               bordered={false}
-              style={{ marginBottom: 10 }}
+              style={{ marginBottom: 10, width: 256, overflow: 'auto' }}
               tabList={testMethodList}
               activeTabKey={testTabKey}
               onTabChange={(key) => {

@@ -42,6 +42,7 @@ export type RegressionDetail = {
   bic: string;
   bfcChangedFiles: CommitItem[];
   bicChangedFiles: CommitItem[];
+  testCaseName: string;
 };
 
 export type RegressionCode = {
