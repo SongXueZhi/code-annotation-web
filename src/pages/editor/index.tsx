@@ -610,7 +610,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
           <div>
             <Card
               bordered={false}
-              style={{ marginBottom: 10, width: 256, overflow: 'auto' }}
+              style={{ marginBottom: 10, width: 286, overflow: 'auto' }}
               tabList={testMethodList}
               activeTabKey={testTabKey}
               onTabChange={(key) => {
@@ -624,36 +624,29 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
               <Menu
                 title="菜单"
                 // onClick={handleMenuClick}
-                style={{ width: 256, maxHeight: '60vh', overflow: 'auto' }}
+                style={{ width: 286, maxHeight: '60vh', overflow: 'auto' }}
                 defaultOpenKeys={['BIC', 'BFC']}
                 mode="inline"
               >
-                <SubMenu key="BIC" icon={<AppstoreOutlined />} title="BIC">
+                <SubMenu key="BIC" icon={<AppstoreOutlined />} title="Bug Inducing Commit'">
                   {listBIC.map(({ filename, match, oldPath, newPath, type }) => {
-                    let tag: any;
                     let mark: any;
-                    let tip: any;
-                    if (match === 1) {
+                    if (match === 1 && type !== null && type !== undefined) {
                       mark = (
-                        <Text
-                          italic
-                          ellipsis
-                          type="warning"
-                          style={{ fontStyle: 'italic', fontSize: 'smaller' }}
-                        >
-                          match
-                        </Text>
+                        <Tooltip title={'type: ' + type}>
+                          <Tag color="success">check</Tag>
+                        </Tooltip>
                       );
-                    }
-                    if (type !== null && type !== undefined) {
-                      if (type === 'test suite') {
-                        tag = <Tag color="green">test</Tag>;
+                    } else if (match === 1) {
+                      mark = <Tag color="warning">match</Tag>;
+                    } else if (type !== null && type !== undefined) {
+                      if (
+                        type.toLowerCase() === 'test suite' ||
+                        type.toLowerCase() === 'test_suite'
+                      ) {
+                        mark = <Tag color="processing">TEST</Tag>;
                       } else {
-                        tip = (
-                          <Tooltip overlay placement="topRight">
-                            {type}
-                          </Tooltip>
-                        );
+                        mark = <Tag color="processing">{type}</Tag>;
                       }
                     }
                     return (
@@ -661,40 +654,31 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                         key={`BIC-${filename}`}
                         onClick={() => handleMenuClick('BIC', filename, oldPath, newPath)}
                       >
-                        {tag}
-                        {filename}
                         {mark}
-                        {tip}
+                        {filename}
                       </Menu.Item>
                     );
                   })}
                 </SubMenu>
-                <SubMenu key="BFC" icon={<AppstoreOutlined />} title="BFC">
+                <SubMenu key="BFC" icon={<AppstoreOutlined />} title="Bug Fixing Commit">
                   {listBFC.map(({ filename, match, oldPath, newPath, type }) => {
-                    let tag: any;
                     let mark: any;
-                    let tip: any;
-                    if (match === 1) {
+                    if (match === 1 && type !== null && type !== undefined) {
                       mark = (
-                        <Text
-                          italic
-                          ellipsis
-                          type="warning"
-                          style={{ fontStyle: 'italic', fontSize: 'xx-small' }}
-                        >
-                          match
-                        </Text>
+                        <Tooltip title={'type: ' + type}>
+                          <Tag color="success">check</Tag>
+                        </Tooltip>
                       );
-                    }
-                    if (type !== null && type !== undefined) {
-                      if (type === 'test suite') {
-                        tag = <Tag color="green">test</Tag>;
+                    } else if (match === 1) {
+                      mark = <Tag color="warning">match</Tag>;
+                    } else if (type !== null && type !== undefined) {
+                      if (
+                        type.toLowerCase() === 'test suite' ||
+                        type.toLowerCase() === 'test_suite'
+                      ) {
+                        mark = <Tag color="processing">TEST</Tag>;
                       } else {
-                        tip = (
-                          <Tooltip overlay placement="topRight">
-                            {type}
-                          </Tooltip>
-                        );
+                        mark = <Tag color="processing">{type}</Tag>;
                       }
                     }
                     return (
@@ -702,10 +686,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                         key={`BFC-${filename}`}
                         onClick={() => handleMenuClick('BFC', filename, oldPath, newPath)}
                       >
-                        {tag}
-                        {filename}
                         {mark}
-                        {tip}
+                        {filename}
                       </Menu.Item>
                     );
                   })}
