@@ -88,6 +88,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   const [BFC, setBFC] = useState<string>();
   const [BICURL, setBICURL] = useState<string>();
   const [BFCURL, setBFCURL] = useState<string>();
+  const [regressionDescription, setRegressionDescription] = useState<string>();
   const [BICisRunning, setBICIsRunning] = useState<boolean>(false);
   const [BFCisRunning, setBFCIsRunning] = useState<boolean>(false);
 
@@ -349,6 +350,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
             setBICURL(data.bicURL);
             setProjectFullName(data.projectFullName);
             setTestCaseName(data.testCaseName);
+            setRegressionDescription(data.descriptionTxt);
           }
         });
       },
@@ -378,11 +380,11 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                       <Typography.Text keyboard strong style={{ width: 90 }} ellipsis>
                         {BIC}
                       </Typography.Text>
-                      <br />
-                      {/* <Typography.Text type="secondary" strong>
+                    </a>
+                    <br />
+                    {/* <Typography.Text type="secondary" strong>
                       2 Jul 2011
                     </Typography.Text> */}
-                    </a>
                   </div>
                 </Descriptions.Item>
                 <Descriptions.Item label="Bug Fixing Commit">
@@ -391,12 +393,15 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                       <Typography.Text keyboard strong style={{ width: 90 }} ellipsis>
                         {BFC}
                       </Typography.Text>
-                      <br />
-                      {/* <Typography.Text type="secondary" strong>
+                    </a>
+                    <br />
+                    {/* <Typography.Text type="secondary" strong>
                       24 Sep 2012
                     </Typography.Text> */}
-                    </a>
                   </div>
+                </Descriptions.Item>
+                <Descriptions.Item label="Regression description">
+                  <Typography.Text>{regressionDescription}</Typography.Text>
                 </Descriptions.Item>
               </Descriptions>
               <Radio.Group defaultValue="a" buttonStyle="solid">
