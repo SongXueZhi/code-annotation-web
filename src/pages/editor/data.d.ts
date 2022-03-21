@@ -28,7 +28,6 @@ export type TableListData = {
 
 export type CommitItem = {
   filename: string;
-  // testCases: string[];
   newPath: string;
   oldPath: string;
   match?: number;
@@ -40,9 +39,13 @@ export type RegressionDetail = {
   projectFullName?: string;
   bfc: string;
   bic: string;
+  bicURL: string;
+  bfcURL: string;
   bfcChangedFiles: CommitItem[];
   bicChangedFiles: CommitItem[];
   testCaseName: string;
+  testFilePath: string;
+  descriptionTxt: string;
 };
 
 export type RegressionCode = {
