@@ -75,6 +75,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   // const savedCallback = useRef<any>();
   const [testCaseName, setTestCaseName] = useState<string>();
   const [testTabKey, setTestTabKey] = useState('testcase');
+  const [testFilePath, setTestFilePath] = useState<string>();
   const [activeBICKey, setActiveBICKey] = useState<string>();
   const [activeBFCKey, setActiveBFCKey] = useState<string>();
   const [BICConsoleResult, setBICConsoleResult] = useState<string>();
@@ -91,11 +92,6 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   const [regressionDescription, setRegressionDescription] = useState<string>();
   const [BICisRunning, setBICIsRunning] = useState<boolean>(false);
   const [BFCisRunning, setBFCIsRunning] = useState<boolean>(false);
-
-  const contentListNoTitle = {
-    testcase: <p style={{ marginRight: 200 }}>{testCaseName}() </p>,
-    features: <p>N.A.</p>,
-  };
 
   const getFile = async (params: {
     commit: string;
@@ -334,6 +330,42 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
     setTestTabKey(key);
   };
 
+  const handleTestTabClick = () => {
+    if (testFilePath === 'NULL') {
+      return console.log('no URL');
+    } else {
+      const bicTestCaseList = listBIC.filter((data) => {
+        if (data.newPath === testFilePath && data.type === 'TEST_SUITE') {
+          return data;
+        } else {
+          return null;
+        }
+      });
+      const bfcTestCaseList = listBFC.filter((data) => {
+        if (data.newPath === testFilePath && data.type === 'TEST_SUITE') {
+          return data;
+        } else {
+          return null;
+        }
+      });
+      bicTestCaseList.map((resp) => {
+        handleMenuClick('BIC', resp.filename, resp.oldPath, resp.newPath);
+      });
+      bfcTestCaseList.map((resp) => {
+        handleMenuClick('BFC', resp.filename, resp.oldPath, resp.newPath);
+      });
+    }
+  };
+
+  const contentListNoTitle = {
+    testcase: (
+      <Button disabled={testFilePath === 'NULL' ? true : false} onClick={handleTestTabClick}>
+        <Typography.Text strong>{testCaseName}</Typography.Text>
+      </Button>
+    ),
+    features: <Typography.Text strong>N.A.</Typography.Text>,
+  };
+
   useEffect(() => {
     regressionCheckout({ regression_uuid: HISTORY_SEARCH.regressionUuid, userToken: '123' }).then(
       () => {
@@ -350,6 +382,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
             setBICURL(data.bicURL);
             setProjectFullName(data.projectFullName);
             setTestCaseName(data.testCaseName);
+            setTestFilePath(data.testFilePath);
             setRegressionDescription(data.descriptionTxt);
           }
         });
@@ -416,7 +449,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         <div style={{ display: 'flex' }}>
           <div>
             <Card
-              bordered={false}
+              // bordered={false}
               style={{ marginBottom: 10, width: 286, overflow: 'auto' }}
               tabList={testMethodList}
               activeTabKey={testTabKey}
@@ -425,7 +458,6 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
               }}
             >
               {contentListNoTitle[testTabKey]}
-              {/* <Text keyboard >  </Text>  */}
             </Card>
             <Card title="Changed files" bordered={false} bodyStyle={{ padding: 0 }}>
               <Menu
@@ -442,21 +474,21 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                     let mark: any;
                     if (match === 1 && type !== null && type !== undefined) {
                       mark = (
-                        <Tooltip title={'type: ' + type}>
-                          <Tag color="success">check</Tag>
+                        <Tooltip title={'recomend to check'}>
+                          <Tag color="success">Migrate</Tag>
                         </Tooltip>
                       );
-                    } else if (match === 1) {
-                      mark = <Tag color="warning">match</Tag>;
                     } else if (type !== null && type !== undefined) {
                       if (
                         type.toLowerCase() === 'test suite' ||
                         type.toLowerCase() === 'test_suite'
                       ) {
-                        mark = <Tag color="processing">TEST</Tag>;
+                        mark = <Tag color="processing">Migrate</Tag>;
                       } else {
                         mark = <Tag color="processing">{type}</Tag>;
                       }
+                    } else if (match === 1) {
+                      mark = <Tag color="warning">match</Tag>;
                     }
                     return (
                       <Menu.Item
@@ -474,21 +506,21 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                     let mark: any;
                     if (match === 1 && type !== null && type !== undefined) {
                       mark = (
-                        <Tooltip title={'type: ' + type}>
-                          <Tag color="success">check</Tag>
+                        <Tooltip title={'recomend to check'}>
+                          <Tag color="success">Migrate</Tag>
                         </Tooltip>
                       );
-                    } else if (match === 1) {
-                      mark = <Tag color="warning">match</Tag>;
                     } else if (type !== null && type !== undefined) {
                       if (
                         type.toLowerCase() === 'test suite' ||
                         type.toLowerCase() === 'test_suite'
                       ) {
-                        mark = <Tag color="processing">TEST</Tag>;
+                        mark = <Tag color="processing">Migrate</Tag>;
                       } else {
                         mark = <Tag color="processing">{type}</Tag>;
                       }
+                    } else if (match === 1) {
+                      mark = <Tag color="warning">match</Tag>;
                     }
                     return (
                       <Menu.Item
