@@ -2,7 +2,10 @@ import { message } from 'antd';
 import request from 'umi-request';
 import type { RegressionCode, RegressionDetail } from './data';
 
-export async function queryRegressionDetail(params: { regression_uuid: string }) {
+export async function queryRegressionDetail(params: {
+  regression_uuid: string;
+  userToken: string;
+}) {
   const { code, msg, data } = await request<API.RegResponse<RegressionDetail>>(
     '/api/regression/detail',
     {

@@ -544,17 +544,23 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   };
 
   useEffect(() => {
-    regressionCheckout({ regression_uuid: HISTORY_SEARCH.regressionUuid, userToken: '123' });
-    queryRegressionDetail({ regression_uuid: HISTORY_SEARCH.regressionUuid }).then((data) => {
-      if (data !== null && data !== undefined) {
-        setListBFC(data.bfcChangedFiles);
-        setListBIC(data.bicChangedFiles);
-        setBFC(data.bfc);
-        setBIC(data.bic);
-        setProjectFullName(data.projectFullName);
-        setTestCaseName(data.testCaseName);
-      }
-    });
+    regressionCheckout({ regression_uuid: HISTORY_SEARCH.regressionUuid, userToken: '123' }).then(
+      () => {
+        queryRegressionDetail({
+          regression_uuid: HISTORY_SEARCH.regressionUuid,
+          userToken: '123',
+        }).then((data) => {
+          if (data !== null && data !== undefined) {
+            setListBFC(data.bfcChangedFiles);
+            setListBIC(data.bicChangedFiles);
+            setBFC(data.bfc);
+            setBIC(data.bic);
+            setProjectFullName(data.projectFullName);
+            setTestCaseName(data.testCaseName);
+          }
+        });
+      },
+    );
   }, [HISTORY_SEARCH.regressionUuid]);
 
   return (
