@@ -628,6 +628,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 defaultOpenKeys={['BIC', 'BFC']}
                 mode="inline"
               >
+                {/* 优先显示test，在有match时显示check然后tooltip上加‘recomend to check’。
+                （migrate迁移）*/}
                 <SubMenu key="BIC" icon={<AppstoreOutlined />} title="Bug Inducing Commit'">
                   {listBIC.map(({ filename, match, oldPath, newPath, type }) => {
                     let mark: any;

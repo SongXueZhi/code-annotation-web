@@ -9,7 +9,7 @@ const Footer: React.FC = () => {
   // });
 
   const currentYear = new Date().getFullYear();
-  const defaultMessage = 'Richy';
+  const defaultMessage = 'David';
 
   return (
     <DefaultFooter
