@@ -9,6 +9,63 @@ import routes from './routes';
 
 const { REACT_APP_ENV } = process.env;
 
+// module.exports = {
+//   plugins: [
+//     new MonacoWebpackPlugin([
+//       'apex',
+//       'azcli',
+//       'bat',
+//       'clojure',
+//       'coffee',
+//       'cpp',
+//       'csharp',
+//       'csp',
+//       'css',
+//       'dockerfile',
+//       'fsharp',
+//       'go',
+//       'handlebars',
+//       'html',
+//       'ini',
+//       'java',
+//       'javascript',
+//       'json',
+//       'less',
+//       'lua',
+//       'markdown',
+//       'msdax',
+//       'mysql',
+//       'objective',
+//       'perl',
+//       'pgsql',
+//       'php',
+//       'postiats',
+//       'powerquery',
+//       'powershell',
+//       'pug',
+//       'python',
+//       'r',
+//       'razor',
+//       'redis',
+//       'redshift',
+//       'ruby',
+//       'rust',
+//       'sb',
+//       'scheme',
+//       'scss',
+//       'shell',
+//       'solidity',
+//       'sql',
+//       'st',
+//       'swift',
+//       'typescript',
+//       'vb',
+//       'xml',
+//       'yaml',
+//     ]),
+//   ],
+// };
+
 export default defineConfig({
   hash: true,
   antd: {},
@@ -74,9 +131,12 @@ export default defineConfig({
   //   config.plugins.set(
   //     'MonacoWebpackPlugin',
   //     new MonacoWebpackPlugin({
-  //       languages: ['javascript'],
+  //       languages: ['java', 'css', 'javascript', 'cpp', 'go', 'apex', 'python', 'bat'],
   //     }),
   //   );
   // },
+  // plugins: [
+  //   new MonacoWebpackPlugin(['java', 'css', 'javascript', 'cpp', 'go', 'apex', 'python', 'bat']),
+  // ],
   exportStatic: {},
 });

@@ -463,13 +463,13 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
               <Menu
                 title="菜单"
                 // onClick={handleMenuClick}
-                style={{ width: 286, maxHeight: '60vh', overflow: 'auto' }}
+                style={{ width: 286, maxHeight: '70vh', overflow: 'auto' }}
                 defaultOpenKeys={['BIC', 'BFC']}
                 mode="inline"
               >
                 {/* 优先显示test，在有match时显示check然后tooltip上加‘recomend to check’。
                 （migrate迁移）*/}
-                <SubMenu key="BIC" icon={<AppstoreOutlined />} title="Bug Inducing Commit'">
+                <SubMenu key="BIC" icon={<AppstoreOutlined />} title="Bug Inducing Commit">
                   {listBIC.map(({ filename, match, oldPath, newPath, type }) => {
                     let mark: any;
                     if (match === 1 && type !== null && type !== undefined) {
