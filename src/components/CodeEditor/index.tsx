@@ -1,6 +1,6 @@
 import type { RefObject } from 'react';
 import React, { createRef } from 'react';
-import { MonacoDiffEditor } from 'react-monaco-editor';
+import { monaco, MonacoDiffEditor } from 'react-monaco-editor';
 import { v4 as uuidv4 } from 'uuid';
 import type * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
 import type { Directory, Depandency } from './sidebar.d';
@@ -49,7 +49,7 @@ class CodeEditor extends React.Component<IProps, IState> {
     folding: false,
     contextmenu: false,
     fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace',
-    fontSize: 6,
+    fontSize: 14,
     lineHeight: 20,
     extraEditorClassName: 'CodeEditor',
     //+ -指示器
