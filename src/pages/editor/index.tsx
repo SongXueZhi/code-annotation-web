@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Button, Card, Descriptions, Menu, Radio, Tag, Tooltip, Typography } from 'antd';
+import { Button, Card, Descriptions, Menu, Radio, Spin, Tag, Tooltip, Typography } from 'antd';
 import { AppstoreOutlined } from '@ant-design/icons';
 import DiffEditorTabs from './components/DiffEditorTabs';
 import type { IRouteComponentProps } from 'umi';
@@ -73,6 +73,7 @@ export interface FilePaneItem extends CommitFile {
 const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   const HISTORY_SEARCH = parse(location.search) as unknown as IHistorySearch;
   // const savedCallback = useRef<any>();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [testCaseName, setTestCaseName] = useState<string>();
   const [testTabKey, setTestTabKey] = useState('testcase');
   const [testFilePath, setTestFilePath] = useState<string>();
@@ -369,201 +370,209 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   };
 
   useEffect(() => {
-    regressionCheckout({ regression_uuid: HISTORY_SEARCH.regressionUuid, userToken: '123' }).then(
-      () => {
-        queryRegressionDetail({
-          regression_uuid: HISTORY_SEARCH.regressionUuid,
-          userToken: '123',
-        }).then((data) => {
-          if (data !== null && data !== undefined) {
-            setListBFC(data.bfcChangedFiles);
-            setListBIC(data.bicChangedFiles);
-            setBFC(data.bfc);
-            setBIC(data.bic);
-            setBFCURL(data.bfcURL);
-            setBICURL(data.bicURL);
-            setProjectFullName(data.projectFullName);
-            setTestCaseName(data.testCaseName);
-            setTestFilePath(data.testFilePath);
-            setRegressionDescription(data.descriptionTxt);
-          }
-        });
-      },
-    );
+    if (HISTORY_SEARCH.regressionUuid !== undefined && HISTORY_SEARCH.regressionUuid !== null) {
+      regressionCheckout({ regression_uuid: HISTORY_SEARCH.regressionUuid, userToken: '123' }).then(
+        () => {
+          queryRegressionDetail({
+            regression_uuid: HISTORY_SEARCH.regressionUuid,
+            userToken: '123',
+          }).then((data) => {
+            if (data !== null && data !== undefined) {
+              setListBFC(data.bfcChangedFiles);
+              setListBIC(data.bicChangedFiles);
+              setBFC(data.bfc);
+              setBIC(data.bic);
+              setBFCURL(data.bfcURL);
+              setBICURL(data.bicURL);
+              setProjectFullName(data.projectFullName);
+              setTestCaseName(data.testCaseName);
+              setTestFilePath(data.testFilePath);
+              setRegressionDescription(data.descriptionTxt);
+            }
+            setIsLoading(false);
+          });
+        },
+      );
+    }
   }, [HISTORY_SEARCH.regressionUuid]);
 
   return (
     <>
-      <PageContainer
-        fixedHeader
-        header={{
-          title: 'Regression verfication',
-          subTitle: (
-            <Typography.Text>Regression UUID: {HISTORY_SEARCH.regressionUuid}</Typography.Text>
-          ),
-          footer: (
-            <div style={{ display: 'inline-flex', alignItems: 'center' }}>
-              <Descriptions column={3} style={{ flex: 1 }}>
-                <Descriptions.Item label={'Project'} labelStyle={{ fontWeight: 'bold' }}>
-                  <Typography.Text keyboard strong>
-                    {projectFullName}
-                  </Typography.Text>
-                </Descriptions.Item>
-                <Descriptions.Item
-                  label={'Bug Inducing Commit'}
-                  labelStyle={{ fontWeight: 'bold' }}
-                >
-                  <a href={BICURL} target="_blank">
+      <Spin size="large" spinning={isLoading} tip={'Loading...'}>
+        <PageContainer
+          fixedHeader
+          header={{
+            title: 'Regression verfication',
+            subTitle: (
+              <Typography.Text>Regression UUID: {HISTORY_SEARCH.regressionUuid}</Typography.Text>
+            ),
+            footer: (
+              <div style={{ display: 'inline-flex', alignItems: 'center' }}>
+                <Descriptions column={3} style={{ flex: 1 }}>
+                  <Descriptions.Item label={'Project'} labelStyle={{ fontWeight: 'bold' }}>
                     <Typography.Text keyboard strong>
-                      {BIC?.slice(0, 8)}
+                      {projectFullName}
                     </Typography.Text>
-                  </a>
-                  <br />
-                </Descriptions.Item>
-                <Descriptions.Item label={'Bug Fixing Commit'} labelStyle={{ fontWeight: 'bold' }}>
-                  <a href={BFCURL} target="_blank">
-                    <Typography.Text keyboard strong>
-                      {BFC?.slice(0, 8)}
-                    </Typography.Text>
-                  </a>
-                  <br />
-                </Descriptions.Item>
-                <Descriptions.Item
-                  label={'Regression description'}
-                  labelStyle={{ fontWeight: 'bold' }}
-                >
-                  <Typography.Text>{regressionDescription}</Typography.Text>
-                </Descriptions.Item>
-              </Descriptions>
-              <Radio.Group defaultValue="a" buttonStyle="solid">
-                <Radio.Button value="a">confirmed</Radio.Button>
-                <Radio.Button value="b">rejected</Radio.Button>
-                <Radio.Button value="c">undecided</Radio.Button>
-              </Radio.Group>
-            </div>
-          ),
-        }}
-      >
-        <div style={{ display: 'flex' }}>
-          <div>
-            <Card
-              // bordered={false}
-              style={{ marginBottom: 10, width: 286, overflow: 'auto' }}
-              tabList={testMethodList}
-              activeTabKey={testTabKey}
-              onTabChange={(key) => {
-                onTestTabChange(key);
-              }}
-            >
-              {contentListNoTitle[testTabKey]}
-            </Card>
-            <Card title="Changed files" bordered={false} bodyStyle={{ padding: 0 }}>
-              <Menu
-                title="菜单"
-                // onClick={handleMenuClick}
-                style={{ width: 286, maxHeight: '70vh', overflow: 'auto' }}
-                defaultOpenKeys={['BIC', 'BFC']}
-                mode="inline"
+                  </Descriptions.Item>
+                  <Descriptions.Item
+                    label={'Bug Inducing Commit'}
+                    labelStyle={{ fontWeight: 'bold' }}
+                  >
+                    <a href={BICURL} target="_blank">
+                      <Typography.Text keyboard strong>
+                        {BIC?.slice(0, 8)}
+                      </Typography.Text>
+                    </a>
+                    <br />
+                  </Descriptions.Item>
+                  <Descriptions.Item
+                    label={'Bug Fixing Commit'}
+                    labelStyle={{ fontWeight: 'bold' }}
+                  >
+                    <a href={BFCURL} target="_blank">
+                      <Typography.Text keyboard strong>
+                        {BFC?.slice(0, 8)}
+                      </Typography.Text>
+                    </a>
+                    <br />
+                  </Descriptions.Item>
+                  <Descriptions.Item
+                    label={'Regression description'}
+                    labelStyle={{ fontWeight: 'bold' }}
+                  >
+                    <Typography.Text>{regressionDescription}</Typography.Text>
+                  </Descriptions.Item>
+                </Descriptions>
+                <Radio.Group defaultValue="a" buttonStyle="solid">
+                  <Radio.Button value="a">confirmed</Radio.Button>
+                  <Radio.Button value="b">rejected</Radio.Button>
+                  <Radio.Button value="c">undecided</Radio.Button>
+                </Radio.Group>
+              </div>
+            ),
+          }}
+        >
+          <div style={{ display: 'flex' }}>
+            <div>
+              <Card
+                // bordered={false}
+                style={{ marginBottom: 10, width: 286, overflow: 'auto' }}
+                tabList={testMethodList}
+                activeTabKey={testTabKey}
+                onTabChange={(key) => {
+                  onTestTabChange(key);
+                }}
               >
-                {/* 优先显示test，在有match时显示check然后tooltip上加‘recomend to check’。
+                {contentListNoTitle[testTabKey]}
+              </Card>
+              <Card title="Changed files" bordered={false} bodyStyle={{ padding: 0 }}>
+                <Menu
+                  title="菜单"
+                  // onClick={handleMenuClick}
+                  style={{ width: 286, maxHeight: '70vh', overflow: 'auto' }}
+                  defaultOpenKeys={['BIC', 'BFC']}
+                  mode="inline"
+                >
+                  {/* 优先显示test，在有match时显示check然后tooltip上加‘recomend to check’。
                 （migrate迁移）*/}
-                <SubMenu key="BIC" icon={<AppstoreOutlined />} title="Bug Inducing Commit">
-                  {listBIC.map(({ filename, match, oldPath, newPath, type }) => {
-                    let mark: any;
-                    if (match === 1 && type !== null && type !== undefined) {
-                      mark = <Tag color="success">Migrate</Tag>;
-                    } else if (type !== null && type !== undefined) {
-                      if (
-                        type.toLowerCase() === 'test suite' ||
-                        type.toLowerCase() === 'test_suite'
-                      ) {
-                        mark = <Tag color="processing">Migrate</Tag>;
-                      } else {
-                        mark = <Tag color="processing">{type}</Tag>;
+                  <SubMenu key="BIC" icon={<AppstoreOutlined />} title="Bug Inducing Commit">
+                    {listBIC.map(({ filename, match, oldPath, newPath, type }) => {
+                      let mark: any;
+                      if (match === 1 && type !== null && type !== undefined) {
+                        mark = <Tag color="success">Migrate</Tag>;
+                      } else if (type !== null && type !== undefined) {
+                        if (
+                          type.toLowerCase() === 'test suite' ||
+                          type.toLowerCase() === 'test_suite'
+                        ) {
+                          mark = <Tag color="processing">Migrate</Tag>;
+                        } else {
+                          mark = <Tag color="processing">{type}</Tag>;
+                        }
+                      } else if (match === 1) {
+                        mark = (
+                          <Tooltip title="recommend to check">
+                            <Tag color="warning">check</Tag>
+                          </Tooltip>
+                        );
                       }
-                    } else if (match === 1) {
-                      mark = (
-                        <Tooltip title="recommend to check">
-                          <Tag color="warning">check</Tag>
-                        </Tooltip>
+                      return (
+                        <Menu.Item
+                          key={`BIC-${filename}`}
+                          onClick={() => handleMenuClick('BIC', filename, oldPath, newPath)}
+                        >
+                          {mark}
+                          {filename}
+                        </Menu.Item>
                       );
-                    }
-                    return (
-                      <Menu.Item
-                        key={`BIC-${filename}`}
-                        onClick={() => handleMenuClick('BIC', filename, oldPath, newPath)}
-                      >
-                        {mark}
-                        {filename}
-                      </Menu.Item>
-                    );
-                  })}
-                </SubMenu>
-                <SubMenu key="BFC" icon={<AppstoreOutlined />} title="Bug Fixing Commit">
-                  {listBFC.map(({ filename, match, oldPath, newPath, type }) => {
-                    let mark: any;
-                    if (match === 1 && type !== null && type !== undefined) {
-                      mark = <Tag color="success">Migrate</Tag>;
-                    } else if (type !== null && type !== undefined) {
-                      if (
-                        type.toLowerCase() === 'test suite' ||
-                        type.toLowerCase() === 'test_suite'
-                      ) {
-                        mark = <Tag color="processing">Migrate</Tag>;
-                      } else {
-                        mark = <Tag color="processing">{type}</Tag>;
+                    })}
+                  </SubMenu>
+                  <SubMenu key="BFC" icon={<AppstoreOutlined />} title="Bug Fixing Commit">
+                    {listBFC.map(({ filename, match, oldPath, newPath, type }) => {
+                      let mark: any;
+                      if (match === 1 && type !== null && type !== undefined) {
+                        mark = <Tag color="success">Migrate</Tag>;
+                      } else if (type !== null && type !== undefined) {
+                        if (
+                          type.toLowerCase() === 'test suite' ||
+                          type.toLowerCase() === 'test_suite'
+                        ) {
+                          mark = <Tag color="processing">Migrate</Tag>;
+                        } else {
+                          mark = <Tag color="processing">{type}</Tag>;
+                        }
+                      } else if (match === 1) {
+                        mark = (
+                          <Tooltip title="recommend to check">
+                            <Tag color="warning">check</Tag>
+                          </Tooltip>
+                        );
                       }
-                    } else if (match === 1) {
-                      mark = (
-                        <Tooltip title="recommend to check">
-                          <Tag color="warning">check</Tag>
-                        </Tooltip>
+                      return (
+                        <Menu.Item
+                          key={`BFC-${filename}`}
+                          onClick={() => handleMenuClick('BFC', filename, oldPath, newPath)}
+                        >
+                          {mark}
+                          {filename}
+                        </Menu.Item>
                       );
-                    }
-                    return (
-                      <Menu.Item
-                        key={`BFC-${filename}`}
-                        onClick={() => handleMenuClick('BFC', filename, oldPath, newPath)}
-                      >
-                        {mark}
-                        {filename}
-                      </Menu.Item>
-                    );
-                  })}
-                </SubMenu>
-              </Menu>
-            </Card>
+                    })}
+                  </SubMenu>
+                </Menu>
+              </Card>
+            </div>
+            {activeBICKey !== undefined && activeBICKey !== '' && (
+              <DiffEditorTabs
+                commit="BIC"
+                activeKey={activeBICKey}
+                onActiveKey={setActiveBICKey}
+                panes={panesBIC}
+                onPanesChange={setPanesBIC}
+                oldVersionText="work"
+                newVersionText="bug introduce"
+                onRunCode={handleBICRunClick}
+                isRunning={BICisRunning}
+                console={BICConsoleResult}
+              />
+            )}
+            {activeBFCKey !== undefined && activeBFCKey !== '' && (
+              <DiffEditorTabs
+                commit="BFC"
+                activeKey={activeBFCKey}
+                onActiveKey={setActiveBFCKey}
+                panes={panesBFC}
+                onPanesChange={setPanesBFC}
+                oldVersionText="buggy"
+                newVersionText="bug fix"
+                onRunCode={handleBFCRunClick}
+                isRunning={BFCisRunning}
+                console={BFCConsoleResult}
+              />
+            )}
           </div>
-          {activeBICKey !== undefined && activeBICKey !== '' && (
-            <DiffEditorTabs
-              commit="BIC"
-              activeKey={activeBICKey}
-              onActiveKey={setActiveBICKey}
-              panes={panesBIC}
-              onPanesChange={setPanesBIC}
-              oldVersionText="work"
-              newVersionText="bug introduce"
-              onRunCode={handleBICRunClick}
-              isRunning={BICisRunning}
-              console={BICConsoleResult}
-            />
-          )}
-          {activeBFCKey !== undefined && activeBFCKey !== '' && (
-            <DiffEditorTabs
-              commit="BFC"
-              activeKey={activeBFCKey}
-              onActiveKey={setActiveBFCKey}
-              panes={panesBFC}
-              onPanesChange={setPanesBFC}
-              oldVersionText="buggy"
-              newVersionText="bug fix"
-              onRunCode={handleBFCRunClick}
-              isRunning={BFCisRunning}
-              console={BFCConsoleResult}
-            />
-          )}
-        </div>
-      </PageContainer>
+        </PageContainer>
+      </Spin>
     </>
   );
 };
