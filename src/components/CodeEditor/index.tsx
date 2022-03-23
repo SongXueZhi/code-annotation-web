@@ -134,7 +134,11 @@ class CodeEditor extends React.Component<IProps, IState> {
     } = this.props;
     const { showConsole, version } = this.state;
     const { width, height } = this.state.monacoSize;
-    const logs = <pre className="log output">{console}</pre>;
+    const logs = (
+      <pre className="log output" style={{ overflow: 'unset' }}>
+        {console}
+      </pre>
+    );
     return (
       <ResizeSensor onResize={this.handleResizeMonacoEditor}>
         <div className="EditorRoot" id={this.uuid}>
@@ -185,7 +189,7 @@ class CodeEditor extends React.Component<IProps, IState> {
             }
           >
             <Divider className={darkTheme ? 'divider dark' : 'divider'} />
-            <section className="flex vertical" style={{ width: '100%', height: '100%' }}>
+            <section className="flex vertical" style={{ width: '100%', height: '97%' }}>
               <div className="header flex between none" onClick={this.handleShowConsole}>
                 <div className="title">Console</div>
                 <div className="tools">
