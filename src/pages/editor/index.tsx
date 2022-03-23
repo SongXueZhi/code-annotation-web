@@ -370,30 +370,28 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   };
 
   useEffect(() => {
-    if (HISTORY_SEARCH.regressionUuid !== undefined && HISTORY_SEARCH.regressionUuid !== null) {
-      regressionCheckout({ regression_uuid: HISTORY_SEARCH.regressionUuid, userToken: '123' }).then(
-        () => {
-          queryRegressionDetail({
-            regression_uuid: HISTORY_SEARCH.regressionUuid,
-            userToken: '123',
-          }).then((data) => {
-            if (data !== null && data !== undefined) {
-              setListBFC(data.bfcChangedFiles);
-              setListBIC(data.bicChangedFiles);
-              setBFC(data.bfc);
-              setBIC(data.bic);
-              setBFCURL(data.bfcURL);
-              setBICURL(data.bicURL);
-              setProjectFullName(data.projectFullName);
-              setTestCaseName(data.testCaseName);
-              setTestFilePath(data.testFilePath);
-              setRegressionDescription(data.descriptionTxt);
-            }
-            setIsLoading(false);
-          });
-        },
-      );
-    }
+    regressionCheckout({ regression_uuid: HISTORY_SEARCH.regressionUuid, userToken: '123' }).then(
+      () => {
+        queryRegressionDetail({
+          regression_uuid: HISTORY_SEARCH.regressionUuid,
+          userToken: '123',
+        }).then((data) => {
+          if (data !== null && data !== undefined) {
+            setListBFC(data.bfcChangedFiles);
+            setListBIC(data.bicChangedFiles);
+            setBFC(data.bfc);
+            setBIC(data.bic);
+            setBFCURL(data.bfcURL);
+            setBICURL(data.bicURL);
+            setProjectFullName(data.projectFullName);
+            setTestCaseName(data.testCaseName);
+            setTestFilePath(data.testFilePath);
+            setRegressionDescription(data.descriptionTxt);
+          }
+          setIsLoading(false);
+        });
+      },
+    );
   }, [HISTORY_SEARCH.regressionUuid]);
 
   return (

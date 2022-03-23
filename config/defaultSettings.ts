@@ -14,7 +14,7 @@ const Settings: LayoutSettings & {
   splitMenus: false,
   title: 'RegMiner',
   pwa: false,
-  logo: './reg_logo.svg',
+  logo: '/reg_logo.svg',
   iconfontUrl: '',
 };
 

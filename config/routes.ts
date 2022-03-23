@@ -34,9 +34,9 @@
   },
   {
     key: 'editor',
-    name: 'editor',
+    // name: 'editor',
     path: '/editor',
-    icon: 'smile',
+    // icon: 'smile',
     component: './editor',
   },
   // {
@@ -45,10 +45,9 @@
   //   icon: 'smile',
   //   component: './diff',
   // },
-
   {
     path: '/',
-    redirect: '/welcome',
+    redirect: '/regression',
   },
   {
     component: './404',
