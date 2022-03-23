@@ -3,7 +3,7 @@ import { PageContainer } from '@ant-design/pro-layout';
 import { Button, Card, Descriptions, Menu, Radio, Spin, Tag, Tooltip, Typography } from 'antd';
 import { AppstoreOutlined } from '@ant-design/icons';
 import DiffEditorTabs from './components/DiffEditorTabs';
-import type { IRouteComponentProps } from 'umi';
+import { IRouteComponentProps } from 'umi';
 import {
   getRegressionConsole,
   queryRegressionCode,
@@ -370,36 +370,35 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   };
 
   useEffect(() => {
-    if (HISTORY_SEARCH.regressionUuid !== undefined && HISTORY_SEARCH.regressionUuid !== null) {
-      regressionCheckout({ regression_uuid: HISTORY_SEARCH.regressionUuid, userToken: '123' }).then(
-        () => {
-          queryRegressionDetail({
-            regression_uuid: HISTORY_SEARCH.regressionUuid,
-            userToken: '123',
-          }).then((data) => {
-            if (data !== null && data !== undefined) {
-              setListBFC(data.bfcChangedFiles);
-              setListBIC(data.bicChangedFiles);
-              setBFC(data.bfc);
-              setBIC(data.bic);
-              setBFCURL(data.bfcURL);
-              setBICURL(data.bicURL);
-              setProjectFullName(data.projectFullName);
-              setTestCaseName(data.testCaseName);
-              setTestFilePath(data.testFilePath);
-              setRegressionDescription(data.descriptionTxt);
-            }
-            setIsLoading(false);
-          });
-        },
-      );
-    }
+    regressionCheckout({ regression_uuid: HISTORY_SEARCH.regressionUuid, userToken: '123' }).then(
+      () => {
+        queryRegressionDetail({
+          regression_uuid: HISTORY_SEARCH.regressionUuid,
+          userToken: '123',
+        }).then((data) => {
+          if (data !== null && data !== undefined) {
+            setListBFC(data.bfcChangedFiles);
+            setListBIC(data.bicChangedFiles);
+            setBFC(data.bfc);
+            setBIC(data.bic);
+            setBFCURL(data.bfcURL);
+            setBICURL(data.bicURL);
+            setProjectFullName(data.projectFullName);
+            setTestCaseName(data.testCaseName);
+            setTestFilePath(data.testFilePath);
+            setRegressionDescription(data.descriptionTxt);
+          }
+          setIsLoading(false);
+        });
+      },
+    );
   }, [HISTORY_SEARCH.regressionUuid]);
 
   return (
     <>
       <Spin size="large" spinning={isLoading} tip={'Loading...'}>
         <PageContainer
+          onBack={() => window.history.back()}
           fixedHeader
           header={{
             title: 'Regression verfication',

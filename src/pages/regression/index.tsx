@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Divider, message, Skeleton, Typography } from 'antd';
+import { Alert, Button, Divider, message, Skeleton } from 'antd';
 import React, { useState, useRef } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
 import type { ProColumns, ActionType } from '@ant-design/pro-table';
@@ -206,9 +206,23 @@ const TableList: React.FC<{}> = () => {
       header={{
         title: 'Regression',
         subTitle: (
-          <Typography.Text>
-            Due to cloud server limitations, only the first 50 bugs on the list are available
-          </Typography.Text>
+          // <Alert
+          //   closable
+          //   message={
+          //     'Note! Due to cloud server limitations, only the first 50 bugs on the list are available.'
+          //   }
+          // />
+          <span
+            style={{
+              color: 'red',
+              fontSize: '20px',
+              fontWeight: 'bold',
+              marginLeft: '480px',
+              backgroundColor: '#e6fffb',
+            }}
+          >
+            Note! Due to cloud server limitations, only the first 50 bugs on the list are available.
+          </span>
         ),
       }}
     >
