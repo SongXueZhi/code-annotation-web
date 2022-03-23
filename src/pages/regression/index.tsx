@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Divider, message, Skeleton } from 'antd';
+import { Button, Divider, message, Skeleton, Typography } from 'antd';
 import React, { useState, useRef } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
 import type { ProColumns, ActionType } from '@ant-design/pro-table';
@@ -262,9 +262,18 @@ const TableList: React.FC<{}> = () => {
   ];
 
   return (
-    <PageContainer>
+    <PageContainer
+      header={{
+        title: 'Regression',
+        subTitle: (
+          <Typography.Text>
+            Due to cloud server limitations, only the first 50 bugs on the list are available
+          </Typography.Text>
+        ),
+      }}
+    >
       <ProTable<API.RegressionItem>
-        headerTitle="regression"
+        headerTitle="Regression List"
         actionRef={actionRef}
         rowKey="regressionUuid"
         search={{

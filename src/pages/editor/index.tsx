@@ -402,38 +402,34 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
           footer: (
             <div style={{ display: 'inline-flex', alignItems: 'center' }}>
               <Descriptions column={3} style={{ flex: 1 }}>
-                <Descriptions.Item label="Project">
+                <Descriptions.Item label={'Project'} labelStyle={{ fontWeight: 'bold' }}>
                   <Typography.Text keyboard strong>
                     {projectFullName}
                   </Typography.Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="Bug Inducing Commit">
-                  <div>
-                    <a href={BICURL} target="_blank">
-                      <Typography.Text keyboard strong style={{ width: 90 }} ellipsis>
-                        {BIC}
-                      </Typography.Text>
-                    </a>
-                    <br />
-                    {/* <Typography.Text type="secondary" strong>
-                      2 Jul 2011
-                    </Typography.Text> */}
-                  </div>
+                <Descriptions.Item
+                  label={'Bug Inducing Commit'}
+                  labelStyle={{ fontWeight: 'bold' }}
+                >
+                  <a href={BICURL} target="_blank">
+                    <Typography.Text keyboard strong>
+                      {BIC?.slice(0, 8)}
+                    </Typography.Text>
+                  </a>
+                  <br />
                 </Descriptions.Item>
-                <Descriptions.Item label="Bug Fixing Commit">
-                  <div>
-                    <a href={BFCURL} target="_blank">
-                      <Typography.Text keyboard strong style={{ width: 90 }} ellipsis>
-                        {BFC}
-                      </Typography.Text>
-                    </a>
-                    <br />
-                    {/* <Typography.Text type="secondary" strong>
-                      24 Sep 2012
-                    </Typography.Text> */}
-                  </div>
+                <Descriptions.Item label={'Bug Fixing Commit'} labelStyle={{ fontWeight: 'bold' }}>
+                  <a href={BFCURL} target="_blank">
+                    <Typography.Text keyboard strong>
+                      {BFC?.slice(0, 8)}
+                    </Typography.Text>
+                  </a>
+                  <br />
                 </Descriptions.Item>
-                <Descriptions.Item label="Regression description">
+                <Descriptions.Item
+                  label={'Regression description'}
+                  labelStyle={{ fontWeight: 'bold' }}
+                >
                   <Typography.Text>{regressionDescription}</Typography.Text>
                 </Descriptions.Item>
               </Descriptions>
