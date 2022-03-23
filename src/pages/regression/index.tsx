@@ -86,6 +86,7 @@ const TableList: React.FC<{}> = () => {
   const actionRef = useRef<ActionType>();
   const columns: ProColumns<any>[] = [
     {
+      title: 'No.',
       dataIndex: 'index',
       width: 48,
       render: (_, record) => {
