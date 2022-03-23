@@ -18,7 +18,10 @@ export async function queryRegressionList(params?: RegQueryParams) {
     };
   }
   return {
-    data,
+    data: data.map((resp: any, index) => {
+      resp.index = index;
+      return resp;
+    }),
     success: true,
     total: data.length,
   };
