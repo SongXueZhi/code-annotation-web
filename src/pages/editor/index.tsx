@@ -187,6 +187,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
     }
 
     if (params.revisionFlag === 'buggy') {
+      await wait(500);
       const path = await getRegressionPath({
         regression_uuid: params.regression_uuid,
         revisionFlag: params.revisionFlag,
@@ -201,8 +202,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
       if (path !== null && path !== undefined) {
         setBFCIsRunning(true);
         while (true) {
+          await wait(1000);
           const data = await getRegressionConsole({ path: path });
-          await wait(500);
           setBFCConsoleResult(data ?? '');
           if (data && data.includes('REGMINER-TEST-END')) {
             break;
@@ -212,6 +213,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
       }
     }
     if (params.revisionFlag === 'bug fix') {
+      await wait(500);
       const path = await getRegressionPath({
         regression_uuid: params.regression_uuid,
         revisionFlag: 'bfc',
@@ -226,8 +228,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
       if (path !== null && path !== undefined) {
         setBFCIsRunning(true);
         while (true) {
+          await wait(1000);
           const data = await getRegressionConsole({ path: path });
-          await wait(500);
           setBFCConsoleResult(data ?? '');
           if (data && data.includes('REGMINER-TEST-END')) {
             break;
@@ -469,11 +471,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                   {listBIC.map(({ filename, match, oldPath, newPath, type }) => {
                     let mark: any;
                     if (match === 1 && type !== null && type !== undefined) {
-                      mark = (
-                        <Tooltip title={'recomend to check'}>
-                          <Tag color="success">Migrate</Tag>
-                        </Tooltip>
-                      );
+                      mark = <Tag color="success">Migrate</Tag>;
                     } else if (type !== null && type !== undefined) {
                       if (
                         type.toLowerCase() === 'test suite' ||
@@ -484,7 +482,11 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                         mark = <Tag color="processing">{type}</Tag>;
                       }
                     } else if (match === 1) {
-                      mark = <Tag color="warning">match</Tag>;
+                      mark = (
+                        <Tooltip title="recommend to check">
+                          <Tag color="warning">check</Tag>
+                        </Tooltip>
+                      );
                     }
                     return (
                       <Menu.Item
@@ -501,11 +503,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                   {listBFC.map(({ filename, match, oldPath, newPath, type }) => {
                     let mark: any;
                     if (match === 1 && type !== null && type !== undefined) {
-                      mark = (
-                        <Tooltip title={'recomend to check'}>
-                          <Tag color="success">Migrate</Tag>
-                        </Tooltip>
-                      );
+                      mark = <Tag color="success">Migrate</Tag>;
                     } else if (type !== null && type !== undefined) {
                       if (
                         type.toLowerCase() === 'test suite' ||
@@ -516,7 +514,11 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                         mark = <Tag color="processing">{type}</Tag>;
                       }
                     } else if (match === 1) {
-                      mark = <Tag color="warning">match</Tag>;
+                      mark = (
+                        <Tooltip title="recommend to check">
+                          <Tag color="warning">check</Tag>
+                        </Tooltip>
+                      );
                     }
                     return (
                       <Menu.Item
