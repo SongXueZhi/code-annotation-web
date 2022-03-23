@@ -3,7 +3,7 @@ import { PageContainer } from '@ant-design/pro-layout';
 import { Button, Card, Descriptions, Menu, Radio, Spin, Tag, Tooltip, Typography } from 'antd';
 import { AppstoreOutlined } from '@ant-design/icons';
 import DiffEditorTabs from './components/DiffEditorTabs';
-import type { IRouteComponentProps } from 'umi';
+import { IRouteComponentProps } from 'umi';
 import {
   getRegressionConsole,
   queryRegressionCode,
@@ -398,6 +398,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
     <>
       <Spin size="large" spinning={isLoading} tip={'Loading...'}>
         <PageContainer
+          onBack={() => window.history.back()}
           fixedHeader
           header={{
             title: 'Regression verfication',
