@@ -186,7 +186,7 @@ a:hover {
 }
 
 .Logs {
-  overflow: auto;
+  overflow: scroll;
   color: white;
   background: black;
 }
