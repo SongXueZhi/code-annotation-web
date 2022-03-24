@@ -123,6 +123,7 @@ const TableList: React.FC<{}> = () => {
       }),
       dataIndex: 'projectFullName',
       width: 200,
+      search: false,
       renderText: (val: string) => `${val} `,
       // tip: '所属项目名称',
     },
@@ -168,9 +169,9 @@ const TableList: React.FC<{}> = () => {
       dataIndex: 'regressionStatus',
       initialValue: 'all',
       width: 150,
+      search: false,
       filters: true,
       onFilter: true,
-      // hideInForm: true,
       valueEnum: {
         0: { text: 'Not verified', status: 'Default' },
         1: { text: 'confirmed', status: 'Success' },
@@ -204,25 +205,19 @@ const TableList: React.FC<{}> = () => {
   return (
     <PageContainer
       header={{
+        style: { width: '100%' },
         title: 'Regression',
         subTitle: (
-          // <Alert
-          //   closable
-          //   message={
-          //     'Note! Due to cloud server limitations, only the first 50 bugs on the list are available.'
-          //   }
-          // />
-          <span
-            style={{
-              color: 'red',
-              fontSize: '20px',
-              fontWeight: 'bold',
-              marginLeft: '480px',
-              backgroundColor: '#e6fffb',
-            }}
-          >
-            Note! Due to cloud server limitations, only the first 50 bugs on the list are available.
-          </span>
+          <Alert
+            style={{ paddingLeft: '100px', paddingRight: '100px' }}
+            type="info"
+            message={
+              <div style={{ color: 'red', fontSize: '20px', fontWeight: 'bold' }}>
+                Note! Due to cloud server limitations, only the first 50 bugs on the list are
+                available.
+              </div>
+            }
+          />
         ),
       }}
     >
