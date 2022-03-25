@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Alert, Button, Divider, message, Skeleton } from 'antd';
+import { Alert, Button, Divider, message, Skeleton, Tooltip } from 'antd';
 import React, { useState, useRef } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
 import type { ProColumns, ActionType } from '@ant-design/pro-table';
@@ -97,7 +97,6 @@ const TableList: React.FC<{}> = () => {
     {
       title: 'regression uuid',
       dataIndex: 'regressionUuid',
-      width: 250,
       render: (_, { regressionUuid, index }) => {
         return withSkeleton(
           regressionUuid ? (
@@ -124,17 +123,24 @@ const TableList: React.FC<{}> = () => {
         id: 'pages.searchTable.projectTable',
       }),
       dataIndex: 'projectFullName',
-      width: 200,
       search: false,
+      width: 250,
       renderText: (val: string) => `${val} `,
       // tip: '所属项目名称',
     },
     {
-      title: 'bic',
+      title: 'bug inducing commit',
       dataIndex: 'bic',
-      tip: 'bug inducing commit',
       ellipsis: true,
       hideInSearch: true,
+      width: 200,
+      render: (_, record) => {
+        return (
+          <Tooltip placement="top" title={record.bic}>
+            {record.bic?.slice(0, 8)}...
+          </Tooltip>
+        );
+      },
     },
     {
       title: 'work',
@@ -142,13 +148,28 @@ const TableList: React.FC<{}> = () => {
       tip: 'a random working commit',
       ellipsis: true,
       hideInSearch: true,
+      width: 180,
+      render: (_, record) => {
+        return (
+          <Tooltip placement="top" title={record.work}>
+            {record.work?.slice(0, 12)}...
+          </Tooltip>
+        );
+      },
     },
     {
-      title: 'bfc',
+      title: 'bug fixing commit',
       dataIndex: 'bfc',
-      tip: 'bug fixing commit',
       ellipsis: true,
       hideInSearch: true,
+      width: 200,
+      render: (_, record) => {
+        return (
+          <Tooltip placement="top" title={record.bfc}>
+            {record.bfc?.slice(0, 8)}...
+          </Tooltip>
+        );
+      },
     },
     {
       title: 'buggy commit',
@@ -156,15 +177,23 @@ const TableList: React.FC<{}> = () => {
       tip: 'the parent of bug fixing commit',
       ellipsis: true,
       hideInSearch: true,
+      width: 180,
+      render: (_, record) => {
+        return (
+          <Tooltip placement="top" title={record.buggy}>
+            {record.buggy?.slice(0, 12)}...
+          </Tooltip>
+        );
+      },
     },
     {
       title: 'test case',
       dataIndex: 'testcase',
-      // sorter: true,
       hideInForm: true,
-      renderText: (val: string) => `${val} `,
       hideInSearch: true,
       ellipsis: true,
+      width: 300,
+      renderText: (val: string) => `${val} `,
     },
     {
       title: 'regression status',
@@ -172,6 +201,7 @@ const TableList: React.FC<{}> = () => {
       initialValue: 'all',
       width: 150,
       search: false,
+      hideInTable: true,
       filters: true,
       onFilter: true,
       valueEnum: {
@@ -182,7 +212,7 @@ const TableList: React.FC<{}> = () => {
       },
     },
     {
-      title: '',
+      title: 'actions',
       hideInForm: true,
       hideInTable: true,
       search: false,
