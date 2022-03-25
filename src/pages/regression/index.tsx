@@ -124,7 +124,6 @@ const TableList: React.FC<{}> = () => {
       }),
       dataIndex: 'projectFullName',
       search: false,
-      width: 250,
       renderText: (val: string) => `${val} `,
       // tip: '所属项目名称',
     },
@@ -192,7 +191,6 @@ const TableList: React.FC<{}> = () => {
       hideInForm: true,
       hideInSearch: true,
       ellipsis: true,
-      width: 300,
       renderText: (val: string) => `${val} `,
     },
     {
