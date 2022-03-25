@@ -3,7 +3,7 @@ import { PageContainer } from '@ant-design/pro-layout';
 import { Button, Card, Descriptions, Menu, Radio, Spin, Tag, Tooltip, Typography } from 'antd';
 import { AppstoreOutlined } from '@ant-design/icons';
 import DiffEditorTabs from './components/DiffEditorTabs';
-import { IRouteComponentProps } from 'umi';
+import type { IRouteComponentProps } from 'umi';
 import {
   getRegressionConsole,
   queryRegressionCode,
@@ -362,8 +362,12 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
 
   const contentListNoTitle = {
     testcase: (
-      <Button disabled={testFilePath === 'NULL' ? true : false} onClick={handleTestTabClick}>
-        <Typography.Text strong>{testCaseName}</Typography.Text>
+      <Button
+        disabled={testFilePath === 'NULL' ? true : false}
+        onClick={handleTestTabClick}
+        type="primary"
+      >
+        {testCaseName}
       </Button>
     ),
     features: <Typography.Text strong>N.A.</Typography.Text>,
@@ -399,7 +403,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
       <Spin size="large" spinning={isLoading} tip={'Loading...'}>
         <PageContainer
           onBack={() => window.history.back()}
-          fixedHeader
+          // fixedHeader
           header={{
             title: 'Regression verfication',
             subTitle: (
@@ -417,22 +421,18 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                     label={'Bug Inducing Commit'}
                     labelStyle={{ fontWeight: 'bold' }}
                   >
-                    <a href={BICURL} target="_blank">
-                      <Typography.Text keyboard strong>
-                        {BIC?.slice(0, 8)}
-                      </Typography.Text>
-                    </a>
+                    <Typography.Link keyboard href={BICURL} target="_blank">
+                      {BIC?.slice(0, 8)}...
+                    </Typography.Link>
                     <br />
                   </Descriptions.Item>
                   <Descriptions.Item
                     label={'Bug Fixing Commit'}
                     labelStyle={{ fontWeight: 'bold' }}
                   >
-                    <a href={BFCURL} target="_blank">
-                      <Typography.Text keyboard strong>
-                        {BFC?.slice(0, 8)}
-                      </Typography.Text>
-                    </a>
+                    <Typography.Link keyboard href={BFCURL} target="_blank">
+                      {BFC?.slice(0, 8)}...
+                    </Typography.Link>
                     <br />
                   </Descriptions.Item>
                   <Descriptions.Item
