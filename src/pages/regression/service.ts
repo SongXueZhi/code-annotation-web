@@ -18,7 +18,7 @@ export async function queryRegressionList(params?: RegQueryParams) {
     };
   }
   return {
-    data: data.map((resp: any, index) => {
+    data: data.map((resp, index) => {
       resp.index = index;
       return resp;
     }),

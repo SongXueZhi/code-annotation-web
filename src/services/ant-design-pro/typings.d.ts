@@ -45,6 +45,7 @@ declare namespace API {
   };
 
   type RegressionItem = {
+    index: number; // 前端设置的index，后端无此返回值
     regressionUuid: string;
     regressionStatus?: number;
     projectFullName?: string;

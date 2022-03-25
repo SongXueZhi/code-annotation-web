@@ -84,7 +84,7 @@ const TableList: React.FC<{}> = () => {
   const intl = useIntl();
   const [createModalVisible, handleModalVisible] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
-  const columns: ProColumns<any>[] = [
+  const columns: ProColumns<API.RegressionItem>[] = [
     {
       title: 'No.',
       dataIndex: 'index',
@@ -97,20 +97,22 @@ const TableList: React.FC<{}> = () => {
     {
       title: 'regression uuid',
       dataIndex: 'regressionUuid',
-      width: 200,
-      render: (_, { regressionUuid }) => {
+      width: 250,
+      render: (_, { regressionUuid, index }) => {
         return withSkeleton(
           regressionUuid ? (
-            <Link
-              to={{
-                pathname: '/editor',
-                search: stringify({
-                  regressionUuid,
-                }),
-              }}
-            >
-              {regressionUuid}
-            </Link>
+            index <= 49 ? (
+              <Link
+                to={{
+                  pathname: '/editor',
+                  search: stringify({ regressionUuid }),
+                }}
+              >
+                {regressionUuid}
+              </Link>
+            ) : (
+              regressionUuid
+            )
           ) : (
             '暂无数据'
           ),
