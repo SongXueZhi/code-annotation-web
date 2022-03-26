@@ -251,6 +251,15 @@ const TableList: React.FC<{}> = () => {
         ),
       }}
     >
+      <iframe
+        src="https://www.youtube.com/embed/QtqS8f2yApc"
+        title="RegMiner Tutorial"
+        width="1440"
+        height="720"
+        allow="autoplay"
+        allowFullScreen
+        allowTransparency
+      />
       <ProTable<API.RegressionItem>
         headerTitle="Regression List"
         actionRef={actionRef}

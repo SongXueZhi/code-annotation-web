@@ -1,6 +1,5 @@
-import { BulbOutlined, YoutubeOutlined } from '@ant-design/icons';
-import { Avatar, Button, Popover, Space } from 'antd';
-import React, { useState } from 'react';
+import { Avatar, Space } from 'antd';
+import React from 'react';
 import { useModel } from 'umi';
 import styles from './index.less';
 
@@ -8,7 +7,7 @@ export type SiderTheme = 'light' | 'dark';
 
 const GlobalHeaderRight: React.FC = () => {
   const { initialState } = useModel('@@initialState');
-  const [visible, setVisible] = useState<boolean>();
+  // const [visible, setVisible] = useState<boolean>();
 
   if (!initialState || !initialState.settings) {
     return null;
@@ -22,16 +21,16 @@ const GlobalHeaderRight: React.FC = () => {
   }
 
   // 计时器
-  function wait(ms: number) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('running');
-        setVisible(false);
-        resolve(true);
-      }, ms);
-    });
-  }
-  wait(120000);
+  // function wait(ms: number) {
+  //   return new Promise((resolve) => {
+  //     setTimeout(() => {
+  //       console.log('running');
+  //       setVisible(false);
+  //       resolve(true);
+  //     }, ms);
+  //   });
+  // }
+  // wait(120000);
   return (
     <Space className={className}>
       {/* <HeaderSearch
@@ -65,7 +64,8 @@ const GlobalHeaderRight: React.FC = () => {
       >
         <QuestionCircleOutlined />
       </span> */}
-      <Popover
+
+      {/* <Popover
         trigger="hover"
         color="#ffffb8"
         placement="leftTop"
@@ -96,7 +96,7 @@ const GlobalHeaderRight: React.FC = () => {
         >
           Tutorial
         </Button>
-      </Popover>
+      </Popover> */}
       <Avatar className="user-image" src="./user.png" />
       {/* <SelectLang className={styles.action} /> */}
     </Space>
