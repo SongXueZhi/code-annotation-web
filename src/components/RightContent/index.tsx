@@ -1,12 +1,27 @@
-import { Avatar, Space } from 'antd';
-import React from 'react';
-import { SelectLang, useModel } from 'umi';
+import { useModel } from '@/.umi/plugin-model/useModel';
+import { BulbOutlined, YoutubeOutlined } from '@ant-design/icons';
+import { Avatar, Button, Popover, Space } from 'antd';
+import React, { useState } from 'react';
+import { SelectLang } from 'umi';
 import styles from './index.less';
 
 export type SiderTheme = 'light' | 'dark';
 
 const GlobalHeaderRight: React.FC = () => {
   const { initialState } = useModel('@@initialState');
+  const [visible, setVisible] = useState<boolean>();
+
+  // 计时器
+  function wait(ms: number) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        console.log('running');
+        setVisible(false);
+        resolve(true);
+      }, ms);
+    });
+  }
+  wait(120000);
 
   if (!initialState || !initialState.settings) {
     return null;
@@ -51,7 +66,39 @@ const GlobalHeaderRight: React.FC = () => {
       >
         <QuestionCircleOutlined />
       </span> */}
-      <Avatar src="./user.png" />
+      <Popover
+        trigger="hover"
+        color="#ffffb8"
+        placement="leftTop"
+        defaultVisible={true}
+        visible={visible}
+        style={{ marginRight: '20px' }}
+        title={
+          <Space align="center">
+            <BulbOutlined />
+            <span>Check this out!</span>
+          </Space>
+        }
+        content={
+          <Space direction="vertical">
+            <div>Watch this tutorial video to</div>
+            <div>get familiar with RegMiner</div>
+          </Space>
+        }
+      >
+        <Button
+          className="tutorial-link-youtube"
+          type="link"
+          href="https://youtu.be/QtqS8f2yApc"
+          icon={<YoutubeOutlined />}
+          target="_blank"
+          size="middle"
+          style={{ backgroundColor: 'red', color: 'white', marginRight: '10px' }}
+        >
+          Tutorial
+        </Button>
+      </Popover>
+      <Avatar className="user-image" src="./user.png" />
       <SelectLang className={styles.action} />
     </Space>
   );

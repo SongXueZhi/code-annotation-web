@@ -1,12 +1,13 @@
 import React, { useCallback } from 'react';
 import { LogoutOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
 import { Menu, Spin } from 'antd';
-import { history, useModel } from 'umi';
+import { history } from 'umi';
 import { stringify } from 'querystring';
 import HeaderDropdown from '../HeaderDropdown';
 import styles from './index.less';
 import { outLogin } from '@/services/ant-design-pro/login';
 import type { MenuInfo } from 'rc-menu/lib/interface';
+import { useModel } from '@/.umi/plugin-model/useModel';
 
 export type GlobalHeaderRightProps = {
   menu?: boolean;
@@ -37,7 +38,7 @@ const AvatarDropdown: React.FC<GlobalHeaderRightProps> = ({ menu }) => {
     (event: MenuInfo) => {
       const { key } = event;
       if (key === 'logout') {
-        setInitialState((s) => ({ ...s, currentUser: undefined }));
+        setInitialState((s: any) => ({ ...s, currentUser: undefined }));
         loginOut();
         return;
       }
