@@ -1,7 +1,7 @@
 import { BulbOutlined, YoutubeOutlined } from '@ant-design/icons';
 import { Avatar, Button, Popover, Space } from 'antd';
 import React, { useState } from 'react';
-import { SelectLang, useModel } from 'umi';
+import { useModel } from 'umi';
 import styles from './index.less';
 
 export type SiderTheme = 'light' | 'dark';
@@ -98,7 +98,7 @@ const GlobalHeaderRight: React.FC = () => {
         </Button>
       </Popover>
       <Avatar className="user-image" src="./user.png" />
-      <SelectLang className={styles.action} />
+      {/* <SelectLang className={styles.action} /> */}
     </Space>
   );
 };
