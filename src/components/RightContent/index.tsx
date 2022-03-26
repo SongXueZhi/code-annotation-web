@@ -1,8 +1,7 @@
-import { useModel } from '@/.umi/plugin-model/useModel';
 import { BulbOutlined, YoutubeOutlined } from '@ant-design/icons';
 import { Avatar, Button, Popover, Space } from 'antd';
 import React, { useState } from 'react';
-import { SelectLang } from 'umi';
+import { SelectLang, useModel } from 'umi';
 import styles from './index.less';
 
 export type SiderTheme = 'light' | 'dark';
