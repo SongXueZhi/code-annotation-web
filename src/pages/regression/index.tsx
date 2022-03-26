@@ -142,9 +142,9 @@ const TableList: React.FC<{}> = () => {
       },
     },
     {
-      title: 'work',
+      title: 'work commit',
       dataIndex: 'work',
-      tip: 'a random working commit',
+      // tip: 'a random work commit',
       ellipsis: true,
       hideInSearch: true,
       width: 180,
