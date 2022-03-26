@@ -1,5 +1,5 @@
 import { BulbOutlined, YoutubeOutlined } from '@ant-design/icons';
-import { Button, Popover, Space } from 'antd';
+import { Avatar, Button, Popover, Space } from 'antd';
 import React, { useState } from 'react';
 import { SelectLang, useModel } from 'umi';
 import styles from './index.less';
@@ -31,12 +31,10 @@ const GlobalHeaderRight: React.FC = () => {
       }, ms);
     });
   }
-
-  if (true) wait(120000);
+  wait(120000);
   return (
-    <>
-      <Space className={className}>
-        {/* <HeaderSearch
+    <Space className={className}>
+      {/* <HeaderSearch
         className={`${styles.action} ${styles.search}`}
         placeholder="站内搜索"
         defaultValue="umi ui"
@@ -67,42 +65,41 @@ const GlobalHeaderRight: React.FC = () => {
       >
         <QuestionCircleOutlined />
       </span> */}
-        <Popover
-          trigger="hover"
-          color="#ffffb8"
-          placement="leftTop"
-          defaultVisible={true}
-          visible={visible}
-          style={{ marginRight: '20px' }}
-          title={
-            <Space align="center">
-              <BulbOutlined />
-              <span>Check this out!</span>
-            </Space>
-          }
-          content={
-            <Space direction="vertical">
-              <div>Watch this tutorial video to</div>
-              <div>get familiar with RegMiner</div>
-            </Space>
-          }
+      <Popover
+        trigger="hover"
+        color="#ffffb8"
+        placement="leftTop"
+        defaultVisible={true}
+        visible={visible}
+        style={{ marginRight: '20px' }}
+        title={
+          <Space align="center">
+            <BulbOutlined />
+            <span>Check this out!</span>
+          </Space>
+        }
+        content={
+          <Space direction="vertical">
+            <div>Watch this tutorial video to</div>
+            <div>get familiar with RegMiner</div>
+          </Space>
+        }
+      >
+        <Button
+          className="tutorial-link-youtube"
+          type="link"
+          href="https://youtu.be/QtqS8f2yApc"
+          icon={<YoutubeOutlined />}
+          target="_blank"
+          size="middle"
+          style={{ backgroundColor: 'red', color: 'white', marginRight: '10px' }}
         >
-          <Button
-            className="tutorial-link-youtube"
-            type="link"
-            href="https://youtu.be/QtqS8f2yApc"
-            icon={<YoutubeOutlined />}
-            target="_blank"
-            size="middle"
-            style={{ backgroundColor: 'red', color: 'white', marginRight: '10px' }}
-          >
-            Tutorial
-          </Button>
-        </Popover>
-        {/* <Avatar className="user-image" src="./user.png" /> */}
-        <SelectLang className={styles.action} />
-      </Space>
-    </>
+          Tutorial
+        </Button>
+      </Popover>
+      <Avatar className="user-image" src="./user.png" />
+      <SelectLang className={styles.action} />
+    </Space>
   );
 };
 export default GlobalHeaderRight;
