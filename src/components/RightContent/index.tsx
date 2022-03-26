@@ -100,7 +100,7 @@ const GlobalHeaderRight: React.FC = () => {
             Tutorial
           </Button>
         </Popover>
-        <Avatar className="user-image" src="./user.png" />
+        {/* <Avatar className="user-image" src="./user.png" /> */}
         <SelectLang className={styles.action} />
       </Space>
     </>
