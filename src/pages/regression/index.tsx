@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Alert, Button, Divider, message, Skeleton, Tooltip } from 'antd';
+import { Alert, Button, Col, Divider, message, Row, Skeleton, Tooltip } from 'antd';
 import React, { useState, useRef } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
 import type { ProColumns, ActionType } from '@ant-design/pro-table';
@@ -251,15 +251,21 @@ const TableList: React.FC<{}> = () => {
         ),
       }}
     >
-      <iframe
-        src="https://www.youtube.com/embed/QtqS8f2yApc"
-        title="RegMiner Tutorial"
-        width="1440"
-        height="720"
-        allow="autoplay"
-        allowFullScreen
-        allowTransparency
-      />
+      <div className="RegMiner-tutorial-video" style={{ marginBottom: '20px' }}>
+        <Row justify="space-around" align="middle">
+          <Col>
+            <iframe
+              src="https://www.youtube.com/embed/QtqS8f2yApc"
+              title="RegMiner Tutorial"
+              width="1080"
+              height="650"
+              allow="autoplay"
+              allowFullScreen
+              allowTransparency
+            />
+          </Col>
+        </Row>
+      </div>
       <ProTable<API.RegressionItem>
         headerTitle="Regression List"
         actionRef={actionRef}
