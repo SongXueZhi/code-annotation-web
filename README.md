@@ -37,7 +37,7 @@ https://www.cnblogs.com/zhaoxxnbsp/p/12672652.html#2%E5%AE%89%E8%A3%85
 ```
 npm i @ant-design/pro-card@1.18.0 --save
 npm i @ant-design/pro-form@1.50.0 --save
-npm i @ant-design/pro-tabel@2.61.0 --save
+npm i @ant-design/pro-table@2.61.0 --save
 ```
 
 7. 运行项目（使用也推荐使用mock数据）
