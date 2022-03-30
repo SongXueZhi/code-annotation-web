@@ -3,7 +3,7 @@
 ```
 npm install
 ```
->步骤2到6在遇到具体的报错时进行安装，如果npm start没有问题可以直接忽视
+>除了第一步和最后一步外，在遇到具体的报错时进行安装，如果npm start没有问题可以直接忽视
 2. 安装react-monaco-editor和monaco-editor-webpack-plugin
 ```
 npm add react-monaco-editor
