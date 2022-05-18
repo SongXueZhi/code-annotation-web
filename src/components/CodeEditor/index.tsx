@@ -9,7 +9,8 @@ import { ResizeSensor, Divider, Button } from '@blueprintjs/core';
 import './styles.css';
 import EllipsisMiddle from '../EllipsisMiddle';
 import type { RadioChangeEvent } from 'antd';
-import { Radio } from 'antd';
+import { Radio, Modal } from 'antd';
+import CodeDetails from '../CodeDetails';
 
 interface IProps {
   title: string;
@@ -27,6 +28,7 @@ interface IProps {
 }
 interface IState {
   showConsole: boolean;
+  showCodeDetails: boolean;
   version: 'left' | 'right';
   console?: string | null;
   monacoSize: { width: string | number; height: string | number };
@@ -64,6 +66,7 @@ class CodeEditor extends React.Component<IProps, IState> {
     super(props);
     this.state = {
       showConsole: false,
+      showCodeDetails: false,
       version: 'left',
       monacoSize: { width: 0, height: 0 },
     };
@@ -132,7 +135,7 @@ class CodeEditor extends React.Component<IProps, IState> {
       console,
       isRunning,
     } = this.props;
-    const { showConsole, version } = this.state;
+    const { showConsole, version, showCodeDetails } = this.state;
     const { width, height } = this.state.monacoSize;
     const logs = (
       <pre className="log output" style={{ overflow: 'unset' }}>
@@ -140,69 +143,99 @@ class CodeEditor extends React.Component<IProps, IState> {
       </pre>
     );
     return (
-      <ResizeSensor onResize={this.handleResizeMonacoEditor}>
-        <div className="EditorRoot" id={this.uuid}>
-          <div
-            className={darkTheme ? 'TitlebarView flex between dark' : 'TitlebarView flex between'}
-            style={{ width: '100%' }}
-          >
-            <div className="project-title">
-              <EllipsisMiddle suffixCount={12}>{title}</EllipsisMiddle>
+      <>
+        <ResizeSensor onResize={this.handleResizeMonacoEditor}>
+          <div className="EditorRoot" id={this.uuid}>
+            <div
+              className={darkTheme ? 'TitlebarView flex between dark' : 'TitlebarView flex between'}
+              style={{ width: '100%' }}
+            >
+              <div className="project-title">
+                <EllipsisMiddle suffixCount={12}>{title}</EllipsisMiddle>
+                <Button
+                  id="show-code-details"
+                  icon="search"
+                  intent="primary"
+                  style={{ marginRight: '10px', marginLeft: '10px', border: 'solid' }}
+                  onClick={() => this.setState({ showCodeDetails: true })}
+                >
+                  Details
+                </Button>
+              </div>
+
+              <div className="run-button" style={{ border: 'solid', borderColor: 'green' }}>
+                {extra}
+                <Button
+                  id="run-code-btn"
+                  data-imitate
+                  style={{ height: '30px', marginRight: '10px' }}
+                  intent="success"
+                  icon="play"
+                  onClick={this.handleRunClick}
+                  loading={isRunning}
+                >
+                  Run migrate with
+                </Button>
+                <Radio.Group
+                  value={version}
+                  buttonStyle="solid"
+                  onChange={this.handleVersionChange}
+                >
+                  <Radio value="left">{oldVersionText ?? 'left'}</Radio>
+                  <Radio value="right">{newVersionText ?? 'right'}</Radio>
+                </Radio.Group>
+              </div>
             </div>
-            <div className="run-button" style={{ border: 'solid', borderColor: 'green' }}>
-              {extra}
-              <Button
-                id="run-code-btn"
-                data-imitate
-                style={{ height: '30px', marginRight: '10px' }}
-                intent="success"
-                icon="play"
-                onClick={this.handleRunClick}
-                loading={isRunning}
-              >
-                Run migrate with
-              </Button>
-              <Radio.Group value={version} buttonStyle="solid" onChange={this.handleVersionChange}>
-                <Radio value="left">{oldVersionText ?? 'left'}</Radio>
-                <Radio value="right">{newVersionText ?? 'right'}</Radio>
-              </Radio.Group>
+            <div className="EditorView">
+              <MonacoDiffEditor
+                ref={this.editorRef}
+                width={width}
+                height={height}
+                language="java"
+                theme={darkTheme ? 'vs-dark' : 'vs-light'}
+                options={this.options}
+                original={original}
+                value={value}
+              />
             </div>
-          </div>
-          <div className="EditorView">
-            <MonacoDiffEditor
-              ref={this.editorRef}
-              width={width}
-              height={height}
-              language="java"
-              theme={darkTheme ? 'vs-dark' : 'vs-light'}
-              options={this.options}
-              original={original}
-              value={value}
-            />
-          </div>
-          <div
-            className={showConsole ? 'ConsoleView open' : 'ConsoleView'}
-            style={
-              darkTheme
-                ? { backgroundColor: 'var(--dark-console-color)' }
-                : { backgroundColor: 'var(--light-console-color)' }
-            }
-          >
-            <Divider className={darkTheme ? 'divider dark' : 'divider'} />
-            <section className="flex vertical" style={{ width: '100%', height: '97%' }}>
-              <div className="header flex between none" onClick={this.handleShowConsole}>
-                <div className="title">Console</div>
-                <div className="tools">
-                  <Button minimal icon={showConsole ? 'chevron-down' : 'chevron-up'} />
+            <div
+              className={showConsole ? 'ConsoleView open' : 'ConsoleView'}
+              style={
+                darkTheme
+                  ? { backgroundColor: 'var(--dark-console-color)' }
+                  : { backgroundColor: 'var(--light-console-color)' }
+              }
+            >
+              <Divider className={darkTheme ? 'divider dark' : 'divider'} />
+              <section className="flex vertical" style={{ width: '100%', height: '97%' }}>
+                <div className="header flex between none" onClick={this.handleShowConsole}>
+                  <div className="title">Console</div>
+                  <div className="tools">
+                    <Button minimal icon={showConsole ? 'chevron-down' : 'chevron-up'} />
+                  </div>
                 </div>
-              </div>
-              <div id="logsFlow" className="Logs">
-                {logs}
-              </div>
-            </section>
+                <div id="logsFlow" className="Logs">
+                  {logs}
+                </div>
+              </section>
+            </div>
           </div>
-        </div>
-      </ResizeSensor>
+        </ResizeSensor>
+        <Modal
+          width="80%"
+          visible={showCodeDetails}
+          onCancel={() => this.setState({ showCodeDetails: false })}
+          footer={null}
+        >
+          <CodeDetails
+            regressionUuid={''}
+            criticalChange={[]}
+            fileName={''}
+            beginLine={[0]}
+            endLine={[0]}
+          />
+        </Modal>
+      </>
     );
   }
 }
