@@ -8,7 +8,7 @@ import type { ResizeEntry } from '@blueprintjs/core';
 import { ResizeSensor, Divider, Button } from '@blueprintjs/core';
 import './styles.css';
 import EllipsisMiddle from '../EllipsisMiddle';
-import type { RadioChangeEvent } from 'antd';
+import { message, RadioChangeEvent } from 'antd';
 import { Radio, Modal } from 'antd';
 import CodeDetails from '../CodeDetails';
 
@@ -23,14 +23,14 @@ interface IProps {
   original?: string;
   value?: string;
   isRunning: boolean;
-  console?: string;
+  consoleString?: string;
   onRunCode?: (code: string, version: string) => void;
 }
 interface IState {
   showConsole: boolean;
   showCodeDetails: boolean;
   version: 'left' | 'right';
-  console?: string | null;
+  consoleString?: string | null;
   monacoSize: { width: string | number; height: string | number };
 }
 
@@ -49,7 +49,7 @@ class CodeEditor extends React.Component<IProps, IState> {
     },
     glyphMargin: false,
     folding: false,
-    contextmenu: false,
+    contextmenu: true,
     fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace',
     fontSize: 14,
     lineHeight: 20,
@@ -132,14 +132,14 @@ class CodeEditor extends React.Component<IProps, IState> {
       extra,
       oldVersionText,
       newVersionText,
-      console,
+      consoleString,
       isRunning,
     } = this.props;
     const { showConsole, version, showCodeDetails } = this.state;
     const { width, height } = this.state.monacoSize;
     const logs = (
       <pre className="log output" style={{ overflow: 'unset' }}>
-        {console}
+        {consoleString}
       </pre>
     );
     return (
@@ -191,11 +191,43 @@ class CodeEditor extends React.Component<IProps, IState> {
                 ref={this.editorRef}
                 width={width}
                 height={height}
-                language="java"
+                language={'java'}
                 theme={darkTheme ? 'vs-dark' : 'vs-light'}
                 options={this.options}
                 original={original}
                 value={value}
+                editorDidMount={(editor) => {
+                  editor.addAction({
+                    id: 'feedback-reject',
+                    label: 'feedback: reject',
+                    keybindingContext: undefined,
+                    contextMenuGroupId: 'navigation',
+                    contextMenuOrder: 2,
+                    run: function (ed) {
+                      message.info('Position ' + ed.getPosition() + ' feedback is reject.');
+                    },
+                  });
+                  editor.addAction({
+                    id: 'feedback-add',
+                    label: 'feedback: add',
+                    keybindingContext: undefined,
+                    contextMenuGroupId: 'navigation',
+                    contextMenuOrder: 1,
+                    run: function (ed) {
+                      message.info('Position ' + ed.getPosition() + ' feedback is add.');
+                    },
+                  });
+                  editor.addAction({
+                    id: 'feedback-accept',
+                    label: 'feedback: accept',
+                    keybindingContext: undefined,
+                    contextMenuGroupId: 'navigation',
+                    contextMenuOrder: 3,
+                    run: function (ed) {
+                      message.info('Position ' + ed.getPosition() + ' feedback is accept.');
+                    },
+                  });
+                }}
               />
             </div>
             <div

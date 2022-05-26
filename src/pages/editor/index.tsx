@@ -552,7 +552,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 newVersionText="bug introduce"
                 onRunCode={handleBICRunClick}
                 isRunning={BICisRunning}
-                console={BICConsoleResult}
+                consoleString={BICConsoleResult}
               />
             )}
             {activeBFCKey !== undefined && activeBFCKey !== '' && (
@@ -566,7 +566,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 newVersionText="bug fix"
                 onRunCode={handleBFCRunClick}
                 isRunning={BFCisRunning}
-                console={BFCConsoleResult}
+                consoleString={BFCConsoleResult}
               />
             )}
           </div>

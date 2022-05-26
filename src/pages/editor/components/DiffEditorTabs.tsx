@@ -14,7 +14,7 @@ interface IProps {
   commit: 'BIC' | 'BFC';
   panes: FilePaneItem[];
   activeKey: string;
-  console?: string;
+  consoleString?: string;
   isRunning: boolean;
   onPanesChange: (panes: FilePaneItem[]) => void;
   onActiveKey: (v: string) => void;
@@ -27,7 +27,7 @@ const DiffEditorTabs: React.FC<IProps> = ({
   activeKey,
   oldVersionText,
   newVersionText,
-  console,
+  consoleString,
   isRunning,
   onActiveKey,
   onPanesChange,
@@ -87,7 +87,7 @@ const DiffEditorTabs: React.FC<IProps> = ({
                 oldVersionText={oldVersionText}
                 newVersionText={newVersionText}
                 isRunning={isRunning}
-                console={console}
+                consoleString={consoleString}
                 onRunCode={onRunCode}
               />
             </div>
