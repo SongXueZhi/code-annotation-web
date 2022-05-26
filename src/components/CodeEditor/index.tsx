@@ -8,7 +8,8 @@ import type { ResizeEntry } from '@blueprintjs/core';
 import { ResizeSensor, Divider, Button } from '@blueprintjs/core';
 import './styles.css';
 import EllipsisMiddle from '../EllipsisMiddle';
-import { message, RadioChangeEvent } from 'antd';
+import type { RadioChangeEvent } from 'antd';
+import { message } from 'antd';
 import { Radio, Modal } from 'antd';
 import CodeDetails from '../CodeDetails';
 
@@ -29,6 +30,7 @@ interface IProps {
 interface IState {
   showConsole: boolean;
   showCodeDetails: boolean;
+  onCommitFeedback: boolean;
   version: 'left' | 'right';
   consoleString?: string | null;
   monacoSize: { width: string | number; height: string | number };
@@ -67,6 +69,7 @@ class CodeEditor extends React.Component<IProps, IState> {
     this.state = {
       showConsole: false,
       showCodeDetails: false,
+      onCommitFeedback: true,
       version: 'left',
       monacoSize: { width: 0, height: 0 },
     };
@@ -135,7 +138,7 @@ class CodeEditor extends React.Component<IProps, IState> {
       consoleString,
       isRunning,
     } = this.props;
-    const { showConsole, version, showCodeDetails } = this.state;
+    const { showConsole, version, showCodeDetails, onCommitFeedback } = this.state;
     const { width, height } = this.state.monacoSize;
     const logs = (
       <pre className="log output" style={{ overflow: 'unset' }}>
@@ -148,7 +151,7 @@ class CodeEditor extends React.Component<IProps, IState> {
           <div className="EditorRoot" id={this.uuid}>
             <div
               className={darkTheme ? 'TitlebarView flex between dark' : 'TitlebarView flex between'}
-              style={{ width: '100%' }}
+              style={{ width: '100%', height: 'auto' }}
             >
               <div className="project-title">
                 <EllipsisMiddle suffixCount={12}>{title}</EllipsisMiddle>
@@ -156,10 +159,24 @@ class CodeEditor extends React.Component<IProps, IState> {
                   id="show-code-details"
                   icon="search"
                   intent="primary"
-                  style={{ marginRight: '10px', marginLeft: '10px', border: 'solid' }}
+                  style={{ marginLeft: '5px' }}
                   onClick={() => this.setState({ showCodeDetails: true })}
                 >
                   Details
+                </Button>
+                <Button
+                  id="commit-feedback-changes"
+                  icon="upload"
+                  intent="primary"
+                  disabled={onCommitFeedback}
+                  style={{ marginLeft: '5px' }}
+                  onClick={() => {
+                    message.info('Feedback Commit success, please wait to update');
+                    message.info('feedbackContextList');
+                    this.setState({ onCommitFeedback: true });
+                  }}
+                >
+                  Commit
                 </Button>
               </div>
 
@@ -168,7 +185,7 @@ class CodeEditor extends React.Component<IProps, IState> {
                 <Button
                   id="run-code-btn"
                   data-imitate
-                  style={{ height: '30px', marginRight: '10px' }}
+                  style={{ height: '30px', marginRight: '5px' }}
                   intent="success"
                   icon="play"
                   onClick={this.handleRunClick}
@@ -196,35 +213,95 @@ class CodeEditor extends React.Component<IProps, IState> {
                 options={this.options}
                 original={original}
                 value={value}
-                editorDidMount={(editor) => {
-                  editor.addAction({
+                editorDidMount={(diffEditor) => {
+                  diffEditor.addAction({
                     id: 'feedback-reject',
                     label: 'feedback: reject',
                     keybindingContext: undefined,
                     contextMenuGroupId: 'navigation',
                     contextMenuOrder: 2,
-                    run: function (ed) {
-                      message.info('Position ' + ed.getPosition() + ' feedback is reject.');
+                    run: (ed) => {
+                      ed.deltaDecorations(
+                        [],
+                        [
+                          {
+                            range: new monaco.Range(
+                              ed.getPosition()?.lineNumber ?? 0,
+                              ed.getPosition()?.column ?? 0,
+                              ed.getPosition()?.lineNumber ?? 0,
+                              ed.getPosition()?.column ?? 0,
+                            ),
+                            options: {
+                              isWholeLine: true,
+                              className: 'rejectContentClass',
+                              hoverMessage: { value: 'Feedback: Reject' },
+                              // glyphMarginClassName: 'rejectContentClass',
+                            },
+                          },
+                        ],
+                      );
+                      message.info('Position ' + ed.getPosition() + ' feedback changed to reject.');
+                      this.setState({ onCommitFeedback: false });
                     },
                   });
-                  editor.addAction({
+                  diffEditor.addAction({
                     id: 'feedback-add',
                     label: 'feedback: add',
                     keybindingContext: undefined,
                     contextMenuGroupId: 'navigation',
                     contextMenuOrder: 1,
-                    run: function (ed) {
-                      message.info('Position ' + ed.getPosition() + ' feedback is add.');
+                    run: (ed) => {
+                      ed.deltaDecorations(
+                        [],
+                        [
+                          {
+                            range: new monaco.Range(
+                              ed.getPosition()?.lineNumber ?? 0,
+                              ed.getPosition()?.column ?? 0,
+                              ed.getPosition()?.lineNumber ?? 0,
+                              ed.getPosition()?.column ?? 0,
+                            ),
+                            options: {
+                              isWholeLine: true,
+                              className: 'addContentClass',
+                              hoverMessage: { value: 'Feedback: Add' },
+                              // glyphMarginClassName: 'rejectContentClass',
+                            },
+                          },
+                        ],
+                      );
+                      message.info('Position ' + ed.getPosition() + ' feedback changed to add.');
+                      this.setState({ onCommitFeedback: false });
                     },
                   });
-                  editor.addAction({
+                  diffEditor.addAction({
                     id: 'feedback-accept',
                     label: 'feedback: accept',
                     keybindingContext: undefined,
                     contextMenuGroupId: 'navigation',
                     contextMenuOrder: 3,
-                    run: function (ed) {
-                      message.info('Position ' + ed.getPosition() + ' feedback is accept.');
+                    run: (ed) => {
+                      ed.deltaDecorations(
+                        [],
+                        [
+                          {
+                            range: new monaco.Range(
+                              ed.getPosition()?.lineNumber ?? 0,
+                              ed.getPosition()?.column ?? 0,
+                              ed.getPosition()?.lineNumber ?? 0,
+                              ed.getPosition()?.column ?? 0,
+                            ),
+                            options: {
+                              isWholeLine: true,
+                              className: 'acceptContentClass',
+                              hoverMessage: { value: 'Feedback: Accept' },
+                              // glyphMarginClassName: 'rejectContentClass',
+                            },
+                          },
+                        ],
+                      );
+                      message.info('Position ' + ed.getPosition() + ' feedback changed to accept.');
+                      this.setState({ onCommitFeedback: false });
                     },
                   });
                 }}

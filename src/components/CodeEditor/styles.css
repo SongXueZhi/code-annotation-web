@@ -190,3 +190,16 @@ a:hover {
   color: white;
   background: black;
 }
+
+.myGlyphMarginClass {
+	background: red;
+}
+.rejectContentClass {
+	background: rgb(255, 0, 0);
+}
+.addContentClass {
+	background: rgb(0, 0, 255);
+}
+.acceptContentClass {
+	background: rgb(0, 255, 0);
+}
