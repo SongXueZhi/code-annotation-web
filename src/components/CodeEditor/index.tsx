@@ -31,6 +31,7 @@ interface IState {
   showConsole: boolean;
   showCodeDetails: boolean;
   onCommitFeedback: boolean;
+  feedbackContextList: any;
   version: 'left' | 'right';
   consoleString?: string | null;
   monacoSize: { width: string | number; height: string | number };
@@ -70,6 +71,7 @@ class CodeEditor extends React.Component<IProps, IState> {
       showConsole: false,
       showCodeDetails: false,
       onCommitFeedback: true,
+      feedbackContextList: [],
       version: 'left',
       monacoSize: { width: 0, height: 0 },
     };
@@ -138,7 +140,8 @@ class CodeEditor extends React.Component<IProps, IState> {
       consoleString,
       isRunning,
     } = this.props;
-    const { showConsole, version, showCodeDetails, onCommitFeedback } = this.state;
+    const { showConsole, version, showCodeDetails, onCommitFeedback, feedbackContextList } =
+      this.state;
     const { width, height } = this.state.monacoSize;
     const logs = (
       <pre className="log output" style={{ overflow: 'unset' }}>
@@ -172,7 +175,7 @@ class CodeEditor extends React.Component<IProps, IState> {
                   style={{ marginLeft: '5px' }}
                   onClick={() => {
                     message.info('Feedback Commit success, please wait to update');
-                    message.info('feedbackContextList');
+                    // message.info(feedbackContextList);
                     this.setState({ onCommitFeedback: true });
                   }}
                 >
@@ -215,6 +218,57 @@ class CodeEditor extends React.Component<IProps, IState> {
                 value={value}
                 editorDidMount={(diffEditor) => {
                   diffEditor.addAction({
+                    id: 'show-feedback',
+                    label: 'show all feedbacks',
+                    keybindingContext: undefined,
+                    contextMenuGroupId: '1_modification',
+                    contextMenuOrder: 1,
+                    run: (ed) => {
+                      ed.deltaDecorations(
+                        [],
+                        [
+                          {
+                            range: new monaco.Range(45, 1, 45, 1),
+                            options: {
+                              isWholeLine: true,
+                              // className: 'rejectContentClass',
+                              hoverMessage: { value: 'Feedback: Reject', isTrusted: true },
+                              // glyphMarginClassName: 'rejectContentClass',
+                            },
+                          },
+                        ],
+                      );
+                      ed.deltaDecorations(
+                        [],
+                        [
+                          {
+                            range: new monaco.Range(48, 1, 48, 1),
+                            options: {
+                              isWholeLine: true,
+                              // className: 'addContentClass',
+                              hoverMessage: { value: 'Feedback: Add' },
+                              // glyphMarginClassName: 'addContentClass',
+                            },
+                          },
+                        ],
+                      );
+                      ed.deltaDecorations(
+                        [],
+                        [
+                          {
+                            range: new monaco.Range(49, 1, 49, 1),
+                            options: {
+                              isWholeLine: true,
+                              // className: 'acceptContentClass',
+                              hoverMessage: { value: 'Feedback: Accept' },
+                              // glyphMarginClassName: 'acceptContentClass',
+                            },
+                          },
+                        ],
+                      );
+                    },
+                  });
+                  diffEditor.addAction({
                     id: 'feedback-reject',
                     label: 'feedback: reject',
                     keybindingContext: undefined,
@@ -240,6 +294,7 @@ class CodeEditor extends React.Component<IProps, IState> {
                           },
                         ],
                       );
+                      const line = ed.getPosition()?.lineNumber;
                       message.info('Position ' + ed.getPosition() + ' feedback changed to reject.');
                       this.setState({ onCommitFeedback: false });
                     },
@@ -270,6 +325,7 @@ class CodeEditor extends React.Component<IProps, IState> {
                           },
                         ],
                       );
+                      const line = ed.getPosition()?.lineNumber;
                       message.info('Position ' + ed.getPosition() + ' feedback changed to add.');
                       this.setState({ onCommitFeedback: false });
                     },
@@ -300,6 +356,7 @@ class CodeEditor extends React.Component<IProps, IState> {
                           },
                         ],
                       );
+                      const line = ed.getPosition()?.lineNumber;
                       message.info('Position ' + ed.getPosition() + ' feedback changed to accept.');
                       this.setState({ onCommitFeedback: false });
                     },

@@ -195,11 +195,11 @@ a:hover {
 	background: red;
 }
 .rejectContentClass {
-	background: rgb(255, 0, 0);
+	background: rgb(255, 125, 125);
 }
 .addContentClass {
-	background: rgb(0, 0, 255);
+	background: rgb(125, 125, 255);
 }
 .acceptContentClass {
-	background: rgb(0, 255, 0);
+	background: rgb(125, 255, 125);
 }
