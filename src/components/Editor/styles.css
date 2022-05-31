@@ -191,15 +191,17 @@ a:hover {
   background: black;
 }
 
-.myGlyphMarginClass {
+.critical-change-lines {
 	background: red;
+  width: 10px !important;
+  margin-left: 3px;
 }
-.rejectContentClass {
-	background: rgb(255, 125, 125);
+.old-code-changed-lines {
+	background: rgb(255, 175, 175);
 }
-.addContentClass {
+.new-code-changed-lines {
+	background: rgb(175, 255, 175);
+}
+.feedback-content-class {
 	background: rgb(125, 125, 255);
-}
-.acceptContentClass {
-	background: rgb(125, 255, 125);
 }

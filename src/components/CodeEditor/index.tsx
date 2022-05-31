@@ -294,7 +294,6 @@ class CodeEditor extends React.Component<IProps, IState> {
                           },
                         ],
                       );
-                      const line = ed.getPosition()?.lineNumber;
                       message.info('Position ' + ed.getPosition() + ' feedback changed to reject.');
                       this.setState({ onCommitFeedback: false });
                     },
@@ -325,7 +324,6 @@ class CodeEditor extends React.Component<IProps, IState> {
                           },
                         ],
                       );
-                      const line = ed.getPosition()?.lineNumber;
                       message.info('Position ' + ed.getPosition() + ' feedback changed to add.');
                       this.setState({ onCommitFeedback: false });
                     },
@@ -356,7 +354,6 @@ class CodeEditor extends React.Component<IProps, IState> {
                           },
                         ],
                       );
-                      const line = ed.getPosition()?.lineNumber;
                       message.info('Position ' + ed.getPosition() + ' feedback changed to accept.');
                       this.setState({ onCommitFeedback: false });
                     },

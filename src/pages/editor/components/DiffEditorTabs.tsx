@@ -1,4 +1,5 @@
 import CodeEditor from '@/components/CodeEditor';
+import Editor from '@/components/Editor';
 import { Tabs } from 'antd';
 import { useCallback } from 'react';
 import type { FilePaneItem } from '..';
@@ -9,10 +10,12 @@ export type DiffEditor = {
 };
 
 interface IProps {
-  oldVersionText?: string;
-  newVersionText?: string;
+  versionText: string;
+  // oldVersionText?: string;
+  // newVersionText?: string;
   commit: 'BIC' | 'BFC';
   panes: FilePaneItem[];
+  paneFlag: 'Old' | 'New'; // display oldCode || NewCode
   activeKey: string;
   consoleString?: string;
   isRunning: boolean;
@@ -24,15 +27,25 @@ interface IProps {
 const DiffEditorTabs: React.FC<IProps> = ({
   commit,
   panes,
+  paneFlag,
   activeKey,
-  oldVersionText,
-  newVersionText,
+  versionText,
   consoleString,
   isRunning,
   onActiveKey,
   onPanesChange,
   onRunCode,
 }) => {
+  const mockChangedLines_old = [
+    [45, 47],
+    [50, 58],
+  ];
+  const mockCriticalChangeLines_old = [50, 58];
+  const mockChangedLines_new = [
+    [45, 45],
+    [48, 49],
+  ];
+  const mockCriticalChangeLines_new = [48, 49];
   const remove = useCallback(
     (targetKey: string) => {
       let newActiveKey = activeKey;
@@ -75,25 +88,47 @@ const DiffEditorTabs: React.FC<IProps> = ({
       onEdit={onEdit}
       hideAdd
     >
-      {panes.map(({ key, oldCode, newCode }) => {
-        return (
-          <Tabs.TabPane tab={key.split(`${commit}-`)} key={key}>
-            <div style={{ width: '100%', height: '86vh', display: 'flex' }}>
-              <CodeEditor
-                title={commit === 'BIC' ? 'Bug Inducing Commit' : 'Bug Fixing Commit'}
-                darkTheme={false}
-                original={oldCode}
-                value={newCode}
-                oldVersionText={oldVersionText}
-                newVersionText={newVersionText}
-                isRunning={isRunning}
-                consoleString={consoleString}
-                onRunCode={onRunCode}
-              />
-            </div>
-          </Tabs.TabPane>
-        );
-      })}
+      {paneFlag === 'Old'
+        ? panes.map(({ key, oldCode, newCode }) => {
+            return (
+              <Tabs.TabPane tab={key.split(`${commit}-`)} key={key}>
+                <div style={{ width: '100%', height: '86vh', display: 'flex' }}>
+                  <Editor
+                    title={commit === 'BIC' ? 'Bug Inducing Commit' : 'Bug Fixing Commit'}
+                    darkTheme={false}
+                    paneFlag={paneFlag}
+                    changedCodeLines={mockChangedLines_old}
+                    criticalChangeLines={mockCriticalChangeLines_old}
+                    value={oldCode}
+                    versionText={versionText}
+                    isRunning={isRunning}
+                    consoleString={consoleString}
+                    onRunCode={onRunCode}
+                  />
+                </div>
+              </Tabs.TabPane>
+            );
+          })
+        : panes.map(({ key, oldCode, newCode }) => {
+            return (
+              <Tabs.TabPane tab={key.split(`${commit}-`)} key={key}>
+                <div style={{ width: '100%', height: '86vh', display: 'flex' }}>
+                  <Editor
+                    title={commit === 'BIC' ? 'Bug Inducing Commit' : 'Bug Fixing Commit'}
+                    darkTheme={false}
+                    paneFlag={paneFlag}
+                    changedCodeLines={mockChangedLines_new}
+                    criticalChangeLines={mockCriticalChangeLines_new}
+                    value={newCode}
+                    versionText={versionText}
+                    isRunning={isRunning}
+                    consoleString={consoleString}
+                    onRunCode={onRunCode}
+                  />
+                </div>
+              </Tabs.TabPane>
+            );
+          })}
     </Tabs>
   );
 };

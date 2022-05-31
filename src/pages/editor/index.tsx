@@ -542,32 +542,60 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
               </Card>
             </div>
             {activeBICKey !== undefined && activeBICKey !== '' && (
-              <DiffEditorTabs
-                commit="BIC"
-                activeKey={activeBICKey}
-                onActiveKey={setActiveBICKey}
-                panes={panesBIC}
-                onPanesChange={setPanesBIC}
-                oldVersionText="work"
-                newVersionText="bug introduce"
-                onRunCode={handleBICRunClick}
-                isRunning={BICisRunning}
-                consoleString={BICConsoleResult}
-              />
+              <>
+                <DiffEditorTabs
+                  commit="BIC"
+                  activeKey={activeBICKey}
+                  onActiveKey={setActiveBICKey}
+                  panes={panesBIC}
+                  paneFlag={'Old'}
+                  onPanesChange={setPanesBIC}
+                  versionText="work"
+                  onRunCode={handleBICRunClick}
+                  isRunning={BICisRunning}
+                  consoleString={BICConsoleResult}
+                />
+                <DiffEditorTabs
+                  commit="BIC"
+                  activeKey={activeBICKey}
+                  onActiveKey={setActiveBICKey}
+                  panes={panesBIC}
+                  paneFlag={'New'}
+                  onPanesChange={setPanesBIC}
+                  versionText="bug introduce"
+                  onRunCode={handleBICRunClick}
+                  isRunning={BICisRunning}
+                  consoleString={BICConsoleResult}
+                />
+              </>
             )}
             {activeBFCKey !== undefined && activeBFCKey !== '' && (
-              <DiffEditorTabs
-                commit="BFC"
-                activeKey={activeBFCKey}
-                onActiveKey={setActiveBFCKey}
-                panes={panesBFC}
-                onPanesChange={setPanesBFC}
-                oldVersionText="buggy"
-                newVersionText="bug fix"
-                onRunCode={handleBFCRunClick}
-                isRunning={BFCisRunning}
-                consoleString={BFCConsoleResult}
-              />
+              <>
+                <DiffEditorTabs
+                  commit="BFC"
+                  activeKey={activeBFCKey}
+                  onActiveKey={setActiveBFCKey}
+                  panes={panesBFC}
+                  paneFlag={'Old'}
+                  onPanesChange={setPanesBFC}
+                  versionText="buggy"
+                  onRunCode={handleBFCRunClick}
+                  isRunning={BFCisRunning}
+                  consoleString={BFCConsoleResult}
+                />
+                <DiffEditorTabs
+                  commit="BFC"
+                  activeKey={activeBFCKey}
+                  onActiveKey={setActiveBFCKey}
+                  panes={panesBFC}
+                  paneFlag={'New'}
+                  onPanesChange={setPanesBFC}
+                  versionText="bug fix"
+                  onRunCode={handleBFCRunClick}
+                  isRunning={BFCisRunning}
+                  consoleString={BFCConsoleResult}
+                />
+              </>
             )}
           </div>
         </PageContainer>
