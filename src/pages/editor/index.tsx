@@ -156,6 +156,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
           setBICConsoleResult(data ?? '');
           if (data && data.includes('REGMINER-TEST-END')) {
             break;
+          } else if (data === null && data !== '') {
+            break;
           }
         }
         setBICIsRunning(false);
@@ -180,6 +182,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
           await wait(500);
           setBICConsoleResult(data ?? '');
           if (data && data.includes('REGMINER-TEST-END')) {
+            break;
+          } else if (data === null && data !== '') {
             break;
           }
         }
@@ -208,6 +212,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
           setBFCConsoleResult(data ?? '');
           if (data && data.includes('REGMINER-TEST-END')) {
             break;
+          } else if (data === null && data !== '') {
+            break;
           }
         }
         setBFCIsRunning(false);
@@ -233,6 +239,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
           const data = await getRegressionConsole({ path: path });
           setBFCConsoleResult(data ?? '');
           if (data && data.includes('REGMINER-TEST-END')) {
+            break;
+          } else if (data === null && data !== '') {
             break;
           }
         }
