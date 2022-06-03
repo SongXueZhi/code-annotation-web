@@ -502,7 +502,7 @@ const TableList: React.FC<{}> = () => {
                 </Card>
               </Col>
               <Col span={8}>
-                <Card title="comething processing" hoverable className="progress-card">
+                <Card title="something processing" hoverable className="progress-card">
                   <Progress
                     type="circle"
                     strokeColor={{
