@@ -197,11 +197,11 @@ a:hover {
   margin-left: 3px;
 }
 .old-code-changed-lines {
-	background: rgb(255, 175, 175);
+	background: rgba(255, 0, 0, 0.2);
 }
 .new-code-changed-lines {
-	background: rgb(175, 255, 175);
+	background: rgba(0, 255, 0, 0.2);
 }
 .feedback-content-class {
-	background: rgb(125, 125, 255);
+	background: rgba(125, 125, 255);
 }
