@@ -52,16 +52,12 @@ class Editor extends React.Component<IProps, IState> {
             horizontalSliderSize: 14,
             alwaysConsumeMouseWheel: false,
           },
-          glyphMargin: false,
           folding: false,
-          contextmenu: true,
           fontFamily:
             'ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace',
           fontSize: 14,
           lineHeight: 20,
           extraEditorClassName: 'CodeEditor',
-          //+ -指示器
-          renderIndicators: false,
           // editor是否可编辑
           readOnly: false,
         }
@@ -83,8 +79,6 @@ class Editor extends React.Component<IProps, IState> {
           fontSize: 14,
           lineHeight: 20,
           extraEditorClassName: 'CodeEditor',
-          //+ -指示器
-          renderIndicators: true,
           // editor是否可编辑
           readOnly: true,
         };
@@ -224,23 +218,7 @@ class Editor extends React.Component<IProps, IState> {
                 editorDidMount={(editor) => {
                   const changedLines = this.props.changedCodeLines;
                   const critical = this.props.criticalChangeLines ?? 0;
-                  if (this.props.paneFlag === 'Old') {
-                    editor.revealPositionInCenter({ lineNumber: critical[0] - 10, column: 0 });
-                    changedLines?.map((range) => {
-                      editor.deltaDecorations(
-                        [],
-                        [
-                          {
-                            range: new monaco.Range(range[0], 1, range[1], 1),
-                            options: {
-                              className: 'old-code-changed-lines',
-                              isWholeLine: true,
-                            },
-                          },
-                        ],
-                      );
-                    });
-                  } else {
+                  if (this.props.paneFlag === 'New') {
                     editor.revealPositionInCenter({ lineNumber: critical[0] - 10, column: 0 });
                     changedLines?.map((range) => {
                       editor.deltaDecorations(
@@ -400,6 +378,22 @@ class Editor extends React.Component<IProps, IState> {
                           groudTruthText: window.getSelection()?.toString(),
                         });
                       },
+                    });
+                  } else {
+                    editor.revealPositionInCenter({ lineNumber: critical[0] - 10, column: 0 });
+                    changedLines?.map((range) => {
+                      editor.deltaDecorations(
+                        [],
+                        [
+                          {
+                            range: new monaco.Range(range[0], 1, range[1], 1),
+                            options: {
+                              className: 'old-code-changed-lines',
+                              isWholeLine: true,
+                            },
+                          },
+                        ],
+                      );
                     });
                   }
                 }}
