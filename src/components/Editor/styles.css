@@ -203,5 +203,9 @@ a:hover {
 	background: rgba(0, 255, 0, 0.2);
 }
 .feedback-content-class {
-	background: rgba(125, 125, 255);
+	background: rgba(50, 50, 255, 0.2);
+}
+
+.ground-truth-content-class {
+	background: rgba(255, 50, 255, 0.2);
 }

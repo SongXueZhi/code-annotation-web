@@ -29,7 +29,9 @@ interface IState {
   showConsole: boolean;
   showCodeDetails: boolean;
   onCommitFeedback: boolean;
+  onRunWithGrondtruth: boolean;
   feedbackContextList: any;
+  groudTruthText?: string;
   consoleString?: string | null;
   monacoSize: { width: string | number; height: string | number };
 }
@@ -96,6 +98,8 @@ class Editor extends React.Component<IProps, IState> {
       showConsole: false,
       showCodeDetails: false,
       onCommitFeedback: true,
+      onRunWithGrondtruth: true,
+      groudTruthText: undefined,
       feedbackContextList: [],
       monacoSize: { width: 0, height: 0 },
     };
@@ -141,8 +145,9 @@ class Editor extends React.Component<IProps, IState> {
   };
 
   render() {
-    const { darkTheme, value, title, extra, versionText, consoleString, isRunning } = this.props;
-    const { showConsole, onCommitFeedback } = this.state;
+    const { darkTheme, value, title, extra, versionText, consoleString, isRunning, paneFlag } =
+      this.props;
+    const { showConsole, onCommitFeedback, onRunWithGrondtruth, groudTruthText } = this.state;
     const { width, height } = this.state.monacoSize;
     const logs = (
       <pre className="log output" style={{ overflow: 'unset' }}>
@@ -160,20 +165,36 @@ class Editor extends React.Component<IProps, IState> {
             >
               <div className="project-title">
                 <EllipsisMiddle suffixCount={12}>{title}</EllipsisMiddle>
-                <Button
-                  id="commit-feedback-changes"
-                  icon="upload"
-                  intent="primary"
-                  disabled={onCommitFeedback}
-                  style={{ marginLeft: '5px' }}
-                  onClick={() => {
-                    message.info('Feedback Commit success, please wait to update');
-                    // message.info(feedbackContextList);
-                    this.setState({ onCommitFeedback: true });
-                  }}
-                >
-                  Commit
-                </Button>
+                {paneFlag === 'New' ? (
+                  <>
+                    <Button
+                      id="commit-feedback-changes"
+                      icon="upload"
+                      intent="primary"
+                      disabled={onCommitFeedback}
+                      style={{ marginLeft: '5px' }}
+                      onClick={() => {
+                        message.info('Feedback Commit success, please wait to update');
+                        this.setState({ onCommitFeedback: true });
+                      }}
+                    >
+                      Commit
+                    </Button>
+                    <Button
+                      id="commit-feedback-changes"
+                      icon="play"
+                      intent="primary"
+                      disabled={onRunWithGrondtruth}
+                      style={{ marginLeft: '5px' }}
+                      onClick={() => {
+                        message.info('Running with Ground Truth: ' + { groudTruthText });
+                        this.setState({ onRunWithGrondtruth: true });
+                      }}
+                    >
+                      Run G.T.
+                    </Button>
+                  </>
+                ) : undefined}
               </div>
 
               <div className="run-button" style={{ border: 'solid', borderColor: 'green' }}>
@@ -204,6 +225,7 @@ class Editor extends React.Component<IProps, IState> {
                   const changedLines = this.props.changedCodeLines;
                   const critical = this.props.criticalChangeLines ?? 0;
                   if (this.props.paneFlag === 'Old') {
+                    editor.revealPositionInCenter({ lineNumber: critical[0] - 10, column: 0 });
                     changedLines?.map((range) => {
                       editor.deltaDecorations(
                         [],
@@ -218,8 +240,8 @@ class Editor extends React.Component<IProps, IState> {
                         ],
                       );
                     });
-                    editor.revealPositionInCenter({ lineNumber: critical[0] - 10, column: 0 });
                   } else {
+                    editor.revealPositionInCenter({ lineNumber: critical[0] - 10, column: 0 });
                     changedLines?.map((range) => {
                       editor.deltaDecorations(
                         [],
@@ -239,7 +261,6 @@ class Editor extends React.Component<IProps, IState> {
                         ],
                       );
                     });
-                    editor.revealPositionInCenter({ lineNumber: critical[0] - 10, column: 0 });
                     editor.deltaDecorations(
                       [],
                       [
@@ -257,7 +278,7 @@ class Editor extends React.Component<IProps, IState> {
                       id: 'feedback-reject',
                       label: 'feedback: reject',
                       keybindingContext: undefined,
-                      contextMenuGroupId: 'navigation',
+                      contextMenuGroupId: '1_cutcopypaste',
                       contextMenuOrder: 2,
                       run: (ed) => {
                         ed.deltaDecorations(
@@ -265,13 +286,13 @@ class Editor extends React.Component<IProps, IState> {
                           [
                             {
                               range: new monaco.Range(
-                                ed.getPosition()?.lineNumber ?? 0,
-                                ed.getPosition()?.column ?? 0,
-                                ed.getPosition()?.lineNumber ?? 0,
-                                ed.getPosition()?.column ?? 0,
+                                ed.getSelection()?.startLineNumber ?? 0,
+                                ed.getSelection()?.startColumn ?? 0,
+                                ed.getSelection()?.endLineNumber ?? 0,
+                                ed.getSelection()?.endColumn ?? 0,
                               ),
                               options: {
-                                isWholeLine: true,
+                                isWholeLine: false,
                                 className: 'feedback-content-class',
                                 hoverMessage: { value: 'Feedback: Reject' },
                                 // glyphMarginClassName: 'rejectContentClass',
@@ -289,7 +310,7 @@ class Editor extends React.Component<IProps, IState> {
                       id: 'feedback-add',
                       label: 'feedback: add',
                       keybindingContext: undefined,
-                      contextMenuGroupId: 'navigation',
+                      contextMenuGroupId: '1_cutcopypaste',
                       contextMenuOrder: 1,
                       run: (ed) => {
                         ed.deltaDecorations(
@@ -297,13 +318,13 @@ class Editor extends React.Component<IProps, IState> {
                           [
                             {
                               range: new monaco.Range(
-                                ed.getPosition()?.lineNumber ?? 0,
-                                ed.getPosition()?.column ?? 0,
-                                ed.getPosition()?.lineNumber ?? 0,
-                                ed.getPosition()?.column ?? 0,
+                                ed.getSelection()?.startLineNumber ?? 0,
+                                ed.getSelection()?.startColumn ?? 0,
+                                ed.getSelection()?.endLineNumber ?? 0,
+                                ed.getSelection()?.endColumn ?? 0,
                               ),
                               options: {
-                                isWholeLine: true,
+                                isWholeLine: false,
                                 className: 'feedback-content-class',
                                 hoverMessage: { value: 'Feedback: Add' },
                                 // glyphMarginClassName: 'rejectContentClass',
@@ -319,7 +340,7 @@ class Editor extends React.Component<IProps, IState> {
                       id: 'feedback-accept',
                       label: 'feedback: accept',
                       keybindingContext: undefined,
-                      contextMenuGroupId: 'navigation',
+                      contextMenuGroupId: '1_cutcopypaste',
                       contextMenuOrder: 3,
                       run: (ed) => {
                         ed.deltaDecorations(
@@ -327,13 +348,13 @@ class Editor extends React.Component<IProps, IState> {
                           [
                             {
                               range: new monaco.Range(
-                                ed.getPosition()?.lineNumber ?? 0,
-                                ed.getPosition()?.column ?? 0,
-                                ed.getPosition()?.lineNumber ?? 0,
-                                ed.getPosition()?.column ?? 0,
+                                ed.getSelection()?.startLineNumber ?? 0,
+                                ed.getSelection()?.startColumn ?? 0,
+                                ed.getSelection()?.endLineNumber ?? 0,
+                                ed.getSelection()?.endColumn ?? 0,
                               ),
                               options: {
-                                isWholeLine: true,
+                                isWholeLine: false,
                                 className: 'feedback-content-class',
                                 hoverMessage: { value: 'Feedback: Accept' },
                                 // glyphMarginClassName: 'rejectContentClass',
@@ -347,9 +368,41 @@ class Editor extends React.Component<IProps, IState> {
                         this.setState({ onCommitFeedback: false });
                       },
                     });
+                    editor.addAction({
+                      id: 'ground-truth',
+                      label: 'set as ground truth',
+                      keybindingContext: undefined,
+                      contextMenuGroupId: 'navigation',
+                      contextMenuOrder: 1,
+                      run: (ed) => {
+                        ed.deltaDecorations(
+                          [],
+                          [
+                            {
+                              range: new monaco.Range(
+                                ed.getSelection()?.startLineNumber ?? 0,
+                                ed.getSelection()?.startColumn ?? 0,
+                                ed.getSelection()?.endLineNumber ?? 0,
+                                ed.getSelection()?.endColumn ?? 0,
+                              ),
+                              options: {
+                                isWholeLine: true,
+                                className: 'ground-truth-content-class',
+                                hoverMessage: { value: 'Ground truth!' },
+                              },
+                            },
+                          ],
+                        );
+                        message.info('Ground Truth: ' + window.getSelection()?.toString());
+                        this.setState({
+                          onCommitFeedback: false,
+                          onRunWithGrondtruth: false,
+                          groudTruthText: window.getSelection()?.toString(),
+                        });
+                      },
+                    });
                   }
                 }}
-                // editorWillMount={(monaco) => {}}
               />
             </div>
             <div
