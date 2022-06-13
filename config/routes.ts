@@ -33,6 +33,13 @@
     component: './regression',
   },
   {
+    key: 'dashboard',
+    name: 'dashboard',
+    icon: 'smile',
+    path: '/dashboard',
+    component: './dashboard',
+  },
+  {
     key: 'editor',
     // name: 'editor',
     path: '/editor',
