@@ -46,6 +46,13 @@
     // icon: 'smile',
     component: './editor',
   },
+  {
+    key: 'detail',
+    // name: 'editor',
+    path: '/detail',
+    // icon: 'smile',
+    component: './detail',
+  },
   // {
   //   name: 'code',
   //   path: '/code',
