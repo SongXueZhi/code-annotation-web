@@ -55,6 +55,22 @@ const handleAdd = async (fields: API.RegressionItem) => {
     return false;
   }
 };
+let progressInfo: any = {
+  currentProjectName: 'univocity-parser',
+  projectQueueNum: 1,
+  totalProjectNum: 2,
+  totalStartTime: 1654222269037,
+  projectStatTime: 1654222289198,
+  totalProgress: 10,
+  totalPRFCNum: 4,
+  regressionNum: 25,
+  prfcdoneNum: 4,
+  currentRepoProgress: 78,
+  finishedProject: 1,
+  // currentRepoName: 'Reminer',
+  // repoUrl: 'https://github.com/SongXueZhi/RegMiner',
+  currentCommitName: 'current commit',
+};
 
 /**
  * 更新节点
@@ -62,9 +78,8 @@ const handleAdd = async (fields: API.RegressionItem) => {
  * @param fields
  */
 const updateProcessInfo = async (params: any) => {
-  getProcessInfo(params).then((res: any) => {
-    let newData = res.data;
-    console.log('ressss', res);
+  getProcessInfo().then((res: any) => {
+    const newData = res.data;
     newData.totalProgress = res.data.totalProjectNum;
     newData.finishedProject = Number(res.data.totalProjectNum) - Number(res.data.projectQueueNum);
     progressInfo = newData;
@@ -128,23 +143,6 @@ const DrawerbodyStyle = {
   // 'background-color': '#f5f5f5'
 };
 
-let progressInfo: any = {
-  currentProjectName: 'univocity-parser',
-  projectQueueNum: 1,
-  totalProjectNum: 2,
-  totalStartTime: 1654222269037,
-  projectStatTime: 1654222289198,
-  totalProgress: 10,
-  totalPRFCNum: 4,
-  regressionNum: 25,
-  prfcdoneNum: 4,
-  currentRepoProgress: 78,
-  finishedProject: 1,
-  // currentRepoName: 'Reminer',
-  // repoUrl: 'https://github.com/SongXueZhi/RegMiner',
-  currentCommitName: 'current commit',
-};
-
 const TableList: React.FC<{}> = () => {
   const intl = useIntl();
 
@@ -175,34 +173,34 @@ const TableList: React.FC<{}> = () => {
   const [timeLineList, handleTimeLine] = useState<any>([]);
   const [idLists, handleIdLists] = useState<any>([]);
   let timeLineTotal: number = 0;
-  let indicated:any = []
+  const indicated: any = [];
 
   const timeLineDetail = async (id: any) => {
-    let res: any = await getDeatil({'regressionUuid':id});
-    let arr: any = [];
-    let indexList:number[] = [];
-    let idList: any = [];
+    const res: any = await getDeatil({ regressionUuid: id });
+    const arr: any = [];
+    const indexList: number[] = [];
+    const idList: any = [];
     for (let i = 0; i < res.data.orderList.length; i++) {
       indexList.push(Number(res.data.orderList[i][0]));
-      idList.push(res.data.orderList[i][1])
+      idList.push(res.data.orderList[i][1]);
     }
-    handleIdLists(indexList)
+    handleIdLists(indexList);
     for (let i = 0; i < Number(res.data.searchSpaceNum) - 1; i++) {
-      if(indexList.indexOf(i) !== -1){
+      if (indexList.indexOf(i) !== -1) {
         arr.push({
           index: indexList.indexOf(i),
-          name:i,
-          time:'',
+          name: i,
+          time: '',
           id: idList[indexList.indexOf(i)],
         });
-        indicated.push(indexList.indexOf(i))
+        indicated.push(indexList.indexOf(i));
       }
     }
-    let sort:any = []
-    for(let i =0 ;i<indicated.length;i++){
-       sort.push(indicated.indexOf(i))
+    const sort: any = [];
+    for (let i = 0; i < indicated.length; i++) {
+      sort.push(indicated.indexOf(i));
     }
-    handleIdLists(sort)
+    handleIdLists(sort);
     handleTimeLine(arr);
     timeLineTotal = Number(res.searchSpaceNum);
     setCurRegressionUuid(id);
@@ -488,7 +486,7 @@ const TableList: React.FC<{}> = () => {
           <div className="regressionTimeline">
             <div> current: {currentRegressionUuid}</div>
             <div className="timeline-container">
-              <TimeLine lineList={timeLineList} total={timeLineTotal} indicated={idLists}/>
+              <TimeLine lineList={timeLineList} total={timeLineTotal} indicated={idLists} />
             </div>
           </div>
         </div>

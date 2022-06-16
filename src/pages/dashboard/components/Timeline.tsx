@@ -20,7 +20,7 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
       setCurrentStep(0);
       setArr([]);
     } else {
-      let narr = arr;
+      const narr = arr;
       setArr(narr);
       // if(lineList[indicated[currentStep]]){
       narr.push(lineList[indicated[currentStep]].name);
@@ -34,13 +34,13 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
     if (currentStep > 0) {
       setCurrentPoint(lineList[indicated[currentStep - 1]].index);
       setCurrentStep(currentStep - 1);
-      let narr = arr;
+      const narr = arr;
       narr.pop();
       setArr(narr);
     }
   };
 
-  let listName = lineList.map((item: any, key: any) => {
+  const listName = lineList.map((item: any, key: any) => {
     return (
       <Col className="col-container">
         <div className="col-container">
