@@ -14,13 +14,15 @@ import {
   Card,
   Tag,
   Steps,
+  Table,
 } from 'antd';
 import React, { useState, useRef } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
 import type { ProColumns, ActionType } from '@ant-design/pro-table';
 import ProTable from '@ant-design/pro-table';
+import TimeLine from './components/Timeline';
 
-import { queryRegressionList, addRegression, removeRegression } from './service';
+import { queryRegressionList, addRegression, removeRegression, getProcessInfo,getDeatil } from './service';
 import { Link } from 'react-router-dom';
 import { stringify } from 'query-string';
 import { useIntl } from 'umi';
@@ -53,6 +55,15 @@ const handleAdd = async (fields: API.RegressionItem) => {
  *
  * @param fields
  */
+const updateProcessInfo = async (params: any) => {
+  getProcessInfo(params).then((res: any) => {
+    let newData = res.data;
+    console.log('ressss',res)
+    newData.totalProgress = res.data.totalProjectNum
+    newData.finishedProject = Number(res.data.totalProjectNum) - Number(res.data.projectQueueNum)
+    progressInfo = newData
+  });
+};
 // const handleUpdate = async (fields: FormValueType) => {
 //   const hide = message.loading('正在配置');
 //   try {
@@ -104,67 +115,129 @@ const progressContainer = {
   padding: '40px',
   background: '#fff',
   'margin-bottom': '20px',
+  'padding-bottom': '300px',
   // marginBotton: '20px'
 };
 const DrawerbodyStyle = {
   // 'background-color': '#f5f5f5'
 };
 
-interface IProgressInfo {
-  totalProgress: number;
-  totalRepoNum: number;
-  finishedRepoNum: number;
-  totalStartTime: number;
-  curRepoStartTime: number;
-  currentRepoProgress: number;
-  currentRepoName: string;
-  repoUrl: string;
-
-  potentialBugFoundNum: number;
-  potentialBugCompleteNum: number;
-  regressionsFoundNum: number;
-}
-const progressInfo: IProgressInfo = {
-  totalProgress: 10,
-  currentRepoProgress: 78,
-  totalRepoNum: 80,
+let progressInfo: any = {
+  currentProjectName: 'univocity-parser',
+  projectQueueNum: 1,
+  totalProjectNum: 2,
   totalStartTime: 1654222269037,
-  finishedRepoNum: 10,
-
-  curRepoStartTime: 1654222289198,
-  currentRepoName: 'Reminer',
-  repoUrl: 'https://github.com/SongXueZhi/RegMiner',
-
-  potentialBugFoundNum: 1000,
-  potentialBugCompleteNum: 300,
-  regressionsFoundNum: 100,
+  projectStatTime: 1654222289198,
+  totalProgress: 10,
+  totalPRFCNum: 4,
+  regressionNum: 25,
+  prfcdoneNum: 4,
+  currentRepoProgress: 78,
+  finishedProject: 1,
+  // currentRepoName: 'Reminer',
+  // repoUrl: 'https://github.com/SongXueZhi/RegMiner',
+  currentCommitName: 'current commit',
 };
 
 const TableList: React.FC<{}> = () => {
   const intl = useIntl();
+
   const [dashboardvisible, setVisible] = useState<boolean>(false);
   const [distanceTime, setDistanceTime] = useState<string>(
     getDistanceDay(progressInfo.totalStartTime),
   );
   const [repodistanceTime, setRepoDistanceTime] = useState<string>(
-    getDistanceDay(progressInfo.curRepoStartTime),
+    getDistanceDay(progressInfo.projectStatTime),
   );
   setInterval(() => {
     const time = getDistanceDay(progressInfo.totalStartTime);
-    const repotime = getDistanceDay(progressInfo.curRepoStartTime);
+    const repotime = getDistanceDay(progressInfo.projectStatTime);
     setDistanceTime(time);
     setRepoDistanceTime(repotime);
     // distanceTime = getDistanceDay(progressInfo.totalStartTime)
   }, 1000);
   const [createModalVisible, handleModalVisible] = useState<boolean>(false);
+  const [currentRegressionUuid, setCurRegressionUuid] = useState<string>('');
   const actionRef = useRef<ActionType>();
+
+  const showDrawer = () => {
+    setVisible(true);
+  };
+  const onClose = () => {
+    setVisible(false);
+  };
+
+  const columns: ProColumns<API.RegressionItem>[] = [
+    {
+      title: 'No.',
+      dataIndex: 'index',
+      width: 48,
+      render: (_, record) => {
+        return record.index + 1;
+      },
+      search: false,
+    },
+    {
+      title: 'regression uuid',
+      dataIndex: 'regressionUuid',
+      width: 100,
+      render: (_, { regressionUuid, index }) => {
+        return withSkeleton(
+          regressionUuid ? (
+            index <= 49 ? (
+              <Link
+                to={{
+                  pathname: '/editor',
+                  search: stringify({ regressionUuid }),
+                }}
+              >
+                {regressionUuid}
+              </Link>
+            ) : (
+              regressionUuid
+            )
+          ) : (
+            '暂无数据'
+          ),
+        );
+      },
+    },
+    {
+      title: 'actions',
+      hideInForm: true,
+      // hideInTable: true,
+      search: false,
+      // fixed: 'right',
+      render: (_, { regressionUuid: regressionUuid }) => [
+        <Divider type="vertical" />,
+        <Button
+          type="primary"
+          danger
+          onClick={() => {
+            // handleRemove(regressionUuid).then(() => {
+            console.log('regressionUuid', regressionUuid);
+            // });
+            getDeatil(regressionUuid)
+            setCurRegressionUuid(regressionUuid);
+            onClose();
+          }}
+        >
+          show Time line
+        </Button>,
+      ],
+    },
+  ];
 
   return (
     <PageContainer
       header={{
         style: { width: '100%' },
         title: 'Dashboard',
-        subTitle: 'process dashboard',
+        subTitle: (
+          <div>
+            process dashboard <Button onClick={updateProcessInfo}>refresh</Button>
+          </div>
+        ),
       }}
     >
       <div style={progressContainer}>
@@ -185,25 +258,25 @@ const TableList: React.FC<{}> = () => {
         </div>
         <div style={{ padding: '0 20px' }}>
           <Steps current={1} size="small">
-            <Step title="Finished" description="10 project repositories are done." />
+            <Step title="Finished" description={`${progressInfo.finishedProject} project repositories are done.`} />
             <Step
               title="In Progress"
               icon={<SyncOutlined spin />}
               subTitle={distanceTime}
               description="fastjson is processing"
             />
-            <Step title="Waiting" description="90 project repositories are in queue" />
+            <Step title="Waiting" description={`${progressInfo.projectQueueNum} project repositories are in queue`} />
           </Steps>
-          <Progress
+          {/* <Progress
             className="total-progress"
             percent={progressInfo.totalProgress}
-            steps={progressInfo.totalRepoNum}
+            steps={progressInfo.totalProjectNum}
             size="default"
             showInfo={false}
             strokeWidth={12}
             strokeColor="#52c41a"
             trailColor="rgb(233 242 255)"
-          />
+          /> */}
         </div>
         <div style={{ marginTop: '20px' }} className="header-container">
           {/* <Spin size="small" /> */}
@@ -217,7 +290,7 @@ const TableList: React.FC<{}> = () => {
                 marginRight: '10px',
               }}
             ></div>
-            Current Repository: {progressInfo.currentRepoName}{' '}
+            current project: {progressInfo.currentProjectName}
             <span>
               {' '}
               {/* <SyncOutlined
@@ -233,7 +306,7 @@ const TableList: React.FC<{}> = () => {
               ({progressInfo.currentRepoProgress}%)
             </span>
             <h6 style={{ marginLeft: '20px', color: '#666' }}>
-              {progressInfo.repoUrl} | spend: {repodistanceTime}
+             Current Commit Name: {progressInfo.currentCommitName}{' '} | spend: {repodistanceTime}
             </h6>
           </h2>
         </div>
@@ -273,26 +346,67 @@ const TableList: React.FC<{}> = () => {
               className="dashboard-alert"
               message={
                 <span className="content">
-                  Fastjson:{' '}
+                  Fastjson: totalPRFCNum:
                   <Tag className="tag-content" color="processing">
-                    {progressInfo.potentialBugFoundNum}
+                    {progressInfo.totalPRFCNum}
                   </Tag>
-                  potential bug-fixing commit found.{' '}
+                  prfcdoneNum:
                   <Tag className="tag-content" color="green">
-                    {progressInfo.potentialBugCompleteNum}
+                    {progressInfo.prfcdoneNum}
                   </Tag>
-                  of them have been completed and{' '}
-                  <Tag className="tag-content" color="#f50">
-                    {progressInfo.regressionsFoundNum}
+                  regressionNum:
+                  <Tag className="tag-content" color="#f50" >
+                    {progressInfo.regressionNum}
                   </Tag>
-                  regressions have been found.
+                  <Button onClick={showDrawer}>show Regressions</Button>
                 </span>
               }
             />
           </div>
+          <Drawer
+            bodyStyle={DrawerbodyStyle}
+            title="Finished Regressions List"
+            placement={'right'}
+            closable={false}
+            onClose={onClose}
+            visible={dashboardvisible}
+            key={'right'}
+            width={450}
+          >
+            <ProTable<API.RegressionItem>
+              headerTitle="Regression List"
+              actionRef={actionRef}
+              rowKey="regressionUuid"
+              search={false}
+              // search={{
+              //   labelWidth: 'auto',
+              //   defaultCollapsed: false,
+              // }}
+              // toolBarRender={() => [
+              //   <Button type="primary" onClick={() => handleModalVisible(true)}>
+              //     <PlusOutlined /> add
+              //   </Button>,
+              // ]}
+              // @ts-ignore
+              request={(params) =>
+                queryRegressionList({
+                  regression_uuid: params.regressionUuid,
+                })
+              }
+              columns={columns}
+              // pagination={{
+              //   pageSize: 20,
+              //   pageSizeOptions: undefined,
+              // }}
+            />
+          </Drawer>
           <Row gutter={16}>
             <Col span={8}>
-              <Card title="somthing finished" hoverable className="progress-card">
+              <Card
+                title={`${progressInfo.regressionNum} regressions have been found`}
+                hoverable
+                className="progress-card"
+              >
                 <Progress
                   type="circle"
                   strokeColor={{
@@ -325,6 +439,12 @@ const TableList: React.FC<{}> = () => {
               </Card>
             </Col>
           </Row>
+          <div className="regressionTimeline">
+            <div> current: {currentRegressionUuid}</div>
+            <div className="timeline-container">
+              <TimeLine />
+            </div>
+          </div>
         </div>
       </div>
       {/* dashboard */}

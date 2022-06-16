@@ -252,7 +252,7 @@ const TableList: React.FC<{}> = () => {
         ),
       }}
     >
-      <div className="RegMiner-tutorial-video" style={{ marginBottom: '20px' }}>
+      {/* <div className="RegMiner-tutorial-video" style={{ marginBottom: '20px' }}>
         <Row justify="space-around" align="middle">
           <Col>
             <iframe
@@ -266,7 +266,7 @@ const TableList: React.FC<{}> = () => {
             />
           </Col>
         </Row>
-      </div>
+      </div> */}
 
       <ProTable<API.RegressionItem>
         headerTitle="Regression List"

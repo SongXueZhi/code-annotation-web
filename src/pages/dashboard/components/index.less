@@ -1,0 +1,73 @@
+.op-list{
+  position: absolute;
+  z-index: 999;
+}
+.container {
+  // display: flex;
+  // justify-content: center;
+  // align-items: center;
+  position: relative;
+  padding-top: 60px;
+  max-width: 8000px;
+  // width: 100%;
+  // overflow-x: auto;
+  // overflow-y: hidden;
+  padding-bottom: 80px;
+  .name{
+    position: absolute;
+    top: 32px;
+  }
+  .u-tail {
+    position: absolute;
+    top: 76px;
+    left: 30px;
+    width: 8000px;
+    height: 4px;
+    // border-top: 2px dashed #ccc; // 虚线
+    background: #b8c0e7;
+    // border-left: 2px dotted #e8e8e8; // 点线
+    // border-left: 2px dashed #e8e8e8; // 虚线
+  }
+  img{
+    position: absolute;
+    top:-8px;
+    left: 2px;
+  }
+  .u-dot {
+    position: absolute;
+    top:10px;
+    width: 16px;
+    height: 16px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 600;
+    color: #ccc;
+    cursor: pointer;
+    background: #747fd7;
+    &.actived {
+      background: #133bff;
+      border: 2px solid #133bff;
+      color: #fff;
+      cursor: pointer;
+    }
+    &.loss {
+      border: 2px solid #978e8b;
+      background: #978e8b;
+      color: #fff;
+    }
+  }
+  .u-passed-dot{
+    background-color: #133bff;
+  }
+  .current {
+    background-color: #52c41a;
+  }
+  // .col-container{
+  //   min-width: 200px;
+  // }
+  .row-container{
+    width: 8000px;
+  }
+}
