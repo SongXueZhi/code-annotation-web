@@ -52,12 +52,11 @@ export async function updateStatus(params: { regressionUuid: string; regressionS
 }
 export async function getProcessInfo(params?: RegQueryParams) {
   const res = await request(
-    '/progress/info',
+    '/api/progress/info',
     {
       method: 'GET',
     },
   );
-  console.log('bubub',res)
   if (res.code !== 200) {
     message.error(res.msg);
     return {
@@ -73,10 +72,22 @@ export async function getProcessInfo(params?: RegQueryParams) {
 }
 
 export async function getDeatil(params:any) {
-  const res = await request('/progress/searchDetails?bfc=657c90c1ac1d49114ba57a20d35d7ec00097b3b1&project_name=univocity-parser',{
+  const res = await request(`/api/progress/searchDetails?bfc=${params.regressionUuid}&project_name=univocity-parser`,
+  
+  {
     method:'get'
   })
-  console.log('bubub',res)
-  
+  if (res.code !== 200) {
+    message.error(res.msg);
+    return {
+      data: [],
+      success: true,
+      total: 0,
+    };
+  }
+  return {
+    data: res.data,
+    success: true,
+  };
 }
 

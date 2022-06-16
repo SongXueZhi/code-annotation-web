@@ -22,7 +22,13 @@ import type { ProColumns, ActionType } from '@ant-design/pro-table';
 import ProTable from '@ant-design/pro-table';
 import TimeLine from './components/Timeline';
 
-import { queryRegressionList, addRegression, removeRegression, getProcessInfo,getDeatil } from './service';
+import {
+  queryRegressionList,
+  addRegression,
+  removeRegression,
+  getProcessInfo,
+  getDeatil,
+} from './service';
 import { Link } from 'react-router-dom';
 import { stringify } from 'query-string';
 import { useIntl } from 'umi';
@@ -58,10 +64,10 @@ const handleAdd = async (fields: API.RegressionItem) => {
 const updateProcessInfo = async (params: any) => {
   getProcessInfo(params).then((res: any) => {
     let newData = res.data;
-    console.log('ressss',res)
-    newData.totalProgress = res.data.totalProjectNum
-    newData.finishedProject = Number(res.data.totalProjectNum) - Number(res.data.projectQueueNum)
-    progressInfo = newData
+    console.log('ressss', res);
+    newData.totalProgress = res.data.totalProjectNum;
+    newData.finishedProject = Number(res.data.totalProjectNum) - Number(res.data.projectQueueNum);
+    progressInfo = newData;
   });
 };
 // const handleUpdate = async (fields: FormValueType) => {
@@ -166,6 +172,41 @@ const TableList: React.FC<{}> = () => {
   const onClose = () => {
     setVisible(false);
   };
+  const [timeLineList, handleTimeLine] = useState<any>([]);
+  const [idLists, handleIdLists] = useState<any>([]);
+  let timeLineTotal: number = 0;
+  let indicated:any = []
+
+  const timeLineDetail = async (id: any) => {
+    let res: any = await getDeatil({'regressionUuid':id});
+    let arr: any = [];
+    let indexList:number[] = [];
+    let idList: any = [];
+    for (let i = 0; i < res.data.orderList.length; i++) {
+      indexList.push(Number(res.data.orderList[i][0]));
+      idList.push(res.data.orderList[i][1])
+    }
+    handleIdLists(indexList)
+    for (let i = 0; i < Number(res.data.searchSpaceNum) - 1; i++) {
+      if(indexList.indexOf(i) !== -1){
+        arr.push({
+          index: indexList.indexOf(i),
+          name:i,
+          time:'',
+          id: idList[indexList.indexOf(i)],
+        });
+        indicated.push(indexList.indexOf(i))
+      }
+    }
+    let sort:any = []
+    for(let i =0 ;i<indicated.length;i++){
+       sort.push(indicated.indexOf(i))
+    }
+    handleIdLists(sort)
+    handleTimeLine(arr);
+    timeLineTotal = Number(res.searchSpaceNum);
+    setCurRegressionUuid(id);
+  };
 
   const columns: ProColumns<API.RegressionItem>[] = [
     {
@@ -217,8 +258,7 @@ const TableList: React.FC<{}> = () => {
             // handleRemove(regressionUuid).then(() => {
             console.log('regressionUuid', regressionUuid);
             // });
-            getDeatil(regressionUuid)
-            setCurRegressionUuid(regressionUuid);
+            timeLineDetail(regressionUuid);
             onClose();
           }}
         >
@@ -258,14 +298,20 @@ const TableList: React.FC<{}> = () => {
         </div>
         <div style={{ padding: '0 20px' }}>
           <Steps current={1} size="small">
-            <Step title="Finished" description={`${progressInfo.finishedProject} project repositories are done.`} />
+            <Step
+              title="Finished"
+              description={`${progressInfo.finishedProject} project repositories are done.`}
+            />
             <Step
               title="In Progress"
               icon={<SyncOutlined spin />}
               subTitle={distanceTime}
               description="fastjson is processing"
             />
-            <Step title="Waiting" description={`${progressInfo.projectQueueNum} project repositories are in queue`} />
+            <Step
+              title="Waiting"
+              description={`${progressInfo.projectQueueNum} project repositories are in queue`}
+            />
           </Steps>
           {/* <Progress
             className="total-progress"
@@ -306,7 +352,7 @@ const TableList: React.FC<{}> = () => {
               ({progressInfo.currentRepoProgress}%)
             </span>
             <h6 style={{ marginLeft: '20px', color: '#666' }}>
-             Current Commit Name: {progressInfo.currentCommitName}{' '} | spend: {repodistanceTime}
+              Current Commit Name: {progressInfo.currentCommitName} | spend: {repodistanceTime}
             </h6>
           </h2>
         </div>
@@ -355,7 +401,7 @@ const TableList: React.FC<{}> = () => {
                     {progressInfo.prfcdoneNum}
                   </Tag>
                   regressionNum:
-                  <Tag className="tag-content" color="#f50" >
+                  <Tag className="tag-content" color="#f50">
                     {progressInfo.regressionNum}
                   </Tag>
                   <Button onClick={showDrawer}>show Regressions</Button>
@@ -442,7 +488,7 @@ const TableList: React.FC<{}> = () => {
           <div className="regressionTimeline">
             <div> current: {currentRegressionUuid}</div>
             <div className="timeline-container">
-              <TimeLine />
+              <TimeLine lineList={timeLineList} total={timeLineTotal} indicated={idLists}/>
             </div>
           </div>
         </div>
