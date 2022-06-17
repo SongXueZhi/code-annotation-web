@@ -18,6 +18,6 @@ export const getDistanceDay = (time: number) => {
   const leave3 = leave2 % (60 * 1000);
   const sconeds =
     Math.floor(leave3 / 1000) < 10 ? '0' + Math.floor(leave3 / 1000) : Math.floor(leave3 / 1000);
-  const resTime = days + '天' + hours + ':' + minutes + ':' + sconeds;
+  const resTime = days + ' days ' + hours + ' hours ' + minutes + ' minutes ';
   return resTime;
 };
