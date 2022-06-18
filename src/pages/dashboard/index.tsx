@@ -36,6 +36,12 @@ import './index.less';
 import { getDistanceDay } from './utils';
 import { render } from 'react-dom';
 
+declare global {
+  interface Window {
+    currentProjectName: any;
+  }
+}
+
 const { Step } = Steps;
 
 /**
@@ -101,6 +107,7 @@ class CodeEditor extends React.Component {
       const newData: any = res.data;
       const distanceTime: any = getDistanceDay(res.data.totalStartTime);
       const repodistanceTime: any = getDistanceDay(res.data.projectStatTime);
+      window.currentProjectName = res.data.currentProjectName;
       const finishedProject = Number(res.data.totalProjectNum) - Number(res.data.projectQueueNum);
       newData.finishedProject = finishedProject;
       newData.totalProgress = ((finishedProject / res.data.totalProjectNum) * 100).toFixed(2);
@@ -339,7 +346,10 @@ const TableList: React.FC<{}> = () => {
   const indicated: any = [];
 
   const timeLineDetail = async (id: any) => {
-    const res: any = await getDeatil({ regressionUuid: id });
+    const res: any = await getDeatil({
+      regressionUuid: id,
+      projectName: window.currentProjectName,
+    });
     const arr: any = [];
     const indexList: number[] = [];
     const idList: any = [];

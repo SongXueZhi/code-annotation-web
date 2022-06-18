@@ -70,8 +70,8 @@ export async function getProcessInfo() {
 
 export async function getDeatil(params: any) {
   const res = await request(
-    // `/api/progress/searchDetails?bfc=${params.regressionUuid}&project_name=univocity-parser`,
-    `/api/progress/searchDetails?bfc=657c90c1ac1d49114ba57a20d35d7ec00097b3b1&project_name=univocity-parser`,
+    `/api/progress/searchDetails?bfc=${params.regressionUuid}&project_name=${params.projectName}`,
+    // `/api/progress/searchDetails?bfc=657c90c1ac1d49114ba57a20d35d7ec00097b3b1&project_name=univocity-parser`,
     {
       method: 'get',
     },
