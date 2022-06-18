@@ -103,8 +103,10 @@ class CodeEditor extends React.Component {
       const repodistanceTime: any = getDistanceDay(res.data.projectStatTime);
       const finishedProject = Number(res.data.totalProjectNum) - Number(res.data.projectQueueNum);
       newData.finishedProject = finishedProject;
-      newData.totalProgress = (finishedProject / res.data.totalProjectNum) * 100;
-      newData.currentRepoProgress = (res.data.prfcdoneNum / res.data.totalPRFCNum) * 100;
+      newData.totalProgress = ((finishedProject / res.data.totalProjectNum) * 100).toFixed(2);
+      newData.currentRepoProgress = ((res.data.prfcdoneNum / res.data.totalPRFCNum) * 100).toFixed(
+        2,
+      );
       this.setState({ progressInfo: newData });
       this.setState({ distanceTime: distanceTime });
       this.setState({ repodistanceTime: repodistanceTime });
@@ -341,7 +343,7 @@ const TableList: React.FC<{}> = () => {
     const arr: any = [];
     const indexList: number[] = [];
     const idList: any = [];
-    for (let i = 0; i < res.data.orderList.length; i++) {
+    for (let i = 0; i < res.data.orderList?.length; i++) {
       indexList.push(Number(res.data.orderList[i][0]));
       idList.push(res.data.orderList[i][1]);
     }
@@ -477,7 +479,6 @@ const TableList: React.FC<{}> = () => {
           headerTitle="Regression List"
           actionRef={actionRef}
           rowKey="regressionUuid"
-          search={false}
           // @ts-ignore
           request={(params) =>
             queryRegressionList({
