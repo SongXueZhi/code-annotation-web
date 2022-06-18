@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Row, Col, Button } from 'antd';
 import { Link } from 'react-router-dom';
 import { stringify } from 'querystring';
@@ -7,18 +7,28 @@ export type TimeLineProps = {
   lineList?: any;
   total?: number;
   indicated: number[];
+  currentRegressionUuid: string;
+  cur: number;
 };
 
 const TimeLine: React.FC<TimeLineProps> = (props) => {
-  const { lineList, indicated } = props;
-
+  const { currentRegressionUuid, lineList, indicated, cur } = props;
   let timer;
-  const [currentStep, setCurrentStep] = useState<number>(0);
+  const [currentStep, setCurrentStep] = useState<number>(cur);
   const [currentPoint, setCurrentPoint] = useState<any>(0);
   const [arr, setArr] = useState<any>([]);
+  const reset = () => {
+    setCurrentStep(0);
+    setArr([]);
+  };
+  useEffect(() => {
+    reset();
+  }, [currentRegressionUuid]);
+
+  // const nowIndex = indicated[currentStep] || 0
   // const [indicated, setIndicated] = useState<any>([0, 1, 2, 3, 4, 5, 8, 9, 15, 14, 13, 12, 11, 10, 7, 6]);
   const forward = () => {
-    if (currentStep >= lineList.length - 1) {
+    if (currentStep >= indicated.length - 1) {
       setCurrentStep(0);
       setArr([]);
     } else {
@@ -28,7 +38,8 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
       narr.push(lineList[indicated[currentStep]].name);
 
       // }
-      setCurrentPoint(lineList[indicated[currentStep + 1]].index);
+      console.log('lineList', lineList, indicated);
+      setCurrentPoint(lineList[indicated[currentStep + 1]].id);
       setCurrentStep(currentStep + 1);
     }
   };
@@ -45,15 +56,19 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
   const listName = lineList.map((item: any, key: any) => {
     return (
       <Link
+        target="_blank"
         to={{
           pathname: '/detail',
-          search: stringify({ regressionUuid: item.id }),
+          search: stringify({
+            regressionUuid: currentRegressionUuid,
+            bic: item.id,
+          }),
         }}
       >
         <Col className="col-container">
           <div className="col-container">
             <span className="name">
-              {item.name} ({item.index})
+              {item.name} ({item.firstShow})
             </span>
             {arr.indexOf(item.name) === -1 ? (
               <div className="u-dot"></div>
@@ -62,7 +77,7 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
             )}
             {/* <div className="u-dot"></div> */}
 
-            {currentPoint === item.index ? (
+            {indicated[currentStep] === item.index ? (
               <div>
                 <div className="u-dot current"></div>
                 <img height="16px" src="./projectStageLoc.svg" className="stage-loc" />
@@ -83,14 +98,18 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
         <Button onClick={pre}>Previous</Button>step:{currentStep} | commit index:{' '}
         {lineList && lineList.length ? (
           <span>
-            {lineList[currentStep].name} | id :{' '}
+            {lineList[indicated[currentStep]]?.name} | id :{' '}
             <Link
+              target="_blank"
               to={{
                 pathname: '/detail',
-                search: stringify({ regressionUuid: lineList[currentStep].id }),
+                search: stringify({
+                  regressionUuid: currentRegressionUuid,
+                  bic: lineList[indicated[currentStep]]?.id,
+                }),
               }}
             >
-              {lineList[currentStep].id}
+              {lineList[indicated[currentStep]]?.id}
             </Link>
           </span>
         ) : null}

@@ -5,9 +5,10 @@ import type { RegressionCode, RegressionDetail } from './data';
 export async function queryRegressionDetail(params: {
   regression_uuid: string;
   userToken: string;
+  bic: string;
 }) {
   const { code, msg, data } = await request<API.RegResponse<RegressionDetail>>(
-    '/api/regression/detail',
+    '/api/regression/migrate',
     {
       method: 'GET',
       params,

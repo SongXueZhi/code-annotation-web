@@ -135,7 +135,7 @@ class CodeEditor extends React.Component {
   render() {
     //@ts-ignore
     const { progressInfo, distanceTime, repodistanceTime } = this.state;
-    console.log('render', progressInfo);
+
     const logs = (
       <pre className="log output" style={{ overflow: 'unset' }}>
         {}
@@ -345,7 +345,7 @@ const TableList: React.FC<{}> = () => {
   let timeLineTotal: number = 0;
   const indicated: any = [];
 
-  const timeLineDetail = async (id: any) => {
+  const timeLineDetail = async (id: any, rid: any) => {
     const res: any = await getDeatil({
       regressionUuid: id,
       projectName: window.currentProjectName,
@@ -361,22 +361,31 @@ const TableList: React.FC<{}> = () => {
     for (let i = 0; i < Number(res.data.searchSpaceNum) - 1; i++) {
       if (indexList.indexOf(i) !== -1) {
         arr.push({
-          index: indexList.indexOf(i),
+          index: arr.length,
           name: i,
+          firstShow: indexList.indexOf(i),
           time: '',
           id: idList[indexList.indexOf(i)],
         });
-        indicated.push(indexList.indexOf(i));
       }
     }
+    for (let i = 0; i < indexList.length; i++) {
+      arr.forEach((item: any, index: any) => {
+        if (item.name === indexList[i]) {
+          indicated.push(index);
+        }
+      });
+    }
+
     const sort: any = [];
     for (let i = 0; i < indicated.length; i++) {
       sort.push(indicated.indexOf(i));
     }
-    handleIdLists(sort);
+
+    handleIdLists(indicated);
     handleTimeLine(arr);
     timeLineTotal = Number(res.searchSpaceNum);
-    setCurRegressionUuid(id);
+    setCurRegressionUuid(rid);
     // render()
   };
 
@@ -421,15 +430,16 @@ const TableList: React.FC<{}> = () => {
       // hideInTable: true,
       search: false,
       // fixed: 'right',
-      render: (_, { regressionUuid: regressionUuid }) => [
+      render: (_, { bfc: bfc, regressionUuid: regressionUuid }) => [
         <Divider type="vertical" />,
         <Button
           danger
           onClick={() => {
             // handleRemove(regressionUuid).then(() => {
-            console.log('regressionUuid', regressionUuid);
+            console.log('regressionUuid', bfc, regressionUuid);
             // });
-            timeLineDetail(regressionUuid);
+
+            timeLineDetail(bfc, regressionUuid);
             onClose();
           }}
         >
@@ -472,7 +482,13 @@ const TableList: React.FC<{}> = () => {
         </h2>
         <div> Current RegressionUuid: {currentRegressionUuid}</div>
         <div className="timeline-container">
-          <TimeLine lineList={timeLineList} total={timeLineTotal} indicated={idLists} />
+          <TimeLine
+            lineList={timeLineList}
+            total={timeLineTotal}
+            indicated={idLists}
+            currentRegressionUuid={currentRegressionUuid}
+            cur={0}
+          />
         </div>
       </div>
       <Drawer

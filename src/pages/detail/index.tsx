@@ -29,6 +29,7 @@ const testMethodList = [
 
 interface IHistorySearch {
   regressionUuid: string;
+  bic: string;
 }
 
 export type CommitFile = {
@@ -379,6 +380,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         queryRegressionDetail({
           regression_uuid: HISTORY_SEARCH.regressionUuid,
           userToken: '123',
+          bic: HISTORY_SEARCH.bic,
         }).then((data) => {
           if (data !== null && data !== undefined) {
             setListBFC(data.bfcChangedFiles);
@@ -396,7 +398,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         });
       },
     );
-  }, [HISTORY_SEARCH.regressionUuid]);
+  }, [HISTORY_SEARCH.regressionUuid, HISTORY_SEARCH.bic]);
 
   return (
     <>
