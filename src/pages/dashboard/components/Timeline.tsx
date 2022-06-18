@@ -56,7 +56,6 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
   const listName = lineList.map((item: any, key: any) => {
     return (
       <Link
-        target="_blank"
         to={{
           pathname: '/detail',
           search: stringify({
@@ -100,7 +99,6 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
           <span>
             {lineList[indicated[currentStep]]?.name} | id :{' '}
             <Link
-              target="_blank"
               to={{
                 pathname: '/detail',
                 search: stringify({

@@ -407,7 +407,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
           onBack={() => window.history.back()}
           // fixedHeader
           header={{
-            title: 'Regression verfication',
+            title: 'Progress',
             subTitle: (
               <Typography.Text>Regression UUID: {HISTORY_SEARCH.regressionUuid}</Typography.Text>
             ),
