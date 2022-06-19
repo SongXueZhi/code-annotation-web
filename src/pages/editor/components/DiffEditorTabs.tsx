@@ -9,6 +9,7 @@ export type DiffEditor = {
 };
 
 interface IProps {
+  regressionUuid: string;
   oldVersionText?: string;
   newVersionText?: string;
   commit: 'BIC' | 'BFC';
@@ -22,6 +23,7 @@ interface IProps {
 }
 
 const DiffEditorTabs: React.FC<IProps> = ({
+  regressionUuid,
   commit,
   panes,
   activeKey,
@@ -78,6 +80,8 @@ const DiffEditorTabs: React.FC<IProps> = ({
             <div style={{ width: '100%', height: '86vh', display: 'flex' }}>
               <CodeEditor
                 title={commit === 'BIC' ? 'Bug Inducing Commit' : 'Bug Fixing Commit'}
+                regressionUuid={regressionUuid}
+                filename={key.slice(4)}
                 darkTheme={false}
                 original={oldCode}
                 value={newCode}

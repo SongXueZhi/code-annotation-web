@@ -15,6 +15,8 @@ import CodeDetails from '../CodeDetails';
 
 interface IProps {
   title: string;
+  regressionUuid: string;
+  filename: string;
   extra?: JSX.Element;
   oldVersionText?: string;
   newVersionText?: string;
@@ -50,7 +52,7 @@ class CodeEditor extends React.Component<IProps, IState> {
       horizontalSliderSize: 14,
       alwaysConsumeMouseWheel: false,
     },
-    glyphMargin: false,
+    glyphMargin: true,
     folding: false,
     contextmenu: true,
     fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Menlo,Consolas,Liberation Mono,monospace',
@@ -130,6 +132,8 @@ class CodeEditor extends React.Component<IProps, IState> {
   };
   render() {
     const {
+      regressionUuid,
+      filename,
       darkTheme,
       original,
       value,
@@ -216,57 +220,8 @@ class CodeEditor extends React.Component<IProps, IState> {
                 original={original}
                 value={value}
                 editorDidMount={(diffEditor) => {
-                  diffEditor.addAction({
-                    id: 'show-feedback',
-                    label: 'show all feedbacks',
-                    keybindingContext: undefined,
-                    contextMenuGroupId: '1_modification',
-                    contextMenuOrder: 1,
-                    run: (ed) => {
-                      ed.deltaDecorations(
-                        [],
-                        [
-                          {
-                            range: new monaco.Range(45, 1, 45, 1),
-                            options: {
-                              isWholeLine: true,
-                              // className: 'rejectContentClass',
-                              hoverMessage: { value: 'Feedback: Reject', isTrusted: true },
-                              // glyphMarginClassName: 'rejectContentClass',
-                            },
-                          },
-                        ],
-                      );
-                      ed.deltaDecorations(
-                        [],
-                        [
-                          {
-                            range: new monaco.Range(48, 1, 48, 1),
-                            options: {
-                              isWholeLine: true,
-                              // className: 'addContentClass',
-                              hoverMessage: { value: 'Feedback: Add' },
-                              // glyphMarginClassName: 'addContentClass',
-                            },
-                          },
-                        ],
-                      );
-                      ed.deltaDecorations(
-                        [],
-                        [
-                          {
-                            range: new monaco.Range(49, 1, 49, 1),
-                            options: {
-                              isWholeLine: true,
-                              // className: 'acceptContentClass',
-                              hoverMessage: { value: 'Feedback: Accept' },
-                              // glyphMarginClassName: 'acceptContentClass',
-                            },
-                          },
-                        ],
-                      );
-                    },
-                  });
+                  // message.info('Modified: ' + diffEditor.getLineChanges());
+                  // message.info('Original: ' + diffEditor.getDiffLineInformationForOriginal());
                   diffEditor.addAction({
                     id: 'feedback-reject',
                     label: 'feedback: reject',
@@ -278,22 +233,15 @@ class CodeEditor extends React.Component<IProps, IState> {
                         [],
                         [
                           {
-                            range: new monaco.Range(
-                              ed.getPosition()?.lineNumber ?? 0,
-                              ed.getPosition()?.column ?? 0,
-                              ed.getPosition()?.lineNumber ?? 0,
-                              ed.getPosition()?.column ?? 0,
-                            ),
+                            range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
                             options: {
                               isWholeLine: true,
                               className: 'rejectContentClass',
                               hoverMessage: { value: 'Feedback: Reject' },
-                              // glyphMarginClassName: 'rejectContentClass',
                             },
                           },
                         ],
                       );
-                      message.info('Position ' + ed.getPosition() + ' feedback changed to reject.');
                       this.setState({ onCommitFeedback: false });
                     },
                   });
@@ -308,55 +256,48 @@ class CodeEditor extends React.Component<IProps, IState> {
                         [],
                         [
                           {
-                            range: new monaco.Range(
-                              ed.getPosition()?.lineNumber ?? 0,
-                              ed.getPosition()?.column ?? 0,
-                              ed.getPosition()?.lineNumber ?? 0,
-                              ed.getPosition()?.column ?? 0,
-                            ),
+                            range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
                             options: {
                               isWholeLine: true,
                               className: 'addContentClass',
                               hoverMessage: { value: 'Feedback: Add' },
-                              // glyphMarginClassName: 'rejectContentClass',
                             },
                           },
                         ],
                       );
-                      message.info('Position ' + ed.getPosition() + ' feedback changed to add.');
                       this.setState({ onCommitFeedback: false });
                     },
                   });
-                  diffEditor.addAction({
-                    id: 'feedback-accept',
-                    label: 'feedback: accept',
-                    keybindingContext: undefined,
-                    contextMenuGroupId: 'navigation',
-                    contextMenuOrder: 3,
-                    run: (ed) => {
-                      ed.deltaDecorations(
-                        [],
-                        [
-                          {
-                            range: new monaco.Range(
-                              ed.getPosition()?.lineNumber ?? 0,
-                              ed.getPosition()?.column ?? 0,
-                              ed.getPosition()?.lineNumber ?? 0,
-                              ed.getPosition()?.column ?? 0,
-                            ),
-                            options: {
-                              isWholeLine: true,
-                              className: 'acceptContentClass',
-                              hoverMessage: { value: 'Feedback: Accept' },
-                              // glyphMarginClassName: 'rejectContentClass',
-                            },
-                          },
-                        ],
-                      );
-                      message.info('Position ' + ed.getPosition() + ' feedback changed to accept.');
-                      this.setState({ onCommitFeedback: false });
-                    },
-                  });
+                  // diffEditor.addAction({
+                  //   id: 'feedback-accept',
+                  //   label: 'feedback: accept',
+                  //   keybindingContext: undefined,
+                  //   contextMenuGroupId: 'navigation',
+                  //   contextMenuOrder: 3,
+                  //   run: (ed) => {
+                  //     ed.deltaDecorations(
+                  //       [],
+                  //       [
+                  //         {
+                  //           range: new monaco.Range(
+                  //             ed.getPosition()?.lineNumber ?? 0,
+                  //             ed.getPosition()?.column ?? 0,
+                  //             ed.getPosition()?.lineNumber ?? 0,
+                  //             ed.getPosition()?.column ?? 0,
+                  //           ),
+                  //           options: {
+                  //             isWholeLine: true,
+                  //             className: 'acceptContentClass',
+                  //             hoverMessage: { value: 'Feedback: Accept' },
+                  //             // glyphMarginClassName: 'rejectContentClass',
+                  //           },
+                  //         },
+                  //       ],
+                  //     );
+                  //     message.info('Position ' + ed.getPosition() + ' feedback changed to accept.');
+                  //     this.setState({ onCommitFeedback: false });
+                  //   },
+                  // });
                 }}
               />
             </div>
@@ -390,11 +331,11 @@ class CodeEditor extends React.Component<IProps, IState> {
           footer={null}
         >
           <CodeDetails
-            regressionUuid={''}
-            criticalChange={[]}
-            fileName={''}
-            beginLine={[0]}
-            endLine={[0]}
+            regressionUuid={regressionUuid}
+            revisionFlag={title}
+            criticalChangeOriginal={original}
+            criticalChangeNew={value}
+            fileName={filename}
           />
         </Modal>
       </>

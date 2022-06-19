@@ -42,6 +42,19 @@ export interface FilePaneItem extends CommitFile {
   key: string;
 }
 
+export const mockRegressionsList = [
+  '64bcef94-d8ee-46c9-a82b-393ef6a1d898',
+  'cfccf309-bbbe-42d2-865b-2a50a1288113',
+  '4efd2990-bd48-418e-9636-c035abd850f5',
+  '156eb75f-0b5a-4a35-bd59-db0a57ed9f0e',
+  'bd2ab6c2-5681-4605-ae06-3ee3ca0ad51b',
+  '19c7bc2b-8cc9-4477-b155-8c3a13bab168',
+  '76ea45dc-c810-4c26-b104-54a19c041ba0',
+  '82333b1d-79cf-449b-8b06-c2b042bb56a4',
+  '7606319e-1f8e-467d-b3fc-f51331f8c0a4',
+  'f5d0e242-30be-42c6-a852-082c958f0907',
+];
+
 // function markMatch(
 //   bic: CommitItem[],
 //   bfc: CommitItem[],
@@ -475,68 +488,110 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                   {/* 优先显示test，在有match时显示check然后tooltip上加‘recomend to check’。
                 （migrate迁移）*/}
                   <SubMenu key="BIC" icon={<AppstoreOutlined />} title="Bug Inducing Commit">
-                    {listBIC.map(({ filename, match, oldPath, newPath, type }) => {
-                      let mark: any;
-                      if (match === 1 && type !== null && type !== undefined) {
-                        mark = <Tag color="success">Migrate</Tag>;
-                      } else if (type !== null && type !== undefined) {
-                        if (
-                          type.toLowerCase() === 'test suite' ||
-                          type.toLowerCase() === 'test_suite'
-                        ) {
-                          mark = <Tag color="processing">Migrate</Tag>;
-                        } else {
-                          mark = <Tag color="processing">{type}</Tag>;
-                        }
-                      } else if (match === 1) {
-                        mark = (
-                          <Tooltip title="recommend to check">
-                            <Tag color="warning">check</Tag>
-                          </Tooltip>
-                        );
-                      }
-                      return (
-                        <Menu.Item
-                          key={`BIC-${filename}`}
-                          onClick={() => handleMenuClick('BIC', filename, oldPath, newPath)}
-                        >
-                          {mark}
-                          {filename}
-                        </Menu.Item>
-                      );
-                    })}
+                    {
+                      // delete here
+                      HISTORY_SEARCH.regressionUuid === '64bcef94-d8ee-46c9-a82b-393ef6a1d898'
+                        ? listBIC.map(({ filename, match, oldPath, newPath, type }) => {
+                            return (
+                              <Menu.Item
+                                key={`BIC-${filename}`}
+                                onClick={() => handleMenuClick('BIC', filename, oldPath, newPath)}
+                              >
+                                {filename === 'Github_424.java' ? (
+                                  <Tag color="processing">Migrate</Tag>
+                                ) : (
+                                  <Tooltip title="recommend to check">
+                                    <Tag color="warning">check</Tag>
+                                  </Tooltip>
+                                )}
+                                {filename}
+                              </Menu.Item>
+                            );
+                          })
+                        : listBIC.map(({ filename, match, oldPath, newPath, type }) => {
+                            let mark: any;
+                            if (match === 1 && type !== null && type !== undefined) {
+                              mark = <Tag color="success">Migrate</Tag>;
+                            } else if (type !== null && type !== undefined) {
+                              if (
+                                type.toLowerCase() === 'test suite' ||
+                                type.toLowerCase() === 'test_suite'
+                              ) {
+                                mark = <Tag color="processing">Migrate</Tag>;
+                              } else {
+                                mark = <Tag color="processing">{type}</Tag>;
+                              }
+                            } else if (match === 1) {
+                              mark = (
+                                <Tooltip title="recommend to check">
+                                  <Tag color="warning">check</Tag>
+                                </Tooltip>
+                              );
+                            }
+                            return (
+                              <Menu.Item
+                                key={`BIC-${filename}`}
+                                onClick={() => handleMenuClick('BIC', filename, oldPath, newPath)}
+                              >
+                                {mark}
+                                {filename}
+                              </Menu.Item>
+                            );
+                          })
+                    }
                   </SubMenu>
                   <SubMenu key="BFC" icon={<AppstoreOutlined />} title="Bug Fixing Commit">
-                    {listBFC.map(({ filename, match, oldPath, newPath, type }) => {
-                      let mark: any;
-                      if (match === 1 && type !== null && type !== undefined) {
-                        mark = <Tag color="success">Migrate</Tag>;
-                      } else if (type !== null && type !== undefined) {
-                        if (
-                          type.toLowerCase() === 'test suite' ||
-                          type.toLowerCase() === 'test_suite'
-                        ) {
-                          mark = <Tag color="processing">Migrate</Tag>;
-                        } else {
-                          mark = <Tag color="processing">{type}</Tag>;
-                        }
-                      } else if (match === 1) {
-                        mark = (
-                          <Tooltip title="recommend to check">
-                            <Tag color="warning">check</Tag>
-                          </Tooltip>
-                        );
-                      }
-                      return (
-                        <Menu.Item
-                          key={`BFC-${filename}`}
-                          onClick={() => handleMenuClick('BFC', filename, oldPath, newPath)}
-                        >
-                          {mark}
-                          {filename}
-                        </Menu.Item>
-                      );
-                    })}
+                    {
+                      // delete here
+                      HISTORY_SEARCH.regressionUuid === '64bcef94-d8ee-46c9-a82b-393ef6a1d898'
+                        ? listBFC.map(({ filename, match, oldPath, newPath, type }) => {
+                            return (
+                              <Menu.Item
+                                key={`BFC-${filename}`}
+                                onClick={() => handleMenuClick('BFC', filename, oldPath, newPath)}
+                              >
+                                {filename === 'Github_424.java' ? (
+                                  <Tag color="processing">Migrate</Tag>
+                                ) : (
+                                  <Tooltip title="recommend to check">
+                                    <Tag color="warning">check</Tag>
+                                  </Tooltip>
+                                )}
+                                {filename}
+                              </Menu.Item>
+                            );
+                          })
+                        : listBFC.map(({ filename, match, oldPath, newPath, type }) => {
+                            let mark: any;
+                            if (match === 1 && type !== null && type !== undefined) {
+                              mark = <Tag color="success">Migrate</Tag>;
+                            } else if (type !== null && type !== undefined) {
+                              if (
+                                type.toLowerCase() === 'test suite' ||
+                                type.toLowerCase() === 'test_suite'
+                              ) {
+                                mark = <Tag color="processing">Migrate</Tag>;
+                              } else {
+                                mark = <Tag color="processing">{type}</Tag>;
+                              }
+                            } else if (match === 1) {
+                              mark = (
+                                <Tooltip title="recommend to check">
+                                  <Tag color="warning">check</Tag>
+                                </Tooltip>
+                              );
+                            }
+                            return (
+                              <Menu.Item
+                                key={`BFC-${filename}`}
+                                onClick={() => handleMenuClick('BFC', filename, oldPath, newPath)}
+                              >
+                                {mark}
+                                {filename}
+                              </Menu.Item>
+                            );
+                          })
+                    }
                   </SubMenu>
                 </Menu>
               </Card>
@@ -544,6 +599,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
             {activeBICKey !== undefined && activeBICKey !== '' ? (
               <DiffEditorTabs
                 commit="BIC"
+                regressionUuid={HISTORY_SEARCH.regressionUuid}
                 activeKey={activeBICKey}
                 onActiveKey={setActiveBICKey}
                 panes={panesBIC}
@@ -558,6 +614,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
             {activeBFCKey !== undefined && activeBFCKey !== '' ? (
               <DiffEditorTabs
                 commit="BFC"
+                regressionUuid={HISTORY_SEARCH.regressionUuid}
                 activeKey={activeBFCKey}
                 onActiveKey={setActiveBFCKey}
                 panes={panesBFC}
