@@ -345,10 +345,10 @@ const TableList: React.FC<{}> = () => {
   let timeLineTotal: number = 0;
   const indicated: any = [];
 
-  const timeLineDetail = async (id: any, rid: any) => {
+  const timeLineDetail = async (id: any, rid: any, projectFullName: any) => {
     const res: any = await getDeatil({
       regressionUuid: id,
-      projectName: window.currentProjectName,
+      projectName: projectFullName,
     });
     const arr: any = [];
     const indexList: number[] = [];
@@ -430,16 +430,19 @@ const TableList: React.FC<{}> = () => {
       // hideInTable: true,
       search: false,
       // fixed: 'right',
-      render: (_, { bfc: bfc, regressionUuid: regressionUuid }) => [
+      render: (
+        _,
+        { bfc: bfc, regressionUuid: regressionUuid, projectFullName: projectFullName },
+      ) => [
         <Divider type="vertical" />,
         <Button
           danger
           onClick={() => {
             // handleRemove(regressionUuid).then(() => {
-            console.log('regressionUuid', bfc, regressionUuid);
+            console.log('regressionUuid', bfc, regressionUuid, projectFullName);
             // });
 
-            timeLineDetail(bfc, regressionUuid);
+            timeLineDetail(bfc, regressionUuid, projectFullName);
             onClose();
           }}
         >
@@ -509,9 +512,13 @@ const TableList: React.FC<{}> = () => {
           request={(params) =>
             queryRegressionList({
               regression_uuid: params.regressionUuid,
+              keyword: params.keyword,
             })
           }
           columns={columns}
+          // search={{
+          //   optionRender:({})
+          // }}
           // pagination={{
           //   pageSize: 20,
           //   pageSizeOptions: undefined,

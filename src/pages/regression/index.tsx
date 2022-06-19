@@ -93,7 +93,7 @@ const TableList: React.FC<{}> = () => {
       render: (_, record) => {
         return record.index + 1;
       },
-      search: false,
+      formItemProps: { label: 'keyword' },
     },
     {
       title: 'regression uuid',
@@ -285,6 +285,7 @@ const TableList: React.FC<{}> = () => {
         request={(params) =>
           queryRegressionList({
             regression_uuid: params.regressionUuid,
+            keyword: params.keyword,
           })
         }
         columns={columns}
