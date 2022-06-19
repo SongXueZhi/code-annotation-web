@@ -436,7 +436,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 >
                   {/* 优先显示test，在有match时显示check然后tooltip上加‘recomend to check’。
                 （migrate迁移）*/}
-                  <SubMenu key="BIC" icon={<AppstoreOutlined />} title="Bug Inducing Commit">
+                  <SubMenu key="BIC" icon={<AppstoreOutlined />} title="Target Commit">
                     {listBIC.map(({ filename, match, oldPath, newPath, type }) => {
                       let mark: any;
                       if (match === 1 && type !== null && type !== undefined) {
@@ -468,7 +468,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                       );
                     })}
                   </SubMenu>
-                  <SubMenu key="BFC" icon={<AppstoreOutlined />} title="Bug Fixing Commit">
+                  {/* <SubMenu key="BFC" icon={<AppstoreOutlined />} title="Bug Fixing Commit">
                     {listBFC.map(({ filename, match, oldPath, newPath, type }) => {
                       let mark: any;
                       if (match === 1 && type !== null && type !== undefined) {
@@ -499,7 +499,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                         </Menu.Item>
                       );
                     })}
-                  </SubMenu>
+                  </SubMenu> */}
                 </Menu>
               </Card>
             </div>
