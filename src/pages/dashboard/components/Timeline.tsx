@@ -42,6 +42,12 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
       setCurrentPoint(lineList[indicated[currentStep + 1]].id);
       setCurrentStep(currentStep + 1);
     }
+    const dom = document.getElementsByClassName('stage-loc')[0];
+    if (dom) {
+      dom.scrollIntoView({
+        behavior: 'smooth',
+      });
+    }
   };
   const pre = () => {
     if (currentStep > 0) {
@@ -50,6 +56,12 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
       const narr = arr;
       narr.pop();
       setArr(narr);
+    }
+    const dom = document.getElementsByClassName('stage-loc')[0];
+    if (dom) {
+      dom.scrollIntoView({
+        behavior: 'smooth',
+      });
     }
   };
 
@@ -67,7 +79,8 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
         <Col className="col-container">
           <div className="col-container">
             <span className="name">
-              {item.name} ({item.status}) ({item.firstShow})
+              {item.name} <span style={{ fontSize: '10px' }}>({item.status})</span> (
+              {item.firstShow})
             </span>
             {arr.indexOf(item.name) === -1 ? (
               <div className="u-dot" style={{ background: item.color }}></div>
