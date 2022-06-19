@@ -17,7 +17,7 @@ interface IProps {
   consoleString?: string;
   isRunning: boolean;
   onPanesChange: (panes: FilePaneItem[]) => void;
-  onActiveKey: (v: string) => void;
+  onActiveKey: (v: string | undefined) => void;
   onRunCode?: (v: string, version: string) => void;
 }
 
@@ -35,20 +35,17 @@ const DiffEditorTabs: React.FC<IProps> = ({
 }) => {
   const remove = useCallback(
     (targetKey: string) => {
-      let newActiveKey = activeKey;
-      let lastIndex = 0;
-      panes.forEach((pane, i) => {
-        if (pane.key === targetKey) {
-          lastIndex = i - 1;
-        }
+      let newActiveKey = activeKey || undefined;
+      const activeKeyIndex = panes.findIndex((value) => {
+        return value.key === activeKey;
       });
       const newPanes = panes.filter((pane) => pane.key !== targetKey);
-      if (newPanes.length && newActiveKey === targetKey) {
-        if (lastIndex >= 0) {
-          newActiveKey = newPanes[lastIndex].key;
-        } else {
-          newActiveKey = newPanes[0].key;
+      if (newPanes.length > 0) {
+        if (activeKey === targetKey) {
+          newActiveKey = newPanes[Math.max(activeKeyIndex - 1, 0)].key;
         }
+      } else {
+        newActiveKey = undefined;
       }
       onPanesChange(newPanes);
       onActiveKey(newActiveKey);

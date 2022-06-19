@@ -541,7 +541,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 </Menu>
               </Card>
             </div>
-            {activeBICKey !== undefined && activeBICKey !== '' && (
+            {activeBICKey !== undefined && activeBICKey !== '' ? (
               <DiffEditorTabs
                 commit="BIC"
                 activeKey={activeBICKey}
@@ -554,8 +554,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 isRunning={BICisRunning}
                 consoleString={BICConsoleResult}
               />
-            )}
-            {activeBFCKey !== undefined && activeBFCKey !== '' && (
+            ) : null}
+            {activeBFCKey !== undefined && activeBFCKey !== '' ? (
               <DiffEditorTabs
                 commit="BFC"
                 activeKey={activeBFCKey}
@@ -568,7 +568,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 isRunning={BFCisRunning}
                 consoleString={BFCConsoleResult}
               />
-            )}
+            ) : null}
           </div>
         </PageContainer>
       </Spin>

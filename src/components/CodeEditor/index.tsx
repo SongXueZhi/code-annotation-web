@@ -140,8 +140,7 @@ class CodeEditor extends React.Component<IProps, IState> {
       consoleString,
       isRunning,
     } = this.props;
-    const { showConsole, version, showCodeDetails, onCommitFeedback, feedbackContextList } =
-      this.state;
+    const { showConsole, version, showCodeDetails, onCommitFeedback } = this.state;
     const { width, height } = this.state.monacoSize;
     const logs = (
       <pre className="log output" style={{ overflow: 'unset' }}>
@@ -194,7 +193,7 @@ class CodeEditor extends React.Component<IProps, IState> {
                   onClick={this.handleRunClick}
                   loading={isRunning}
                 >
-                  Run migrate with
+                  Run
                 </Button>
                 <Radio.Group
                   value={version}
@@ -294,7 +293,6 @@ class CodeEditor extends React.Component<IProps, IState> {
                           },
                         ],
                       );
-                      const line = ed.getPosition()?.lineNumber;
                       message.info('Position ' + ed.getPosition() + ' feedback changed to reject.');
                       this.setState({ onCommitFeedback: false });
                     },
@@ -325,7 +323,6 @@ class CodeEditor extends React.Component<IProps, IState> {
                           },
                         ],
                       );
-                      const line = ed.getPosition()?.lineNumber;
                       message.info('Position ' + ed.getPosition() + ' feedback changed to add.');
                       this.setState({ onCommitFeedback: false });
                     },
@@ -356,7 +353,6 @@ class CodeEditor extends React.Component<IProps, IState> {
                           },
                         ],
                       );
-                      const line = ed.getPosition()?.lineNumber;
                       message.info('Position ' + ed.getPosition() + ' feedback changed to accept.');
                       this.setState({ onCommitFeedback: false });
                     },
