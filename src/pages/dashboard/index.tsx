@@ -1,4 +1,10 @@
-import { PlusOutlined, SyncOutlined, LoadingOutlined, RedoOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined,
+  SyncOutlined,
+  LoadingOutlined,
+  RedoOutlined,
+  QuestionCircleOutlined,
+} from '@ant-design/icons';
 import {
   Alert,
   Button,
@@ -108,9 +114,12 @@ class CodeEditor extends React.Component {
       const distanceTime: any = getDistanceDay(Number(res.data.totalStartTime));
       const repodistanceTime: any = getDistanceDay(res.data.projectStatTime);
       window.currentProjectName = res.data.currentProjectName;
-      const finishedProject = Number(res.data.totalProjectNum) - Number(res.data.projectQueueNum);
-      newData.finishedProject = finishedProject;
-      newData.totalProgress = ((finishedProject / res.data.totalProjectNum) * 100).toFixed(2);
+      const watingProject = Number(res.data.totalProjectNum) - Number(res.data.projectQueueNum) - 1;
+      newData.watingProject = watingProject >= 0 ? watingProject : 0;
+      newData.finishedProject = res.data.projectQueueNum;
+      newData.totalProgress = ((res.data.projectQueueNum / res.data.totalProjectNum) * 100).toFixed(
+        2,
+      );
       newData.currentRepoProgress = ((res.data.prfcdoneNum / res.data.totalPRFCNum) * 100).toFixed(
         2,
       );
@@ -156,7 +165,8 @@ class CodeEditor extends React.Component {
                   marginRight: '10px',
                 }}
               ></div>
-              Total Progress <span>({progressInfo.totalProgress}%)</span>
+              Total projects: {progressInfo.totalProjectNum} |{' '}
+              <span>({progressInfo.totalProgress}%)</span>
             </h2>
           </div>
           <div style={{ padding: '0 20px' }}>
@@ -173,7 +183,7 @@ class CodeEditor extends React.Component {
               />
               <Step
                 title="Waiting"
-                description={`${progressInfo.projectQueueNum} project repositories are in queue`}
+                description={`${progressInfo.watingProject} project repositories are in queue`}
               />
             </Steps>
             {/* <Progress
@@ -209,7 +219,7 @@ class CodeEditor extends React.Component {
                   marginRight: '10px',
                 }}
               ></div>
-              current project: {progressInfo.currentProjectName}
+              current project: {progressInfo.currentProjectName} |
               <span>
                 {' '}
                 {/* <SyncOutlined
@@ -481,7 +491,11 @@ const TableList: React.FC<{}> = () => {
               marginRight: '10px',
             }}
           ></div>
-          Time Line
+          Time Line{' '}
+          <Tooltip title="choose a regression to check timeline" key={1}>
+            {' '}
+            <QuestionCircleOutlined />
+          </Tooltip>
         </h2>
         <div> Current RegressionUuid: {currentRegressionUuid}</div>
         <div className="timeline-container">
@@ -516,9 +530,7 @@ const TableList: React.FC<{}> = () => {
             })
           }
           columns={columns}
-          // search={{
-          //   optionRender:({})
-          // }}
+          search={false}
           // pagination={{
           //   pageSize: 20,
           //   pageSizeOptions: undefined,
