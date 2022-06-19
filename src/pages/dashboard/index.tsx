@@ -96,12 +96,12 @@ class CodeEditor extends React.Component {
         totalProjectNum: 0,
         totalStartTime: 0,
         projectStatTime: 0,
-        totalProgress: 10,
-        totalPRFCNum: 4,
-        regressionNum: 25,
+        totalProgress: 0,
+        totalPRFCNum: 0,
+        regressionNum: 0,
         prfcdoneNum: 0,
         currentRepoProgress: 0,
-        finishedProject: 1,
+        finishedProject: 0,
       },
       distanceTime: '',
       repodistanceTime: '',
@@ -117,28 +117,35 @@ class CodeEditor extends React.Component {
       const watingProject = Number(res.data.totalProjectNum) - Number(res.data.projectQueueNum) - 1;
       newData.watingProject = watingProject >= 0 ? watingProject : 0;
       newData.finishedProject = res.data.projectQueueNum;
-      newData.totalProgress = ((res.data.projectQueueNum / res.data.totalProjectNum) * 100).toFixed(
-        2,
-      );
-      newData.currentRepoProgress = ((res.data.prfcdoneNum / res.data.totalPRFCNum) * 100).toFixed(
-        2,
-      );
+      if (res.data.totalProjectNum) {
+        newData.totalProgress = (
+          (res.data.projectQueueNum / res.data.totalProjectNum) * 100 +
+          (res.data.prfcdoneNum / res.data.totalPRFCNum / Number(res.data.totalProjectNum)) * 100
+        ).toFixed(2);
+      }
+      if (res.data.totalPRFCNum) {
+        newData.currentRepoProgress = (
+          (res.data.prfcdoneNum / res.data.totalPRFCNum) *
+          100
+        ).toFixed(2);
+      }
       this.setState({ progressInfo: newData });
       this.setState({ distanceTime: distanceTime });
       this.setState({ repodistanceTime: repodistanceTime });
-      setInterval(() => {
-        //@ts-ignore
-        const time = getDistanceDay(this.state.progressInfo.totalStartTime);
-        //@ts-ignore
-        const repotime = getDistanceDay(this.state.progressInfo.projectStatTime);
-        this.setState({ distanceTime: time });
-        this.setState({ repodistanceTime: repotime });
-        // distanceTime = getDistanceDay(progressInfo.totalStartTime)
-      }, 60 * 1000);
     });
   };
   componentDidMount() {
     this.updateProcessInfo();
+    setInterval(() => {
+      //@ts-ignore
+      const time = getDistanceDay(this.state.progressInfo.totalStartTime);
+      //@ts-ignore
+      const repotime = getDistanceDay(this.state.progressInfo.projectStatTime);
+      this.setState({ distanceTime: time });
+      this.setState({ repodistanceTime: repotime });
+      this.updateProcessInfo();
+      // distanceTime = getDistanceDay(progressInfo.totalStartTime)
+    }, 60 * 1000);
   }
 
   render() {
@@ -363,10 +370,18 @@ const TableList: React.FC<{}> = () => {
     const arr: any = [];
     const indexList: number[] = [];
     const idList: any = [];
+    const statusList: any = [];
     for (let i = 0; i < res.data.orderList?.length; i++) {
       indexList.push(Number(res.data.orderList[i][0]));
       idList.push(res.data.orderList[i][1]);
+      statusList.push(res.data.orderList[i][2]);
     }
+    const statusMap = {
+      PASS: '#52c41a',
+      FAL: 'RED',
+      CE: '#ccc',
+      UNKNOWN: '#ccc',
+    };
     handleIdLists(indexList);
     for (let i = 0; i < Number(res.data.searchSpaceNum) - 1; i++) {
       if (indexList.indexOf(i) !== -1) {
@@ -376,6 +391,8 @@ const TableList: React.FC<{}> = () => {
           firstShow: indexList.indexOf(i),
           time: '',
           id: idList[indexList.indexOf(i)],
+          status: statusList[indexList.indexOf(i)],
+          color: statusMap[statusList[indexList.indexOf(i)]],
         });
       }
     }

@@ -1,4 +1,4 @@
-.op-list{
+.op-list {
   position: absolute;
   z-index: 999;
 }
@@ -7,13 +7,13 @@
   // justify-content: center;
   // align-items: center;
   position: relative;
-  padding-top: 60px;
   // width: calc(100wh - 100px);
   width: 100%;
+  padding-top: 60px;
   // overflow-x: auto;
   // overflow-y: hidden;
   padding-bottom: 160px;
-  .name{
+  .name {
     position: absolute;
     top: 32px;
   }
@@ -28,47 +28,47 @@
     // border-left: 2px dotted #e8e8e8; // 点线
     // border-left: 2px dashed #e8e8e8; // 虚线
   }
-  img{
+  img {
     position: absolute;
-    top:-8px;
+    top: -8px;
     left: 2px;
   }
   .u-dot {
     position: absolute;
-    top:10px;
+    top: 10px;
     width: 16px;
     height: 16px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 50%;
+    color: #ccc;
+    font-weight: 600;
     font-size: 16px;
     line-height: 24px;
-    font-weight: 600;
-    color: #ccc;
-    cursor: pointer;
     background: #747fd7;
+    border-radius: 50%;
+    cursor: pointer;
     &.actived {
+      color: #fff;
       background: #133bff;
       border: 2px solid #133bff;
-      color: #fff;
       cursor: pointer;
     }
     &.loss {
-      border: 2px solid #978e8b;
-      background: #978e8b;
       color: #fff;
+      background: #978e8b;
+      border: 2px solid #978e8b;
     }
   }
-  .u-passed-dot{
-    background-color: #133bff;
+  .u-passed-dot {
+    // background-color: #133bff;
+    border: 2px solid #133bff;
     // display: none;
   }
   .current {
-    background-color: #52c41a;
+    background-color: #133bff;
   }
   // .col-container{
   //   min-width: 200px;
   // }
-  .row-container{
+  .row-container {
     // width: 8000px;
   }
 }

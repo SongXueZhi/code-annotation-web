@@ -67,12 +67,12 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
         <Col className="col-container">
           <div className="col-container">
             <span className="name">
-              {item.name} ({item.firstShow})
+              {item.name} ({item.status}) ({item.firstShow})
             </span>
             {arr.indexOf(item.name) === -1 ? (
-              <div className="u-dot"></div>
+              <div className="u-dot" style={{ background: item.color }}></div>
             ) : (
-              <div className="u-dot u-passed-dot"></div>
+              <div className="u-dot u-passed-dot" style={{ background: item.color }}></div>
             )}
             {/* <div className="u-dot"></div> */}
 
