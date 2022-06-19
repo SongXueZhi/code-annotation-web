@@ -93,7 +93,8 @@ const TableList: React.FC<{}> = () => {
       render: (_, record) => {
         return record.index + 1;
       },
-      formItemProps: { label: 'keyword' },
+      search: false,
+      // formItemProps: { label: 'keyword' },
     },
     {
       title: 'regression uuid',

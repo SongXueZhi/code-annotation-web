@@ -105,7 +105,7 @@ class CodeEditor extends React.Component {
   private updateProcessInfo = async (params?: any) => {
     getProcessInfo().then((res: any) => {
       const newData: any = res.data;
-      const distanceTime: any = getDistanceDay(res.data.totalStartTime);
+      const distanceTime: any = getDistanceDay(Number(res.data.totalStartTime));
       const repodistanceTime: any = getDistanceDay(res.data.projectStatTime);
       window.currentProjectName = res.data.currentProjectName;
       const finishedProject = Number(res.data.totalProjectNum) - Number(res.data.projectQueueNum);
@@ -169,7 +169,7 @@ class CodeEditor extends React.Component {
                 title="In Progress"
                 icon={<SyncOutlined spin />}
                 subTitle={distanceTime}
-                description="fastjson is processing"
+                description={`${window.currentProjectName} is processing`}
               />
               <Step
                 title="Waiting"
@@ -262,7 +262,7 @@ class CodeEditor extends React.Component {
                 className="dashboard-alert"
                 message={
                   <span className="content">
-                    Fastjson: totalPRFCNum:
+                    {window.currentProjectName}: totalPRFCNum:
                     <Tag className="tag-content" color="processing">
                       {progressInfo.totalPRFCNum}
                     </Tag>
