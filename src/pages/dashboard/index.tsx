@@ -492,6 +492,10 @@ const TableList: React.FC<{}> = () => {
               <Button className="sub-title-header" type="primary" onClick={showDrawer}>
                 Show Finished Regressions
               </Button>
+              <Button type="primary" style={{ marginLeft: '10px' }}>
+                Start
+              </Button>
+              <Button style={{ marginLeft: '10px' }}>Stop</Button>
             </div>
           </div>
         ),

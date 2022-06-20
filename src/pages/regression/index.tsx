@@ -245,18 +245,18 @@ const TableList: React.FC<{}> = () => {
       header={{
         style: { width: '100%' },
         title: 'Regression',
-        subTitle: (
-          <Alert
-            style={{ paddingLeft: '100px', paddingRight: '100px' }}
-            type="info"
-            message={
-              <div style={{ color: 'red', fontSize: '20px', fontWeight: 'bold' }}>
-                Note! Due to cloud server limitations, only the first 50 bugs on the list are
-                available.
-              </div>
-            }
-          />
-        ),
+        // subTitle: (
+        //   <Alert
+        //     style={{ paddingLeft: '100px', paddingRight: '100px' }}
+        //     type="info"
+        //     message={
+        //       <div style={{ color: 'red', fontSize: '20px', fontWeight: 'bold' }}>
+        //         Note! Due to cloud server limitations, only the first 50 bugs on the list are
+        //         available.
+        //       </div>
+        //     }
+        //   />
+        // ),
       }}
     >
       {/* <div className="RegMiner-tutorial-video" style={{ marginBottom: '20px' }}>
