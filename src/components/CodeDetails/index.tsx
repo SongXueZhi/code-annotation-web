@@ -1,5 +1,6 @@
 import ProDescriptions from '@ant-design/pro-descriptions';
-import { Button, Input } from 'antd';
+import { Button, Input, message } from 'antd';
+import { useState } from 'react';
 import { MonacoDiffEditor } from 'react-monaco-editor';
 
 interface IProps {
@@ -10,6 +11,7 @@ interface IProps {
   fileName: string; // index
   codeRange?: number[];
   endLine?: number[];
+  onCancel: (v: boolean) => void;
 }
 
 // interface SearchParams {
@@ -65,13 +67,15 @@ const mockData = [
   },
 ];
 
-const CodeDetails = ({
+const CodeDetails: React.FC<IProps> = ({
   regressionUuid,
   revisionFlag,
   criticalChangeOriginal,
   criticalChangeNew,
   fileName,
-}: IProps) => {
+  onCancel,
+}) => {
+  const [onSubmit, setOnSubmit] = useState<boolean>(true);
   const target = mockData.find((d) => {
     return d.uuid === regressionUuid;
   });
@@ -91,9 +95,14 @@ const CodeDetails = ({
               {target.codeRange[2]} ~ {target.codeRange[3]}
             </ProDescriptions.Item>
           )}
-          <ProDescriptions.Item span={2} label="Critical Change" valueType="code">
+          <ProDescriptions.Item
+            span={2}
+            label="Critical Change"
+            valueType="code"
+            style={{ width: 1000, height: 400 }}
+          >
             <MonacoDiffEditor
-              width={1250}
+              width={800}
               height={400}
               language={'java'}
               options={{
@@ -131,8 +140,17 @@ const CodeDetails = ({
                 allowClear
                 maxLength={200}
                 style={{ width: 'calc(100% - 200px)' }}
+                onChange={() => setOnSubmit(false)}
               />
-              <Button type="primary" style={{ display: 'flex' }}>
+              <Button
+                type="primary"
+                style={{ display: 'flex' }}
+                onClick={() => {
+                  message.success('Feedback submited, thanks for your contribution!');
+                  onCancel(false);
+                }}
+                disabled={onSubmit}
+              >
                 Submit
               </Button>
             </Input.Group>

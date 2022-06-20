@@ -37,7 +37,7 @@ interface IState {
   version: 'left' | 'right';
   consoleString?: string | null;
   monacoSize: { width: string | number; height: string | number };
-  feedbackLines: any[];
+  feedbackLines: monacoEditor.IRange[];
 }
 
 const REVEAL_CONSOLE_HEIHGT = 31;
@@ -146,7 +146,7 @@ class CodeEditor extends React.Component<IProps, IState> {
       consoleString,
       isRunning,
     } = this.props;
-    const { showConsole, version, showCodeDetails, onCommitFeedback } = this.state;
+    const { showConsole, version, showCodeDetails, onCommitFeedback, feedbackLines } = this.state;
     const { width, height } = this.state.monacoSize;
     const logs = (
       <pre className="log output" style={{ overflow: 'unset' }}>
@@ -231,6 +231,16 @@ class CodeEditor extends React.Component<IProps, IState> {
                     contextMenuGroupId: 'navigation',
                     contextMenuOrder: 1,
                     run: (ed) => {
+                      // console.log(feedbackLines);
+                      // if (
+                      //   feedbackLines !== undefined &&
+                      //   feedbackLines !== [] &&
+                      //   feedbackLines.every((d) => {
+                      //     ed.getSelection()?.containsRange(d);
+                      //   })
+                      // ) {
+                      //   console.log(true);
+                      // }
                       ed.deltaDecorations(
                         [],
                         [
@@ -244,7 +254,8 @@ class CodeEditor extends React.Component<IProps, IState> {
                           },
                         ],
                       );
-                      this.setState({ onCommitFeedback: false });
+                      feedbackLines.push(ed.getSelection() ?? new monaco.Range(0, 0, 0, 0));
+                      this.setState({ onCommitFeedback: false, feedbackLines: feedbackLines });
                     },
                   });
                   diffEditor.addAction({
@@ -338,6 +349,7 @@ class CodeEditor extends React.Component<IProps, IState> {
             criticalChangeOriginal={original}
             criticalChangeNew={value}
             fileName={filename}
+            onCancel={() => this.setState({ showCodeDetails: false })}
           />
         </Modal>
       </>
