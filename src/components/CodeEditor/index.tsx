@@ -37,7 +37,10 @@ interface IState {
   version: 'left' | 'right';
   consoleString?: string | null;
   monacoSize: { width: string | number; height: string | number };
-  feedbackLines: monacoEditor.IRange[];
+  // addFeedbackLines: monacoEditor.IRange[];
+  // rejectFeedbackLines: monacoEditor.IRange[];
+  // confirmFeedbackLines: monacoEditor.IRange[];
+  decorationIds: string[];
 }
 
 const REVEAL_CONSOLE_HEIHGT = 31;
@@ -77,7 +80,10 @@ class CodeEditor extends React.Component<IProps, IState> {
       feedbackContextList: [],
       version: 'left',
       monacoSize: { width: 0, height: 0 },
-      feedbackLines: [],
+      // addFeedbackLines: [],
+      // rejectFeedbackLines: [],
+      // confirmFeedbackLines: [],
+      decorationIds: [],
     };
   }
   componentDidMount() {
@@ -146,7 +152,16 @@ class CodeEditor extends React.Component<IProps, IState> {
       consoleString,
       isRunning,
     } = this.props;
-    const { showConsole, version, showCodeDetails, onCommitFeedback, feedbackLines } = this.state;
+    const {
+      showConsole,
+      version,
+      showCodeDetails,
+      onCommitFeedback,
+      // addFeedbackLines,
+      // rejectFeedbackLines,
+      // confirmFeedbackLines,
+      decorationIds,
+    } = this.state;
     const { width, height } = this.state.monacoSize;
     const logs = (
       <pre className="log output" style={{ overflow: 'unset' }}>
@@ -222,8 +237,6 @@ class CodeEditor extends React.Component<IProps, IState> {
                 original={original}
                 value={value}
                 editorDidMount={(diffEditor) => {
-                  // message.info('Modified: ' + diffEditor.getLineChanges());
-                  // message.info('Original: ' + diffEditor.getDiffLineInformationForOriginal());
                   diffEditor.addAction({
                     id: 'feedback-add',
                     label: 'feedback: add',
@@ -231,31 +244,117 @@ class CodeEditor extends React.Component<IProps, IState> {
                     contextMenuGroupId: 'navigation',
                     contextMenuOrder: 1,
                     run: (ed) => {
-                      // console.log(feedbackLines);
-                      // if (
-                      //   feedbackLines !== undefined &&
-                      //   feedbackLines !== [] &&
-                      //   feedbackLines.every((d) => {
-                      //     ed.getSelection()?.containsRange(d);
-                      //   })
-                      // ) {
-                      //   console.log(true);
-                      // }
-                      ed.deltaDecorations(
-                        [],
-                        [
-                          {
-                            range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                            options: {
-                              isWholeLine: true,
-                              className: 'addContentClass',
-                              hoverMessage: { value: 'Feedback: Add' },
-                            },
-                          },
-                        ],
+                      // let selection = ed.getSelection();
+                      // if (selection !== null) {
+                      //   if (addFeedbackLines !== []) {
+                      //     console.log(addFeedbackLines);
+                      //     if (
+                      //       addFeedbackLines.some((value) => {
+                      //         if (selection) {
+                      //           return (
+                      //             (selection?.startLineNumber <= value.startLineNumber &&
+                      //               selection?.endLineNumber >= value.startLineNumber) ||
+                      //             (selection.startLineNumber > value.startLineNumber &&
+                      //               selection.startLineNumber >= value.endLineNumber)
+                      //           );
+                      //         } else {
+                      //           return;
+                      //         }
+                      //       })
+                      //     ) {
+                      //       console.log('feedback add has overlap');
+                      //     }
+                      //   }
+
+                      // const a = ed.getDecorationsInRange(
+                      //   ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
+                      // );
+                      // console.log(ed.getLineDecorations(ed.getSelection()?.startLineNumber ?? 0));
+                      // console.log(a);
+                      // console.log(a !== null ? a[0].id : 'asd');
+
+                      const oldlDecorations = ed.getDecorationsInRange(
+                        ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
                       );
-                      feedbackLines.push(ed.getSelection() ?? new monaco.Range(0, 0, 0, 0));
-                      this.setState({ onCommitFeedback: false, feedbackLines: feedbackLines });
+                      if (oldlDecorations !== null) {
+                        if (decorationIds.some((d) => d === oldlDecorations[0].id)) {
+                          console.log('existed');
+                          console.log(oldlDecorations[0].id);
+                          console.log(decorationIds);
+                          this.setState({
+                            decorationIds: decorationIds.filter((v) => v !== oldlDecorations[0].id),
+                          });
+                          const newDecoration = ed.deltaDecorations(
+                            [oldlDecorations[0].id],
+                            [
+                              {
+                                range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
+                                options: {
+                                  isWholeLine: true,
+                                  className: 'addContentClass',
+                                  hoverMessage: { value: 'Feedback: Add' },
+                                },
+                              },
+                            ],
+                          );
+                          this.setState({
+                            decorationIds: decorationIds.splice(
+                              decorationIds.length + 1,
+                              0,
+                              newDecoration.toString(),
+                            ),
+                          });
+                          console.log(decorationIds);
+                        } else {
+                          console.log('not existed');
+                          console.log(oldlDecorations[0].id);
+                          const newDecoration = ed.deltaDecorations(
+                            [],
+                            [
+                              {
+                                range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
+                                options: {
+                                  isWholeLine: true,
+                                  className: 'addContentClass',
+                                  hoverMessage: { value: 'Feedback: Add' },
+                                },
+                              },
+                            ],
+                          );
+                          this.setState({
+                            decorationIds: decorationIds.splice(
+                              decorationIds.length + 1,
+                              0,
+                              newDecoration.toString(),
+                            ),
+                          });
+                          console.log(newDecoration.toString());
+                          console.log(decorationIds);
+                        }
+                      } else {
+                        const newDecoration = ed.deltaDecorations(
+                          [],
+                          [
+                            {
+                              range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
+                              options: {
+                                isWholeLine: true,
+                                className: 'addContentClass',
+                                hoverMessage: { value: 'Feedback: Add' },
+                              },
+                            },
+                          ],
+                        );
+                        this.setState({
+                          decorationIds: decorationIds.splice(
+                            decorationIds.length + 1,
+                            0,
+                            newDecoration.toString(),
+                          ),
+                        });
+                        console.log(newDecoration);
+                      }
+                      this.setState({ onCommitFeedback: false });
                     },
                   });
                   diffEditor.addAction({
@@ -265,19 +364,78 @@ class CodeEditor extends React.Component<IProps, IState> {
                     contextMenuGroupId: 'navigation',
                     contextMenuOrder: 2,
                     run: (ed) => {
-                      ed.deltaDecorations(
-                        [],
-                        [
-                          {
-                            range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                            options: {
-                              isWholeLine: true,
-                              className: 'rejectContentClass',
-                              hoverMessage: { value: 'Feedback: Reject' },
-                            },
-                          },
-                        ],
+                      const oldlDecorations = ed.getDecorationsInRange(
+                        ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
                       );
+                      if (oldlDecorations !== null) {
+                        if (decorationIds.some((d) => d === oldlDecorations[0].id)) {
+                          this.setState({
+                            decorationIds: decorationIds.filter((v) => v !== oldlDecorations[0].id),
+                          });
+                          const newDecoration = ed.deltaDecorations(
+                            [oldlDecorations[0].id],
+                            [
+                              {
+                                range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
+                                options: {
+                                  isWholeLine: true,
+                                  className: 'rejectContentClass',
+                                  hoverMessage: { value: 'Feedback: Reject' },
+                                },
+                              },
+                            ],
+                          );
+                          this.setState({
+                            decorationIds: decorationIds.splice(
+                              decorationIds.length + 1,
+                              0,
+                              newDecoration.toString(),
+                            ),
+                          });
+                        } else {
+                          const newDecoration = ed.deltaDecorations(
+                            [],
+                            [
+                              {
+                                range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
+                                options: {
+                                  isWholeLine: true,
+                                  className: 'rejectContentClass',
+                                  hoverMessage: { value: 'Feedback: Reject' },
+                                },
+                              },
+                            ],
+                          );
+                          this.setState({
+                            decorationIds: decorationIds.splice(
+                              decorationIds.length + 1,
+                              0,
+                              newDecoration.toString(),
+                            ),
+                          });
+                        }
+                      } else {
+                        const newDecoration = ed.deltaDecorations(
+                          [],
+                          [
+                            {
+                              range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
+                              options: {
+                                isWholeLine: true,
+                                className: 'rejectContentClass',
+                                hoverMessage: { value: 'Feedback: Reject' },
+                              },
+                            },
+                          ],
+                        );
+                        this.setState({
+                          decorationIds: decorationIds.splice(
+                            decorationIds.length + 1,
+                            0,
+                            newDecoration.toString(),
+                          ),
+                        });
+                      }
                       this.setState({ onCommitFeedback: false });
                     },
                   });
@@ -311,6 +469,88 @@ class CodeEditor extends React.Component<IProps, IState> {
                   //     this.setState({ onCommitFeedback: false });
                   //   },
                   // });
+                  diffEditor.addAction({
+                    id: 'feedback-confirm-ground-truth',
+                    label: 'feedback: confirm',
+                    keybindingContext: undefined,
+                    contextMenuGroupId: 'navigation',
+                    contextMenuOrder: 3,
+                    run: (ed) => {
+                      const oldlDecorations = ed.getDecorationsInRange(
+                        ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
+                      );
+                      if (oldlDecorations !== null) {
+                        if (decorationIds.some((d) => d === oldlDecorations[0].id)) {
+                          this.setState({
+                            decorationIds: decorationIds.filter((v) => v !== oldlDecorations[0].id),
+                          });
+                          const newDecoration = ed.deltaDecorations(
+                            [oldlDecorations[0].id],
+                            [
+                              {
+                                range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
+                                options: {
+                                  isWholeLine: true,
+                                  className: 'confirmContentClass',
+                                  hoverMessage: { value: 'Feedback: Confirm' },
+                                },
+                              },
+                            ],
+                          );
+                          this.setState({
+                            decorationIds: decorationIds.splice(
+                              decorationIds.length + 1,
+                              0,
+                              newDecoration.toString(),
+                            ),
+                          });
+                        } else {
+                          const newDecoration = ed.deltaDecorations(
+                            [],
+                            [
+                              {
+                                range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
+                                options: {
+                                  isWholeLine: true,
+                                  className: 'confirmContentClass',
+                                  hoverMessage: { value: 'Feedback: Confirm' },
+                                },
+                              },
+                            ],
+                          );
+                          this.setState({
+                            decorationIds: decorationIds.splice(
+                              decorationIds.length + 1,
+                              0,
+                              newDecoration.toString(),
+                            ),
+                          });
+                        }
+                      } else {
+                        const newDecoration = ed.deltaDecorations(
+                          [],
+                          [
+                            {
+                              range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
+                              options: {
+                                isWholeLine: true,
+                                className: 'confirmContentClass',
+                                hoverMessage: { value: 'Feedback: Confirm' },
+                              },
+                            },
+                          ],
+                        );
+                        this.setState({
+                          decorationIds: decorationIds.splice(
+                            decorationIds.length + 1,
+                            0,
+                            newDecoration.toString(),
+                          ),
+                        });
+                      }
+                      this.setState({ onCommitFeedback: false });
+                    },
+                  });
                 }}
               />
             </div>
