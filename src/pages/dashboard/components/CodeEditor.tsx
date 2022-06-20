@@ -1,16 +1,31 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { getDistanceDay } from '../utils';
+import { SyncOutlined } from '@ant-design/icons';
+
 import {
-  PlusOutlined,
-  SyncOutlined,
-  LoadingOutlined,
-  RedoOutlined,
-  QuestionCircleOutlined,
-} from '@ant-design/icons';
-import ProgressInfo from './components/CodeEditor';
+  queryRegressionList,
+  addRegression,
+  removeRegression,
+  getProcessInfo,
+  getDeatil,
+} from '../service';
+// dashiboard
+declare global {
+  interface Window {
+    isStoping?: boolean | false;
+    timer: any;
+  }
+}
+const progressContainer = {
+  padding: '30px',
+  background: '#fff',
+  'margin-bottom': '20px',
+  // marginBotton: '20px'
+};
 import {
   Alert,
   Button,
   Col,
-  Divider,
   message,
   Row,
   Skeleton,
@@ -23,71 +38,8 @@ import {
   Steps,
   Table,
 } from 'antd';
-import React, { useState, useRef } from 'react';
-import { PageContainer } from '@ant-design/pro-layout';
-import type { ProColumns, ActionType } from '@ant-design/pro-table';
-import ProTable from '@ant-design/pro-table';
-import TimeLine from './components/Timeline';
-
-import {
-  queryRegressionList,
-  addRegression,
-  removeRegression,
-  getProcessInfo,
-  getDeatil,
-} from './service';
-import { Link } from 'react-router-dom';
-import { stringify } from 'query-string';
-import { useIntl } from 'umi';
-import './index.less';
-import { getDistanceDay } from './utils';
-import { render } from 'react-dom';
-
-declare global {
-  interface Window {
-    currentProjectName: any;
-  }
-}
-
 const { Step } = Steps;
-
-/**
- * 添加节点
- *
- * @param fields
- */
-const handleAdd = async (fields: API.RegressionItem) => {
-  const hide = message.loading('Adding');
-  try {
-    await addRegression({ ...fields });
-    hide();
-    message.success('Successfully added!');
-    return true;
-  } catch (error) {
-    hide();
-    message.error('Failed to add. Please try again!');
-    return false;
-  }
-};
-
-function withSkeleton(element: JSX.Element | string | number | number | undefined) {
-  return (
-    element ?? <Skeleton title={{ width: '80px', style: { margin: 0 } }} paragraph={false} active />
-  );
-}
-
-// dashiboard
-const progressContainer = {
-  padding: '30px',
-  background: '#fff',
-  'margin-bottom': '20px',
-  // marginBotton: '20px'
-};
-const DrawerbodyStyle = {
-  // 'background-color': '#f5f5f5'
-};
-
-class CodeEditor extends React.Component {
+class ProgressInfo extends React.Component {
   constructor(props: any) {
     super(props);
     this.state = {
@@ -106,10 +58,12 @@ class CodeEditor extends React.Component {
       },
       distanceTime: '',
       repodistanceTime: '',
+      isStoping: false,
     };
   }
 
   private updateProcessInfo = async (params?: any) => {
+    window.isStoping = false;
     getProcessInfo().then((res: any) => {
       const newData: any = res.data;
       const distanceTime: any = getDistanceDay(Number(res.data.totalStartTime));
@@ -150,10 +104,12 @@ class CodeEditor extends React.Component {
       finishedProject: 0,
     };
     this.setState({ progressInfo: data });
+    window.isStoping = true;
+    window.clearInterval(window.timer);
   };
   componentDidMount() {
     this.updateProcessInfo();
-    setInterval(() => {
+    window.timer = setInterval(() => {
       //@ts-ignore
       const time = getDistanceDay(this.state.progressInfo.totalStartTime);
       //@ts-ignore
@@ -191,6 +147,14 @@ class CodeEditor extends React.Component {
               ></div>
               Total projects: {progressInfo.totalProjectNum} |{' '}
               <span>({progressInfo.totalProgress}%)</span>
+              <div style={{ position: 'absolute', right: '10px', top: '0px' }}>
+                <Button type="primary" onClick={this.updateProcessInfo.bind(this)}>
+                  <span style={{ color: '#fff' }}>Start</span>
+                </Button>
+                <Button style={{ marginLeft: '10px' }} onClick={this.resetProcessInfo.bind(this)}>
+                  stop
+                </Button>
+              </div>
             </h2>
           </div>
           <div style={{ padding: '0 20px' }}>
@@ -201,7 +165,7 @@ class CodeEditor extends React.Component {
               />
               <Step
                 title="In Progress"
-                icon={<SyncOutlined spin />}
+                icon={<SyncOutlined spin={!window.isStoping} />}
                 subTitle={distanceTime}
                 description={`${window.currentProjectName} is processing`}
               />
@@ -359,236 +323,4 @@ class CodeEditor extends React.Component {
   }
 }
 
-const TableList: React.FC<{}> = () => {
-  const intl = useIntl();
-
-  const [dashboardvisible, setVisible] = useState<boolean>(false);
-
-  const [createModalVisible, handleModalVisible] = useState<boolean>(false);
-  const [currentRegressionUuid, setCurRegressionUuid] = useState<string>('');
-  const actionRef = useRef<ActionType>();
-
-  const showDrawer = () => {
-    setVisible(true);
-  };
-  const onClose = () => {
-    setVisible(false);
-  };
-  const [timeLineList, handleTimeLine] = useState<any>([]);
-  const [idLists, handleIdLists] = useState<any>([]);
-  let timeLineTotal: number = 0;
-  const indicated: any = [];
-
-  const timeLineDetail = async (id: any, rid: any, projectFullName: any) => {
-    const res: any = await getDeatil({
-      regressionUuid: id,
-      projectName: projectFullName,
-    });
-    const arr: any = [];
-    const indexList: number[] = [];
-    const idList: any = [];
-    const statusList: any = [];
-    for (let i = 0; i < res.data.orderList?.length; i++) {
-      indexList.push(Number(res.data.orderList[i][0]));
-      idList.push(res.data.orderList[i][1]);
-      statusList.push(res.data.orderList[i][2]);
-    }
-    const statusMap = {
-      PASS: '#52c41a',
-      FAL: 'RED',
-      CE: '#ccc',
-      UNKNOWN: '#ccc',
-    };
-    handleIdLists(indexList);
-    for (let i = 0; i < Number(res.data.searchSpaceNum) - 1; i++) {
-      if (indexList.indexOf(i) !== -1) {
-        arr.push({
-          index: arr.length,
-          name: i,
-          firstShow: indexList.indexOf(i),
-          time: '',
-          id: idList[indexList.indexOf(i)],
-          status: statusList[indexList.indexOf(i)],
-          color: statusMap[statusList[indexList.indexOf(i)]],
-        });
-      }
-    }
-    for (let i = 0; i < indexList.length; i++) {
-      arr.forEach((item: any, index: any) => {
-        if (item.name === indexList[i]) {
-          indicated.push(index);
-        }
-      });
-    }
-
-    const sort: any = [];
-    for (let i = 0; i < indicated.length; i++) {
-      sort.push(indicated.indexOf(i));
-    }
-
-    handleIdLists(indicated);
-    handleTimeLine(arr);
-    timeLineTotal = Number(res.searchSpaceNum);
-    setCurRegressionUuid(rid);
-    // render()
-  };
-
-  const columns: ProColumns<API.RegressionItem>[] = [
-    {
-      title: 'No.',
-      dataIndex: 'index',
-      width: 48,
-      render: (_, record) => {
-        return record.index + 1;
-      },
-      search: false,
-    },
-    {
-      title: 'bug id',
-      dataIndex: 'regressionUuid',
-      search: false,
-      width: 200,
-      render: (_, { projectFullName, regressionUuid, index }) => {
-        return withSkeleton(
-          regressionUuid ? (
-            index <= 49 ? (
-              <Link
-                to={{
-                  pathname: '/editor',
-                  search: stringify({ regressionUuid }),
-                }}
-              >
-                {projectFullName?.split('/')[1]}_{index}
-              </Link>
-            ) : (
-              regressionUuid
-            )
-          ) : (
-            '暂无数据'
-          ),
-        );
-      },
-    },
-    {
-      title: 'actions',
-      hideInForm: true,
-      // hideInTable: true,
-      search: false,
-      // fixed: 'right',
-      render: (
-        _,
-        { bfc: bfc, regressionUuid: regressionUuid, projectFullName: projectFullName },
-      ) => [
-        <Divider type="vertical" />,
-        <Button
-          danger
-          onClick={() => {
-            // handleRemove(regressionUuid).then(() => {
-            console.log('regressionUuid', bfc, regressionUuid, projectFullName);
-            // });
-
-            timeLineDetail(bfc, regressionUuid, projectFullName);
-            onClose();
-          }}
-        >
-          Time line
-        </Button>,
-      ],
-    },
-  ];
-  const CodeEditorRef = React.createRef;
-
-  const ProgressInfoRef = React.createRef;
-  const reset = () => {
-    //@ts-ignore
-    ProgressInfoRef.resetProcessInfo();
-  };
-
-  return (
-    <PageContainer
-      header={{
-        style: { width: '100%' },
-        title: 'Dashboard',
-        subTitle: (
-          <div className="sub-title-container">
-            <div>process dashboard</div>
-            <div>
-              <Button className="sub-title-header" type="primary" onClick={showDrawer}>
-                Show Finished Regressions
-              </Button>
-              {/* <Button type="primary" style={{ marginLeft: '10px' }}>
-                Start
-              </Button>
-              <Button style={{ marginLeft: '10px' }} onClick={reset}>
-                Stop
-              </Button> */}
-            </div>
-          </div>
-        ),
-      }}
-    >
-      <ProgressInfo ref={ProgressInfoRef} />
-      {/* <CodeEditor ref={CodeEditorRef} /> */}
-      <div className="regressionTimeline">
-        <h2>
-          <div
-            style={{
-              display: 'inline-block',
-              width: '5px',
-              height: '12px',
-              background: '#722ED1',
-              marginRight: '10px',
-            }}
-          ></div>
-          Time Line{' '}
-          <Tooltip title="choose a regression to check timeline" key={1}>
-            {' '}
-            <QuestionCircleOutlined />
-          </Tooltip>
-        </h2>
-        <div> Current RegressionUuid: {currentRegressionUuid}</div>
-        <div className="timeline-container">
-          <TimeLine
-            lineList={timeLineList}
-            total={timeLineTotal}
-            indicated={idLists}
-            currentRegressionUuid={currentRegressionUuid}
-            cur={0}
-          />
-        </div>
-      </div>
-      <Drawer
-        bodyStyle={DrawerbodyStyle}
-        title="Finished Regressions List"
-        placement={'right'}
-        closable={false}
-        onClose={onClose}
-        visible={dashboardvisible}
-        key={'right'}
-        width={450}
-      >
-        <ProTable<API.RegressionItem>
-          headerTitle="Regression List"
-          actionRef={actionRef}
-          rowKey="regressionUuid"
-          // @ts-ignore
-          request={(params) =>
-            queryRegressionList({
-              regression_uuid: params.regressionUuid,
-              keyword: params.keyword,
-            })
-          }
-          columns={columns}
-          search={false}
-          // pagination={{
-          //   pageSize: 20,
-          //   pageSizeOptions: undefined,
-          // }}
-        />
-      </Drawer>
-      {/* dashboard */}
-    </PageContainer>
-  );
-};
-
-export default TableList;
+export default ProgressInfo;
