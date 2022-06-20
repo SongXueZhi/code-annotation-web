@@ -1,6 +1,7 @@
 export const getDistanceDay = (time: number) => {
   const stime = new Date().getTime();
-  const usedTime = stime - time; //两个时间戳相差的毫秒数
+  console.log('stime', stime);
+  const usedTime = stime - time * 1000; //两个时间戳相差的毫秒数
   const days = Math.floor(usedTime / (24 * 3600 * 1000));
   //计算出小时数
   const leave1 = usedTime % (24 * 3600 * 1000); //计算天数后剩余的毫秒数

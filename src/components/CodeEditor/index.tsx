@@ -37,6 +37,7 @@ interface IState {
   version: 'left' | 'right';
   consoleString?: string | null;
   monacoSize: { width: string | number; height: string | number };
+  feedbackLines: any[];
 }
 
 const REVEAL_CONSOLE_HEIHGT = 31;
@@ -76,6 +77,7 @@ class CodeEditor extends React.Component<IProps, IState> {
       feedbackContextList: [],
       version: 'left',
       monacoSize: { width: 0, height: 0 },
+      feedbackLines: [],
     };
   }
   componentDidMount() {
@@ -223,29 +225,6 @@ class CodeEditor extends React.Component<IProps, IState> {
                   // message.info('Modified: ' + diffEditor.getLineChanges());
                   // message.info('Original: ' + diffEditor.getDiffLineInformationForOriginal());
                   diffEditor.addAction({
-                    id: 'feedback-reject',
-                    label: 'feedback: reject',
-                    keybindingContext: undefined,
-                    contextMenuGroupId: 'navigation',
-                    contextMenuOrder: 2,
-                    run: (ed) => {
-                      ed.deltaDecorations(
-                        [],
-                        [
-                          {
-                            range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                            options: {
-                              isWholeLine: true,
-                              className: 'rejectContentClass',
-                              hoverMessage: { value: 'Feedback: Reject' },
-                            },
-                          },
-                        ],
-                      );
-                      this.setState({ onCommitFeedback: false });
-                    },
-                  });
-                  diffEditor.addAction({
                     id: 'feedback-add',
                     label: 'feedback: add',
                     keybindingContext: undefined,
@@ -261,6 +240,29 @@ class CodeEditor extends React.Component<IProps, IState> {
                               isWholeLine: true,
                               className: 'addContentClass',
                               hoverMessage: { value: 'Feedback: Add' },
+                            },
+                          },
+                        ],
+                      );
+                      this.setState({ onCommitFeedback: false });
+                    },
+                  });
+                  diffEditor.addAction({
+                    id: 'feedback-reject',
+                    label: 'feedback: reject',
+                    keybindingContext: undefined,
+                    contextMenuGroupId: 'navigation',
+                    contextMenuOrder: 2,
+                    run: (ed) => {
+                      ed.deltaDecorations(
+                        [],
+                        [
+                          {
+                            range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
+                            options: {
+                              isWholeLine: true,
+                              className: 'rejectContentClass',
+                              hoverMessage: { value: 'Feedback: Reject' },
                             },
                           },
                         ],

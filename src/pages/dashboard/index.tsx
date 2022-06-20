@@ -1,4 +1,10 @@
-import { PlusOutlined, SyncOutlined, LoadingOutlined, RedoOutlined } from '@ant-design/icons';
+import {
+  PlusOutlined,
+  SyncOutlined,
+  LoadingOutlined,
+  RedoOutlined,
+  QuestionCircleOutlined,
+} from '@ant-design/icons';
 import {
   Alert,
   Button,
@@ -90,12 +96,12 @@ class CodeEditor extends React.Component {
         totalProjectNum: 0,
         totalStartTime: 0,
         projectStatTime: 0,
-        totalProgress: 10,
-        totalPRFCNum: 4,
-        regressionNum: 25,
+        totalProgress: 0,
+        totalPRFCNum: 0,
+        regressionNum: 0,
         prfcdoneNum: 0,
         currentRepoProgress: 0,
-        finishedProject: 1,
+        finishedProject: 0,
       },
       distanceTime: '',
       repodistanceTime: '',
@@ -105,31 +111,41 @@ class CodeEditor extends React.Component {
   private updateProcessInfo = async (params?: any) => {
     getProcessInfo().then((res: any) => {
       const newData: any = res.data;
-      const distanceTime: any = getDistanceDay(res.data.totalStartTime);
+      const distanceTime: any = getDistanceDay(Number(res.data.totalStartTime));
       const repodistanceTime: any = getDistanceDay(res.data.projectStatTime);
       window.currentProjectName = res.data.currentProjectName;
-      const finishedProject = Number(res.data.totalProjectNum) - Number(res.data.projectQueueNum);
-      newData.finishedProject = finishedProject;
-      newData.totalProgress = ((finishedProject / res.data.totalProjectNum) * 100).toFixed(2);
-      newData.currentRepoProgress = ((res.data.prfcdoneNum / res.data.totalPRFCNum) * 100).toFixed(
-        2,
-      );
+      const watingProject = Number(res.data.totalProjectNum) - Number(res.data.projectQueueNum) - 1;
+      newData.watingProject = watingProject >= 0 ? watingProject : 0;
+      newData.finishedProject = res.data.projectQueueNum;
+      if (res.data.totalProjectNum) {
+        newData.totalProgress = (
+          (res.data.projectQueueNum / res.data.totalProjectNum) * 100 +
+          (res.data.prfcdoneNum / res.data.totalPRFCNum / Number(res.data.totalProjectNum)) * 100
+        ).toFixed(2);
+      }
+      if (res.data.totalPRFCNum) {
+        newData.currentRepoProgress = (
+          (res.data.prfcdoneNum / res.data.totalPRFCNum) *
+          100
+        ).toFixed(2);
+      }
       this.setState({ progressInfo: newData });
       this.setState({ distanceTime: distanceTime });
       this.setState({ repodistanceTime: repodistanceTime });
-      setInterval(() => {
-        //@ts-ignore
-        const time = getDistanceDay(this.state.progressInfo.totalStartTime);
-        //@ts-ignore
-        const repotime = getDistanceDay(this.state.progressInfo.projectStatTime);
-        this.setState({ distanceTime: time });
-        this.setState({ repodistanceTime: repotime });
-        // distanceTime = getDistanceDay(progressInfo.totalStartTime)
-      }, 60 * 1000);
     });
   };
   componentDidMount() {
     this.updateProcessInfo();
+    setInterval(() => {
+      //@ts-ignore
+      const time = getDistanceDay(this.state.progressInfo.totalStartTime);
+      //@ts-ignore
+      const repotime = getDistanceDay(this.state.progressInfo.projectStatTime);
+      this.setState({ distanceTime: time });
+      this.setState({ repodistanceTime: repotime });
+      this.updateProcessInfo();
+      // distanceTime = getDistanceDay(progressInfo.totalStartTime)
+    }, 60 * 1000);
   }
 
   render() {
@@ -156,7 +172,8 @@ class CodeEditor extends React.Component {
                   marginRight: '10px',
                 }}
               ></div>
-              Total Progress <span>({progressInfo.totalProgress}%)</span>
+              Total projects: {progressInfo.totalProjectNum} |{' '}
+              <span>({progressInfo.totalProgress}%)</span>
             </h2>
           </div>
           <div style={{ padding: '0 20px' }}>
@@ -169,11 +186,11 @@ class CodeEditor extends React.Component {
                 title="In Progress"
                 icon={<SyncOutlined spin />}
                 subTitle={distanceTime}
-                description="fastjson is processing"
+                description={`${window.currentProjectName} is processing`}
               />
               <Step
                 title="Waiting"
-                description={`${progressInfo.projectQueueNum} project repositories are in queue`}
+                description={`${progressInfo.watingProject} project repositories are in queue`}
               />
             </Steps>
             {/* <Progress
@@ -209,7 +226,7 @@ class CodeEditor extends React.Component {
                   marginRight: '10px',
                 }}
               ></div>
-              current project: {progressInfo.currentProjectName}
+              current project: {progressInfo.currentProjectName} |
               <span>
                 {' '}
                 {/* <SyncOutlined
@@ -262,7 +279,7 @@ class CodeEditor extends React.Component {
                 className="dashboard-alert"
                 message={
                   <span className="content">
-                    Fastjson: totalPRFCNum:
+                    {window.currentProjectName}: totalPRFCNum:
                     <Tag className="tag-content" color="processing">
                       {progressInfo.totalPRFCNum}
                     </Tag>
@@ -345,18 +362,26 @@ const TableList: React.FC<{}> = () => {
   let timeLineTotal: number = 0;
   const indicated: any = [];
 
-  const timeLineDetail = async (id: any, rid: any) => {
+  const timeLineDetail = async (id: any, rid: any, projectFullName: any) => {
     const res: any = await getDeatil({
       regressionUuid: id,
-      projectName: window.currentProjectName,
+      projectName: projectFullName,
     });
     const arr: any = [];
     const indexList: number[] = [];
     const idList: any = [];
+    const statusList: any = [];
     for (let i = 0; i < res.data.orderList?.length; i++) {
       indexList.push(Number(res.data.orderList[i][0]));
       idList.push(res.data.orderList[i][1]);
+      statusList.push(res.data.orderList[i][2]);
     }
+    const statusMap = {
+      PASS: '#52c41a',
+      FAL: 'RED',
+      CE: '#ccc',
+      UNKNOWN: '#ccc',
+    };
     handleIdLists(indexList);
     for (let i = 0; i < Number(res.data.searchSpaceNum) - 1; i++) {
       if (indexList.indexOf(i) !== -1) {
@@ -366,6 +391,8 @@ const TableList: React.FC<{}> = () => {
           firstShow: indexList.indexOf(i),
           time: '',
           id: idList[indexList.indexOf(i)],
+          status: statusList[indexList.indexOf(i)],
+          color: statusMap[statusList[indexList.indexOf(i)]],
         });
       }
     }
@@ -430,16 +457,19 @@ const TableList: React.FC<{}> = () => {
       // hideInTable: true,
       search: false,
       // fixed: 'right',
-      render: (_, { bfc: bfc, regressionUuid: regressionUuid }) => [
+      render: (
+        _,
+        { bfc: bfc, regressionUuid: regressionUuid, projectFullName: projectFullName },
+      ) => [
         <Divider type="vertical" />,
         <Button
           danger
           onClick={() => {
             // handleRemove(regressionUuid).then(() => {
-            console.log('regressionUuid', bfc, regressionUuid);
+            console.log('regressionUuid', bfc, regressionUuid, projectFullName);
             // });
 
-            timeLineDetail(bfc, regressionUuid);
+            timeLineDetail(bfc, regressionUuid, projectFullName);
             onClose();
           }}
         >
@@ -478,7 +508,11 @@ const TableList: React.FC<{}> = () => {
               marginRight: '10px',
             }}
           ></div>
-          Time Line
+          Time Line{' '}
+          <Tooltip title="choose a regression to check timeline" key={1}>
+            {' '}
+            <QuestionCircleOutlined />
+          </Tooltip>
         </h2>
         <div> Current RegressionUuid: {currentRegressionUuid}</div>
         <div className="timeline-container">
@@ -509,9 +543,11 @@ const TableList: React.FC<{}> = () => {
           request={(params) =>
             queryRegressionList({
               regression_uuid: params.regressionUuid,
+              keyword: params.keyword,
             })
           }
           columns={columns}
+          search={false}
           // pagination={{
           //   pageSize: 20,
           //   pageSizeOptions: undefined,

@@ -38,4 +38,5 @@ export type RegQueryParams = {
   currentPage?: number;
   filter?: Record<string, ReactText[] | null>;
   sorter?: Record<string, any>;
+  keyword?: string;
 };
