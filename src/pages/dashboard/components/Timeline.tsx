@@ -17,12 +17,14 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
   const [currentStep, setCurrentStep] = useState<number>(cur);
   const [currentPoint, setCurrentPoint] = useState<any>(0);
   const [arr, setArr] = useState<any>([]);
+  const [tailWidth, setTailWidth] = useState<any>(800);
   const reset = () => {
     setCurrentStep(0);
     setArr([]);
   };
   useEffect(() => {
     reset();
+    setTailWidth(Number(lineList.length) * 80);
   }, [currentRegressionUuid]);
 
   // const nowIndex = indicated[currentStep] || 0
@@ -126,8 +128,13 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
         ) : null}
       </div>
       <div className="container">
-        <div className="u-tail"></div>
-        <Row justify="space-around" align="middle" className="row-container">
+        <div className="u-tail" style={{ width: `${tailWidth}px` }}></div>
+        <Row
+          justify="space-around"
+          align="middle"
+          className="row-container"
+          style={{ width: `${tailWidth}px` }}
+        >
           {listName}
         </Row>
       </div>

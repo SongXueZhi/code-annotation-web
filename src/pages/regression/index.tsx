@@ -97,9 +97,10 @@ const TableList: React.FC<{}> = () => {
       // formItemProps: { label: 'keyword' },
     },
     {
-      title: 'regression uuid',
+      title: 'bug id',
       dataIndex: 'regressionUuid',
-      render: (_, { regressionUuid, index }) => {
+      search: false,
+      render: (_, { projectFullName, regressionUuid, index }) => {
         return withSkeleton(
           regressionUuid ? (
             index <= 49 ? (
@@ -109,7 +110,7 @@ const TableList: React.FC<{}> = () => {
                   search: stringify({ regressionUuid }),
                 }}
               >
-                {regressionUuid}
+                {projectFullName?.split('/')[1]}_{index}
               </Link>
             ) : (
               regressionUuid
@@ -121,11 +122,16 @@ const TableList: React.FC<{}> = () => {
       },
     },
     {
-      title: intl.formatMessage({
-        id: 'pages.searchTable.projectTable',
-      }),
+      title: 'keyword',
+      dataIndex: 'keyword',
+      hideInTable: true,
+      render: (_, { regressionUuid, index }) => {
+        return withSkeleton(regressionUuid ? (index <= 49 ? '' : '') : '暂无数据');
+      },
+    },
+    {
+      title: 'project name',
       dataIndex: 'projectFullName',
-      search: false,
       renderText: (val: string) => `${val} `,
       // tip: '所属项目名称',
     },
@@ -287,6 +293,7 @@ const TableList: React.FC<{}> = () => {
           queryRegressionList({
             regression_uuid: params.regressionUuid,
             keyword: params.keyword,
+            project_full_name: params.projectFullName,
           })
         }
         columns={columns}

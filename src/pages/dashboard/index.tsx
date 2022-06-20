@@ -427,10 +427,11 @@ const TableList: React.FC<{}> = () => {
       search: false,
     },
     {
-      title: 'regression uuid',
+      title: 'bug id',
       dataIndex: 'regressionUuid',
-      width: 100,
-      render: (_, { regressionUuid, index }) => {
+      search: false,
+      width: 200,
+      render: (_, { projectFullName, regressionUuid, index }) => {
         return withSkeleton(
           regressionUuid ? (
             index <= 49 ? (
@@ -440,7 +441,7 @@ const TableList: React.FC<{}> = () => {
                   search: stringify({ regressionUuid }),
                 }}
               >
-                {regressionUuid}
+                {projectFullName?.split('/')[1]}_{index}
               </Link>
             ) : (
               regressionUuid

@@ -11,6 +11,7 @@ export type TableListItem = {
   updatedAt: Date;
   createdAt: Date;
   progress: number;
+  keyword?: any;
 };
 
 export type TableListPagination = {
@@ -38,5 +39,5 @@ export type RegQueryParams = {
   currentPage?: number;
   filter?: Record<string, ReactText[] | null>;
   sorter?: Record<string, any>;
-  keyword?: string;
+  keyword?: any;
 };
