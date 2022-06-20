@@ -550,9 +550,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                                 key={`BFC-${filename}`}
                                 onClick={() => handleMenuClick('BFC', filename, oldPath, newPath)}
                               >
-                                {filename === 'Github_424.java' ? (
-                                  <Tag color="processing">Migrate</Tag>
-                                ) : (
+                                {filename === 'Github_424.java' ? null : (
                                   <Tooltip title="recommend to check">
                                     <Tag color="warning">check</Tag>
                                   </Tooltip>
@@ -564,13 +562,13 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                         : listBFC.map(({ filename, match, oldPath, newPath, type }) => {
                             let mark: any;
                             if (match === 1 && type !== null && type !== undefined) {
-                              mark = <Tag color="success">Migrate</Tag>;
+                              mark = null;
                             } else if (type !== null && type !== undefined) {
                               if (
                                 type.toLowerCase() === 'test suite' ||
                                 type.toLowerCase() === 'test_suite'
                               ) {
-                                mark = <Tag color="processing">Migrate</Tag>;
+                                mark = null;
                               } else {
                                 mark = <Tag color="processing">{type}</Tag>;
                               }
