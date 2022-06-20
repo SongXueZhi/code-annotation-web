@@ -430,7 +430,7 @@ const TableList: React.FC<{}> = () => {
       title: 'bug id',
       dataIndex: 'regressionUuid',
       search: false,
-      width: 100,
+      width: 200,
       render: (_, { projectFullName, regressionUuid, index }) => {
         return withSkeleton(
           regressionUuid ? (
