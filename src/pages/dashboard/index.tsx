@@ -368,6 +368,8 @@ const TableList: React.FC<{}> = () => {
 
   const [createModalVisible, handleModalVisible] = useState<boolean>(false);
   const [currentRegressionUuid, setCurRegressionUuid] = useState<string>('');
+  const [currentBugid, setCurBugid] = useState<string>('');
+
   const actionRef = useRef<ActionType>();
 
   const showDrawer = () => {
@@ -381,7 +383,7 @@ const TableList: React.FC<{}> = () => {
   let timeLineTotal: number = 0;
   const indicated: any = [];
 
-  const timeLineDetail = async (bfc: any, rid: any, projectFullName: any) => {
+  const timeLineDetail = async (bfc: any, rid: any, projectFullName: any, bugId: any) => {
     const res: any = await getDeatil({
       regressionUuid: bfc,
       projectName: projectFullName,
@@ -443,6 +445,7 @@ const TableList: React.FC<{}> = () => {
     handleTimeLine(arr);
     timeLineTotal = Number(res.searchSpaceNum);
     setCurRegressionUuid(rid);
+    setCurBugid(bugId);
     // render()
   };
 
@@ -488,17 +491,17 @@ const TableList: React.FC<{}> = () => {
       // hideInTable: true,
       search: false,
       // fixed: 'right',
-      render: (_, { bfc, regressionUuid, projectFullName, bic }) => [
+      render: (_, { bfc, regressionUuid, projectFullName, bic, bugId }) => [
         <Divider type="vertical" />,
         <Button
           danger
           onClick={() => {
             // handleRemove(regressionUuid).then(() => {
-            console.log('regressionUuid,bic:', bic, bfc, regressionUuid, projectFullName);
+            console.log('regressionUuid,bic:', bic, bfc, regressionUuid, projectFullName, bugId);
             window.currentBic = bic;
             // });
 
-            timeLineDetail(bfc, regressionUuid, projectFullName);
+            timeLineDetail(bfc, regressionUuid, projectFullName, bugId);
             onClose();
           }}
         >
@@ -557,7 +560,7 @@ const TableList: React.FC<{}> = () => {
             <QuestionCircleOutlined />
           </Tooltip>
         </h2>
-        <div> Current RegressionUuid: {currentRegressionUuid}</div>
+        <div> Current Bug Id: {currentBugid}</div>
         <div className="timeline-container">
           <TimeLine
             lineList={timeLineList}
