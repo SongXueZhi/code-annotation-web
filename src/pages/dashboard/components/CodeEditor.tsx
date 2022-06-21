@@ -152,7 +152,7 @@ class ProgressInfo extends React.Component {
                   <span style={{ color: '#fff' }}>Start</span>
                 </Button>
                 <Button style={{ marginLeft: '10px' }} onClick={this.resetProcessInfo.bind(this)}>
-                  stop
+                  Stop
                 </Button>
               </div>
             </h2>
