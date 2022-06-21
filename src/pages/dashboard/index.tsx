@@ -191,7 +191,7 @@ class CodeEditor extends React.Component {
                   marginRight: '10px',
                 }}
               ></div>
-              Total projects: {progressInfo.totalProjectNum} |{' '}
+              Processed Projects: {progressInfo.totalProjectNum} |{' '}
               <span>({progressInfo.totalProgress}%)</span>
             </h2>
           </div>
