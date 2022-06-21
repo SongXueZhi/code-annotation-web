@@ -503,7 +503,7 @@ const TableList: React.FC<{}> = () => {
       // hideInTable: true,
       search: false,
       // fixed: 'right',
-      render: (_, { bfc, regressionUuid, projectFullName, bic, bugId, work }) => [
+      render: (_, { bfc, regressionUuid, projectFullName, bic, bugId, work, index }) => [
         <Divider type="vertical" />,
         <Button
           danger
@@ -512,8 +512,9 @@ const TableList: React.FC<{}> = () => {
             console.log('regressionUuid,bic:', bic, bfc, regressionUuid, projectFullName, bugId);
             window.currentBic = bic;
             // });
+            const bug = `${projectFullName}_${index}`;
 
-            timeLineDetail(bfc, regressionUuid, projectFullName, bugId, work);
+            timeLineDetail(bfc, regressionUuid, projectFullName, bug, work);
             onClose();
           }}
         >
