@@ -46,6 +46,8 @@ import { render } from 'react-dom';
 declare global {
   interface Window {
     currentProjectName: any;
+    currentBic: any;
+    currentBfc: any;
   }
 }
 
@@ -379,9 +381,9 @@ const TableList: React.FC<{}> = () => {
   let timeLineTotal: number = 0;
   const indicated: any = [];
 
-  const timeLineDetail = async (id: any, rid: any, projectFullName: any) => {
+  const timeLineDetail = async (bfc: any, rid: any, projectFullName: any) => {
     const res: any = await getDeatil({
-      regressionUuid: id,
+      regressionUuid: bfc,
       projectName: projectFullName,
     });
     const arr: any = [];
@@ -425,6 +427,17 @@ const TableList: React.FC<{}> = () => {
     for (let i = 0; i < indicated.length; i++) {
       sort.push(indicated.indexOf(i));
     }
+    const bfcName = Number(arr[arr.length - 1].name) + 1;
+    console.log();
+    arr.push({
+      index: 'bfc',
+      name: bfcName + ':bfc',
+      firstShow: arr.length + 1,
+      time: '',
+      id: bfc,
+      status: 'PASS',
+      color: '#52c41a',
+    });
 
     handleIdLists(indicated);
     handleTimeLine(arr);
@@ -475,16 +488,14 @@ const TableList: React.FC<{}> = () => {
       // hideInTable: true,
       search: false,
       // fixed: 'right',
-      render: (
-        _,
-        { bfc: bfc, regressionUuid: regressionUuid, projectFullName: projectFullName },
-      ) => [
+      render: (_, { bfc, regressionUuid, projectFullName, bic }) => [
         <Divider type="vertical" />,
         <Button
           danger
           onClick={() => {
             // handleRemove(regressionUuid).then(() => {
-            console.log('regressionUuid', bfc, regressionUuid, projectFullName);
+            console.log('regressionUuid,bic:', bic, bfc, regressionUuid, projectFullName);
+            window.currentBic = bic;
             // });
 
             timeLineDetail(bfc, regressionUuid, projectFullName);
