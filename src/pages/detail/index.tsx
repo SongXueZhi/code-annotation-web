@@ -29,6 +29,7 @@ const testMethodList = [
 
 interface IHistorySearch {
   regressionUuid: string;
+  bic: string;
 }
 
 export type CommitFile = {
@@ -41,19 +42,6 @@ export type CommitFile = {
 export interface FilePaneItem extends CommitFile {
   key: string;
 }
-
-export const mockRegressionsList = [
-  '64bcef94-d8ee-46c9-a82b-393ef6a1d898',
-  'cfccf309-bbbe-42d2-865b-2a50a1288113',
-  '4efd2990-bd48-418e-9636-c035abd850f5',
-  '156eb75f-0b5a-4a35-bd59-db0a57ed9f0e',
-  'bd2ab6c2-5681-4605-ae06-3ee3ca0ad51b',
-  '19c7bc2b-8cc9-4477-b155-8c3a13bab168',
-  '76ea45dc-c810-4c26-b104-54a19c041ba0',
-  '82333b1d-79cf-449b-8b06-c2b042bb56a4',
-  '7606319e-1f8e-467d-b3fc-f51331f8c0a4',
-  'f5d0e242-30be-42c6-a852-082c958f0907',
-];
 
 // function markMatch(
 //   bic: CommitItem[],
@@ -392,6 +380,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         queryRegressionDetail({
           regression_uuid: HISTORY_SEARCH.regressionUuid,
           userToken: '123',
+          bic: HISTORY_SEARCH.bic,
         }).then((data) => {
           if (data !== null && data !== undefined) {
             setListBFC(data.bfcChangedFiles);
@@ -409,7 +398,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         });
       },
     );
-  }, [HISTORY_SEARCH.regressionUuid]);
+  }, [HISTORY_SEARCH.regressionUuid, HISTORY_SEARCH.bic]);
 
   return (
     <>
@@ -418,49 +407,9 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
           onBack={() => window.history.back()}
           // fixedHeader
           header={{
-            title: 'Regression verfication',
+            title: 'Progress',
             subTitle: (
               <Typography.Text>Regression UUID: {HISTORY_SEARCH.regressionUuid}</Typography.Text>
-            ),
-            footer: (
-              <div style={{ display: 'inline-flex', alignItems: 'center' }}>
-                <Descriptions column={3} style={{ flex: 1 }}>
-                  <Descriptions.Item label={'Project'} labelStyle={{ fontWeight: 'bold' }}>
-                    <Typography.Text keyboard strong>
-                      {projectFullName}
-                    </Typography.Text>
-                  </Descriptions.Item>
-                  <Descriptions.Item
-                    label={'Bug Inducing Commit'}
-                    labelStyle={{ fontWeight: 'bold' }}
-                  >
-                    <Typography.Link keyboard href={BICURL} target="_blank">
-                      {BIC?.slice(0, 8)}...
-                    </Typography.Link>
-                    <br />
-                  </Descriptions.Item>
-                  <Descriptions.Item
-                    label={'Bug Fixing Commit'}
-                    labelStyle={{ fontWeight: 'bold' }}
-                  >
-                    <Typography.Link keyboard href={BFCURL} target="_blank">
-                      {BFC?.slice(0, 8)}...
-                    </Typography.Link>
-                    <br />
-                  </Descriptions.Item>
-                  <Descriptions.Item
-                    label={'Regression description'}
-                    labelStyle={{ fontWeight: 'bold' }}
-                  >
-                    <Typography.Text>{regressionDescription}</Typography.Text>
-                  </Descriptions.Item>
-                </Descriptions>
-                <Radio.Group defaultValue="a" buttonStyle="solid">
-                  <Radio.Button value="a">confirmed</Radio.Button>
-                  <Radio.Button value="b">rejected</Radio.Button>
-                  <Radio.Button value="c">undecided</Radio.Button>
-                </Radio.Group>
-              </div>
             ),
           }}
         >
@@ -487,117 +436,76 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 >
                   {/* 优先显示test，在有match时显示check然后tooltip上加‘recomend to check’。
                 （migrate迁移）*/}
-                  <SubMenu key="BIC" icon={<AppstoreOutlined />} title="Bug Inducing Commit">
-                    {
-                      // delete here
-                      HISTORY_SEARCH.regressionUuid === '64bcef94-d8ee-46c9-a82b-393ef6a1d898'
-                        ? listBIC.map(({ filename, match, oldPath, newPath, type }) => {
-                            return (
-                              <Menu.Item
-                                key={`BIC-${filename}`}
-                                onClick={() => handleMenuClick('BIC', filename, oldPath, newPath)}
-                              >
-                                {filename === 'Github_424.java' ? (
-                                  <Tag color="processing">Migrate</Tag>
-                                ) : (
-                                  <Tooltip title="recommend to check">
-                                    <Tag color="warning">check</Tag>
-                                  </Tooltip>
-                                )}
-                                {filename}
-                              </Menu.Item>
-                            );
-                          })
-                        : listBIC.map(({ filename, match, oldPath, newPath, type }) => {
-                            let mark: any;
-                            if (match === 1 && type !== null && type !== undefined) {
-                              mark = <Tag color="success">Migrate</Tag>;
-                            } else if (type !== null && type !== undefined) {
-                              if (
-                                type.toLowerCase() === 'test suite' ||
-                                type.toLowerCase() === 'test_suite'
-                              ) {
-                                mark = <Tag color="processing">Migrate</Tag>;
-                              } else {
-                                mark = <Tag color="processing">{type}</Tag>;
-                              }
-                            } else if (match === 1) {
-                              mark = (
-                                <Tooltip title="recommend to check">
-                                  <Tag color="warning">check</Tag>
-                                </Tooltip>
-                              );
-                            }
-                            return (
-                              <Menu.Item
-                                key={`BIC-${filename}`}
-                                onClick={() => handleMenuClick('BIC', filename, oldPath, newPath)}
-                              >
-                                {mark}
-                                {filename}
-                              </Menu.Item>
-                            );
-                          })
-                    }
+                  <SubMenu key="BIC" icon={<AppstoreOutlined />} title="Target Commit">
+                    {listBIC.map(({ filename, match, oldPath, newPath, type }) => {
+                      let mark: any;
+                      if (match === 1 && type !== null && type !== undefined) {
+                        mark = <Tag color="success">Migrate</Tag>;
+                      } else if (type !== null && type !== undefined) {
+                        if (
+                          type.toLowerCase() === 'test suite' ||
+                          type.toLowerCase() === 'test_suite'
+                        ) {
+                          mark = <Tag color="processing">Migrate</Tag>;
+                        } else {
+                          mark = <Tag color="processing">{type}</Tag>;
+                        }
+                      } else if (match === 1) {
+                        mark = (
+                          <Tooltip title="recommend to check">
+                            <Tag color="warning">check</Tag>
+                          </Tooltip>
+                        );
+                      }
+                      return (
+                        <Menu.Item
+                          key={`BIC-${filename}`}
+                          onClick={() => handleMenuClick('BIC', filename, oldPath, newPath)}
+                        >
+                          {mark}
+                          {filename}
+                        </Menu.Item>
+                      );
+                    })}
                   </SubMenu>
-                  <SubMenu key="BFC" icon={<AppstoreOutlined />} title="Bug Fixing Commit">
-                    {
-                      // delete here
-                      HISTORY_SEARCH.regressionUuid === '64bcef94-d8ee-46c9-a82b-393ef6a1d898'
-                        ? listBFC.map(({ filename, match, oldPath, newPath, type }) => {
-                            return (
-                              <Menu.Item
-                                key={`BFC-${filename}`}
-                                onClick={() => handleMenuClick('BFC', filename, oldPath, newPath)}
-                              >
-                                {filename === 'Github_424.java' ? null : (
-                                  <Tooltip title="recommend to check">
-                                    <Tag color="warning">check</Tag>
-                                  </Tooltip>
-                                )}
-                                {filename}
-                              </Menu.Item>
-                            );
-                          })
-                        : listBFC.map(({ filename, match, oldPath, newPath, type }) => {
-                            let mark: any;
-                            if (match === 1 && type !== null && type !== undefined) {
-                              mark = null;
-                            } else if (type !== null && type !== undefined) {
-                              if (
-                                type.toLowerCase() === 'test suite' ||
-                                type.toLowerCase() === 'test_suite'
-                              ) {
-                                mark = null;
-                              } else {
-                                mark = <Tag color="processing">{type}</Tag>;
-                              }
-                            } else if (match === 1) {
-                              mark = (
-                                <Tooltip title="recommend to check">
-                                  <Tag color="warning">check</Tag>
-                                </Tooltip>
-                              );
-                            }
-                            return (
-                              <Menu.Item
-                                key={`BFC-${filename}`}
-                                onClick={() => handleMenuClick('BFC', filename, oldPath, newPath)}
-                              >
-                                {mark}
-                                {filename}
-                              </Menu.Item>
-                            );
-                          })
-                    }
-                  </SubMenu>
+                  {/* <SubMenu key="BFC" icon={<AppstoreOutlined />} title="Bug Fixing Commit">
+                    {listBFC.map(({ filename, match, oldPath, newPath, type }) => {
+                      let mark: any;
+                      if (match === 1 && type !== null && type !== undefined) {
+                        mark = <Tag color="success">Migrate</Tag>;
+                      } else if (type !== null && type !== undefined) {
+                        if (
+                          type.toLowerCase() === 'test suite' ||
+                          type.toLowerCase() === 'test_suite'
+                        ) {
+                          mark = <Tag color="processing">Migrate</Tag>;
+                        } else {
+                          mark = <Tag color="processing">{type}</Tag>;
+                        }
+                      } else if (match === 1) {
+                        mark = (
+                          <Tooltip title="recommend to check">
+                            <Tag color="warning">check</Tag>
+                          </Tooltip>
+                        );
+                      }
+                      return (
+                        <Menu.Item
+                          key={`BFC-${filename}`}
+                          onClick={() => handleMenuClick('BFC', filename, oldPath, newPath)}
+                        >
+                          {mark}
+                          {filename}
+                        </Menu.Item>
+                      );
+                    })}
+                  </SubMenu> */}
                 </Menu>
               </Card>
             </div>
-            {activeBICKey !== undefined && activeBICKey !== '' ? (
+            {activeBICKey !== undefined && activeBICKey !== '' && (
               <DiffEditorTabs
                 commit="BIC"
-                regressionUuid={HISTORY_SEARCH.regressionUuid}
                 activeKey={activeBICKey}
                 onActiveKey={setActiveBICKey}
                 panes={panesBIC}
@@ -608,11 +516,10 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 isRunning={BICisRunning}
                 consoleString={BICConsoleResult}
               />
-            ) : null}
-            {activeBFCKey !== undefined && activeBFCKey !== '' ? (
+            )}
+            {activeBFCKey !== undefined && activeBFCKey !== '' && (
               <DiffEditorTabs
                 commit="BFC"
-                regressionUuid={HISTORY_SEARCH.regressionUuid}
                 activeKey={activeBFCKey}
                 onActiveKey={setActiveBFCKey}
                 panes={panesBFC}
@@ -623,7 +530,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 isRunning={BFCisRunning}
                 consoleString={BFCConsoleResult}
               />
-            ) : null}
+            )}
           </div>
         </PageContainer>
       </Spin>

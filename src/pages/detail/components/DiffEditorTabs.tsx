@@ -9,7 +9,6 @@ export type DiffEditor = {
 };
 
 interface IProps {
-  regressionUuid: string;
   oldVersionText?: string;
   newVersionText?: string;
   commit: 'BIC' | 'BFC';
@@ -18,12 +17,11 @@ interface IProps {
   consoleString?: string;
   isRunning: boolean;
   onPanesChange: (panes: FilePaneItem[]) => void;
-  onActiveKey: (v: string | undefined) => void;
+  onActiveKey: (v: string) => void;
   onRunCode?: (v: string, version: string) => void;
 }
 
 const DiffEditorTabs: React.FC<IProps> = ({
-  regressionUuid,
   commit,
   panes,
   activeKey,
@@ -37,17 +35,20 @@ const DiffEditorTabs: React.FC<IProps> = ({
 }) => {
   const remove = useCallback(
     (targetKey: string) => {
-      let newActiveKey = activeKey || undefined;
-      const activeKeyIndex = panes.findIndex((value) => {
-        return value.key === activeKey;
+      let newActiveKey = activeKey;
+      let lastIndex = 0;
+      panes.forEach((pane, i) => {
+        if (pane.key === targetKey) {
+          lastIndex = i - 1;
+        }
       });
       const newPanes = panes.filter((pane) => pane.key !== targetKey);
-      if (newPanes.length > 0) {
-        if (activeKey === targetKey) {
-          newActiveKey = newPanes[Math.max(activeKeyIndex - 1, 0)].key;
+      if (newPanes.length && newActiveKey === targetKey) {
+        if (lastIndex >= 0) {
+          newActiveKey = newPanes[lastIndex].key;
+        } else {
+          newActiveKey = newPanes[0].key;
         }
-      } else {
-        newActiveKey = undefined;
       }
       onPanesChange(newPanes);
       onActiveKey(newActiveKey);
@@ -80,8 +81,6 @@ const DiffEditorTabs: React.FC<IProps> = ({
             <div style={{ width: '100%', height: '86vh', display: 'flex' }}>
               <CodeEditor
                 title={commit === 'BIC' ? 'Bug Inducing Commit' : 'Bug Fixing Commit'}
-                regressionUuid={regressionUuid}
-                filename={key.slice(4)}
                 darkTheme={false}
                 original={oldCode}
                 value={newCode}

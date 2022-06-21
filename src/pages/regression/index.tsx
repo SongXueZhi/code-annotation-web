@@ -9,6 +9,7 @@ import { queryRegressionList, addRegression, removeRegression } from './service'
 import { Link } from 'react-router-dom';
 import { stringify } from 'query-string';
 import { useIntl } from 'umi';
+import './index.less';
 
 /**
  * 添加节点
@@ -93,11 +94,13 @@ const TableList: React.FC<{}> = () => {
         return record.index + 1;
       },
       search: false,
+      // formItemProps: { label: 'keyword' },
     },
     {
-      title: 'regression uuid',
+      title: 'bug id',
       dataIndex: 'regressionUuid',
-      render: (_, { regressionUuid, index }) => {
+      search: false,
+      render: (_, { projectFullName, regressionUuid, index }) => {
         return withSkeleton(
           regressionUuid ? (
             index <= 49 ? (
@@ -107,7 +110,7 @@ const TableList: React.FC<{}> = () => {
                   search: stringify({ regressionUuid }),
                 }}
               >
-                {regressionUuid}
+                {projectFullName?.split('/')[1]}_{index}
               </Link>
             ) : (
               regressionUuid
@@ -119,11 +122,16 @@ const TableList: React.FC<{}> = () => {
       },
     },
     {
-      title: intl.formatMessage({
-        id: 'pages.searchTable.projectTable',
-      }),
+      title: 'keyword',
+      dataIndex: 'keyword',
+      hideInTable: true,
+      render: (_, { regressionUuid, index }) => {
+        return withSkeleton(regressionUuid ? (index <= 49 ? '' : '') : '暂无数据');
+      },
+    },
+    {
+      title: 'project name',
       dataIndex: 'projectFullName',
-      search: false,
       renderText: (val: string) => `${val} `,
       // tip: '所属项目名称',
     },
@@ -237,21 +245,21 @@ const TableList: React.FC<{}> = () => {
       header={{
         style: { width: '100%' },
         title: 'Regression',
-        subTitle: (
-          <Alert
-            style={{ paddingLeft: '100px', paddingRight: '100px' }}
-            type="info"
-            message={
-              <div style={{ color: 'red', fontSize: '20px', fontWeight: 'bold' }}>
-                Note! Due to cloud server limitations, only the first 50 bugs on the list are
-                available.
-              </div>
-            }
-          />
-        ),
+        // subTitle: (
+        //   <Alert
+        //     style={{ paddingLeft: '100px', paddingRight: '100px' }}
+        //     type="info"
+        //     message={
+        //       <div style={{ color: 'red', fontSize: '20px', fontWeight: 'bold' }}>
+        //         Note! Due to cloud server limitations, only the first 50 bugs on the list are
+        //         available.
+        //       </div>
+        //     }
+        //   />
+        // ),
       }}
     >
-      <div className="RegMiner-tutorial-video" style={{ marginBottom: '20px' }}>
+      {/* <div className="RegMiner-tutorial-video" style={{ marginBottom: '20px' }}>
         <Row justify="space-around" align="middle">
           <Col>
             <iframe
@@ -265,7 +273,8 @@ const TableList: React.FC<{}> = () => {
             />
           </Col>
         </Row>
-      </div>
+      </div> */}
+
       <ProTable<API.RegressionItem>
         headerTitle="Regression List"
         actionRef={actionRef}
@@ -283,6 +292,8 @@ const TableList: React.FC<{}> = () => {
         request={(params) =>
           queryRegressionList({
             regression_uuid: params.regressionUuid,
+            keyword: params.keyword,
+            project_full_name: params.projectFullName,
           })
         }
         columns={columns}
