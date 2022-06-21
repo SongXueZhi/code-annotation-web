@@ -383,7 +383,13 @@ const TableList: React.FC<{}> = () => {
   let timeLineTotal: number = 0;
   const indicated: any = [];
 
-  const timeLineDetail = async (bfc: any, rid: any, projectFullName: any, bugId: any) => {
+  const timeLineDetail = async (
+    bfc: any,
+    rid: any,
+    projectFullName: any,
+    bugId: any,
+    work: any,
+  ) => {
     const res: any = await getDeatil({
       regressionUuid: bfc,
       projectName: projectFullName,
@@ -406,9 +412,15 @@ const TableList: React.FC<{}> = () => {
     handleIdLists(indexList);
     for (let i = 0; i < Number(res.data.searchSpaceNum) - 1; i++) {
       if (indexList.indexOf(i) !== -1) {
+        console.log(
+          'item.index === ',
+          work === idList[indexList.indexOf(i)],
+          idList[indexList.indexOf(i)],
+          work,
+        );
         arr.push({
-          index: arr.length,
-          name: i,
+          index: work === idList[indexList.indexOf(i)] ? 'wc' : arr.length,
+          name: work === idList[indexList.indexOf(i)] ? i + ':wc' : i,
           firstShow: indexList.indexOf(i),
           time: '',
           id: idList[indexList.indexOf(i)],
@@ -491,7 +503,7 @@ const TableList: React.FC<{}> = () => {
       // hideInTable: true,
       search: false,
       // fixed: 'right',
-      render: (_, { bfc, regressionUuid, projectFullName, bic, bugId }) => [
+      render: (_, { bfc, regressionUuid, projectFullName, bic, bugId, work }) => [
         <Divider type="vertical" />,
         <Button
           danger
@@ -501,7 +513,7 @@ const TableList: React.FC<{}> = () => {
             window.currentBic = bic;
             // });
 
-            timeLineDetail(bfc, regressionUuid, projectFullName, bugId);
+            timeLineDetail(bfc, regressionUuid, projectFullName, bugId, work);
             onClose();
           }}
         >

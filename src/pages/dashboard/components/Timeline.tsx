@@ -81,7 +81,7 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
         <Col className="col-container">
           <div className="col-container">
             <span className="name">
-              {item.index === 'bfc' || window.currentBic === item.id ? (
+              {item.index === 'wc' || item.index === 'bfc' || window.currentBic === item.id ? (
                 <span style={{ color: 'rgb(255 89 29)', fontWeight: 600 }}>{item.name}</span>
               ) : (
                 <span>{item.name}</span>
