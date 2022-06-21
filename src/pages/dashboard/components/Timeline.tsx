@@ -81,8 +81,17 @@ const TimeLine: React.FC<TimeLineProps> = (props) => {
         <Col className="col-container">
           <div className="col-container">
             <span className="name">
-              {item.name} <span style={{ fontSize: '10px' }}>({item.status})</span> (
-              {item.firstShow})
+              {item.index === 'bfc' ? (
+                <span style={{ color: 'rgb(255 89 29)', fontWeight: 600 }}>{item.name}</span>
+              ) : (
+                <span>{item.name}</span>
+              )}
+              {window.currentBic === item.id ? (
+                <span style={{ color: 'rgb(255 89 29)', fontWeight: 600 }}>:bic</span>
+              ) : (
+                ''
+              )}{' '}
+              <span style={{ fontSize: '10px' }}>({item.status})</span> ({item.firstShow})
             </span>
             {arr.indexOf(item.name) === -1 ? (
               <div className="u-dot" style={{ background: item.color }}></div>
