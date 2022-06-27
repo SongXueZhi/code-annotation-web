@@ -26,7 +26,19 @@ export type TableListData = {
   pagination: Partial<TableListPagination>;
 };
 
+export type CriticalChangeDetailItem = {
+  beginA: number;
+  beginB: number;
+  endA: number;
+  endB: number;
+  lengthA: number;
+  lengthB: number;
+  empty: boolean;
+  type: string;
+};
+
 export type CommitItem = {
+  editList: CriticalChangeDetailItem[];
   filename: string;
   newPath: string;
   oldPath: string;
