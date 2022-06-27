@@ -1,3 +1,4 @@
+import { DiffEditDetailItems } from '@/pages/editor/data';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import { Button, Input, message } from 'antd';
 import { useState } from 'react';
@@ -8,6 +9,7 @@ interface IProps {
   revisionFlag: string; // Bug Inducing Commit || Bug Fixing Commit
   criticalChangeOriginal?: string;
   criticalChangeNew?: string;
+  diffEditDetails?: DiffEditDetailItems[];
   fileName: string; // index
   codeRange?: number[];
   endLine?: number[];
@@ -72,6 +74,7 @@ const CodeDetails: React.FC<IProps> = ({
   revisionFlag,
   criticalChangeOriginal,
   criticalChangeNew,
+  diffEditDetails,
   fileName,
   onCancel,
 }) => {
@@ -157,7 +160,7 @@ const CodeDetails: React.FC<IProps> = ({
           </ProDescriptions.Item>
         </ProDescriptions>
       ) : (
-        <div>Error</div>
+        <div>{diffEditDetails}</div>
       )}
     </>
   );

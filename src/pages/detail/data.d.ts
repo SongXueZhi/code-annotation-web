@@ -26,7 +26,7 @@ export type TableListData = {
   pagination: Partial<TableListPagination>;
 };
 
-export type CriticalChangeDetailItem = {
+export type DiffEditDetailItems = {
   beginA: number;
   beginB: number;
   endA: number;
@@ -38,7 +38,7 @@ export type CriticalChangeDetailItem = {
 };
 
 export type CommitItem = {
-  editList: CriticalChangeDetailItem[];
+  editList: DiffEditDetailItems[];
   filename: string;
   newPath: string;
   oldPath: string;

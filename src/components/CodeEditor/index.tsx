@@ -12,6 +12,7 @@ import type { RadioChangeEvent } from 'antd';
 import { message } from 'antd';
 import { Radio, Modal } from 'antd';
 import CodeDetails from '../CodeDetails';
+import { DiffEditDetailItems } from '@/pages/editor/data';
 
 interface IProps {
   title: string;
@@ -25,6 +26,7 @@ interface IProps {
   depandencies?: Depandency[];
   original?: string;
   value?: string;
+  diffEditChanges: DiffEditDetailItems[];
   isRunning: boolean;
   consoleString?: string;
   onRunCode?: (code: string, version: string) => void;
@@ -147,6 +149,7 @@ class CodeEditor extends React.Component<IProps, IState> {
       value,
       title,
       extra,
+      diffEditChanges,
       oldVersionText,
       newVersionText,
       consoleString,
@@ -585,6 +588,7 @@ class CodeEditor extends React.Component<IProps, IState> {
         >
           <CodeDetails
             regressionUuid={regressionUuid}
+            diffEditDetails={diffEditChanges}
             revisionFlag={title}
             criticalChangeOriginal={original}
             criticalChangeNew={value}
