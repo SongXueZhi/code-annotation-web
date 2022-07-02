@@ -65,3 +65,25 @@ export type RegressionCode = {
   oldCode: string;
   newCode: string;
 };
+
+export type RegressionCriticalChangeDetail = {
+  revissionName: 'bic' | 'bfc';
+  hunkEntityList: HunkEntityItems[];
+};
+
+export type HunkEntityItems = {
+  newPath: string;
+  oldPath: string;
+  beginA: number;
+  beginB: number;
+  endA: number;
+  endB: number;
+  type: string;
+};
+
+export type FeedbackList = {
+  key: string[];
+  fileName: string;
+  feedback: string;
+  hunkEntityList: HunkEntityItems[];
+};
