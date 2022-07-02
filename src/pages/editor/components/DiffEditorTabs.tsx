@@ -2,6 +2,7 @@ import CodeEditor from '@/components/CodeEditor';
 import { Tabs } from 'antd';
 import { useCallback } from 'react';
 import type { FilePaneItem } from '..';
+import { FeedbackList } from '../data';
 
 export type DiffEditor = {
   origin: string;
@@ -20,6 +21,7 @@ interface IProps {
   onPanesChange: (panes: FilePaneItem[]) => void;
   onActiveKey: (v: string | undefined) => void;
   onRunCode?: (v: string, version: string) => void;
+  onFeedbackList: (feedbacks: FeedbackList) => void;
 }
 
 const DiffEditorTabs: React.FC<IProps> = ({
@@ -34,6 +36,7 @@ const DiffEditorTabs: React.FC<IProps> = ({
   onActiveKey,
   onPanesChange,
   onRunCode,
+  onFeedbackList,
 }) => {
   const remove = useCallback(
     (targetKey: string) => {
@@ -91,6 +94,7 @@ const DiffEditorTabs: React.FC<IProps> = ({
                 isRunning={isRunning}
                 consoleString={consoleString}
                 onRunCode={onRunCode}
+                onFeedbackList={onFeedbackList}
               />
             </div>
           </Tabs.TabPane>

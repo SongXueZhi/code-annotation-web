@@ -1,7 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Button, Card, Descriptions, Menu, Radio, Spin, Tag, Tooltip, Typography } from 'antd';
-import { AppstoreOutlined } from '@ant-design/icons';
+import {
+  Button,
+  Card,
+  Descriptions,
+  Menu,
+  message,
+  Radio,
+  Spin,
+  Tag,
+  Tooltip,
+  Typography,
+} from 'antd';
+import { AppstoreOutlined, UploadOutlined } from '@ant-design/icons';
 import DiffEditorTabs from './components/DiffEditorTabs';
 import type { IRouteComponentProps } from 'umi';
 import {
@@ -11,7 +22,7 @@ import {
   getRegressionPath,
   regressionCheckout,
 } from './service';
-import type { CommitItem, DiffEditDetailItems } from './data';
+import type { CommitItem, DiffEditDetailItems, FeedbackList } from './data';
 import { parse } from 'query-string';
 
 const { SubMenu } = Menu;
@@ -94,6 +105,10 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   const [regressionDescription, setRegressionDescription] = useState<string>();
   const [BICisRunning, setBICIsRunning] = useState<boolean>(false);
   const [BFCisRunning, setBFCIsRunning] = useState<boolean>(false);
+  const [BICFeedbackList, setBICFeedbackList] = useState<FeedbackList[]>([]);
+  const [BFCFeedbackList, setBFCFeedbackList] = useState<FeedbackList[]>([]);
+  const [newBICFeedback, setNewBICFeedback] = useState<FeedbackList>();
+  const [newBFCFeedback, setNewBFCFeedback] = useState<FeedbackList>();
 
   const getFile = async (params: {
     commit: string;
@@ -361,6 +376,29 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
     }
   };
 
+  const handleSubmitFeedbacks = useCallback(() => {
+    message.success('submited');
+    setBFCFeedbackList([]);
+    setBICFeedbackList([]);
+  }, [BICFeedbackList, BFCFeedbackList]);
+
+  const handleWithdrawSubmit = useCallback(
+    (index) => {
+      const newList = BICFeedbackList.splice(index, 1);
+      setBICFeedbackList(newList);
+    },
+    [BICFeedbackList, BFCFeedbackList],
+  );
+
+  useEffect(() => {
+    if (newBICFeedback) {
+      setBICFeedbackList(BICFeedbackList.splice(0, 0, newBICFeedback));
+    }
+    if (newBFCFeedback) {
+      setBFCFeedbackList(BFCFeedbackList.splice(0, 0, newBFCFeedback));
+    }
+  }, [newBICFeedback, newBFCFeedback]);
+
   const contentListNoTitle = {
     testcase: (
       <Button
@@ -544,6 +582,70 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                   </SubMenu>
                 </Menu>
               </Card>
+              <Card
+                title="feedback list"
+                bordered={false}
+                bodyStyle={{ padding: 0 }}
+                extra={
+                  <Button
+                    type="primary"
+                    shape="round"
+                    icon={<UploadOutlined />}
+                    onClick={() => handleSubmitFeedbacks()}
+                  >
+                    Submit
+                  </Button>
+                }
+              >
+                <Menu
+                  style={{ width: 286, maxHeight: '70vh', overflow: 'auto' }}
+                  defaultOpenKeys={['BIC', 'BFC']}
+                  mode="inline"
+                >
+                  <SubMenu
+                    key="BIC-feedback"
+                    icon={<AppstoreOutlined />}
+                    title="Bug Inducing Commit"
+                  >
+                    {BICFeedbackList?.map(({ key, fileName, feedback, hunkEntityList }, index) => {
+                      return (
+                        <Menu.Item
+                          key={`BIC-${key}`}
+                          onClick={() => {
+                            console.log(key);
+                            console.log(hunkEntityList);
+                            console.log(index);
+                          }}
+                        >
+                          {fileName}-{feedback}
+                          <Button type="text" danger onClick={() => handleWithdrawSubmit(index)}>
+                            withdraw
+                          </Button>
+                        </Menu.Item>
+                      );
+                    })}
+                  </SubMenu>
+                  <SubMenu key="BFC-feedback" icon={<AppstoreOutlined />} title="Bug Fixing Commit">
+                    {BFCFeedbackList?.map(({ key, fileName, feedback, hunkEntityList }, index) => {
+                      return (
+                        <Menu.Item
+                          key={`BIC-${key}`}
+                          onClick={() => {
+                            console.log(key);
+                            console.log(hunkEntityList);
+                            console.log(index);
+                          }}
+                        >
+                          {fileName}-{feedback}
+                          <Button type="text" danger onClick={() => handleWithdrawSubmit(index)}>
+                            withdraw
+                          </Button>
+                        </Menu.Item>
+                      );
+                    })}
+                  </SubMenu>
+                </Menu>
+              </Card>
             </div>
             {activeBICKey !== undefined && activeBICKey !== '' ? (
               <DiffEditorTabs
@@ -558,6 +660,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 onRunCode={handleBICRunClick}
                 isRunning={BICisRunning}
                 consoleString={BICConsoleResult}
+                onFeedbackList={setNewBICFeedback}
               />
             ) : null}
             {activeBFCKey !== undefined && activeBFCKey !== '' ? (
@@ -573,6 +676,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 onRunCode={handleBFCRunClick}
                 isRunning={BFCisRunning}
                 consoleString={BFCConsoleResult}
+                onFeedbackList={setNewBFCFeedback}
               />
             ) : null}
           </div>

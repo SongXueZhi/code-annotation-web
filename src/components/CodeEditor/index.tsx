@@ -12,7 +12,8 @@ import type { RadioChangeEvent } from 'antd';
 import { message } from 'antd';
 import { Radio, Modal } from 'antd';
 import CodeDetails from '../CodeDetails';
-import { DiffEditDetailItems } from '@/pages/editor/data';
+import { DiffEditDetailItems, FeedbackList } from '@/pages/editor/data';
+import { getCriticalChangeByUuid } from '@/pages/editor/service';
 
 interface IProps {
   title: string;
@@ -30,12 +31,13 @@ interface IProps {
   isRunning: boolean;
   consoleString?: string;
   onRunCode?: (code: string, version: string) => void;
+  onFeedbackList?: (feedback: FeedbackList) => void;
 }
 interface IState {
   showConsole: boolean;
   showCodeDetails: boolean;
   onCommitFeedback: boolean;
-  feedbackContextList: any;
+  feedbackContextList: FeedbackList;
   version: 'left' | 'right';
   consoleString?: string | null;
   monacoSize: { width: string | number; height: string | number };
@@ -79,7 +81,12 @@ class CodeEditor extends React.Component<IProps, IState> {
       showConsole: false,
       showCodeDetails: false,
       onCommitFeedback: true,
-      feedbackContextList: [],
+      feedbackContextList: {
+        key: [],
+        fileName: '',
+        feedback: '',
+        hunkEntityList: [],
+      },
       version: 'left',
       monacoSize: { width: 0, height: 0 },
       // addFeedbackLines: [],
@@ -140,6 +147,46 @@ class CodeEditor extends React.Component<IProps, IState> {
       monacoSize: { width, height: nextH },
     });
   };
+  private handlefeedbackList = async (
+    key: string[],
+    fileName: string,
+    feedback: string,
+    range: monaco.Selection | null,
+  ) => {
+    if (range) {
+      const hunkData = await getCriticalChangeByUuid({
+        regression_uuid: this.props.regressionUuid,
+        revision_name: this.props.title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
+      }).then((v) => {
+        if (v) {
+          return v?.hunkEntityList ?? [];
+        } else {
+          return [];
+        }
+      });
+      const diffs = hunkData.filter((values) => {
+        if (
+          (range.startLineNumber <= values.beginB && range.endLineNumber >= values.beginB) ||
+          (range.startLineNumber >= values.beginB && range.startLineNumber <= values.endB)
+        ) {
+          return values;
+        } else {
+          return [];
+        }
+      });
+      this.setState({
+        feedbackContextList: {
+          key: key,
+          fileName: fileName,
+          feedback: feedback,
+          hunkEntityList: diffs,
+        },
+      });
+      this.props.onFeedbackList?.call(this, this.state.feedbackContextList);
+    } else {
+      return;
+    }
+  };
   render() {
     const {
       regressionUuid,
@@ -198,7 +245,6 @@ class CodeEditor extends React.Component<IProps, IState> {
                   style={{ marginLeft: '5px' }}
                   onClick={() => {
                     message.info('Feedback Commit success, please wait to update');
-                    // message.info(feedbackContextList);
                     this.setState({ onCommitFeedback: true });
                   }}
                 >
@@ -307,6 +353,12 @@ class CodeEditor extends React.Component<IProps, IState> {
                               newDecoration.toString(),
                             ),
                           });
+                          this.handlefeedbackList(
+                            newDecoration,
+                            filename,
+                            'add',
+                            ed.getSelection() ?? null,
+                          );
                           console.log(decorationIds);
                         } else {
                           console.log('not existed');
@@ -323,6 +375,12 @@ class CodeEditor extends React.Component<IProps, IState> {
                                 },
                               },
                             ],
+                          );
+                          this.handlefeedbackList(
+                            newDecoration,
+                            filename,
+                            'add',
+                            ed.getSelection() ?? null,
                           );
                           this.setState({
                             decorationIds: decorationIds.splice(
@@ -347,6 +405,12 @@ class CodeEditor extends React.Component<IProps, IState> {
                               },
                             },
                           ],
+                        );
+                        this.handlefeedbackList(
+                          newDecoration,
+                          filename,
+                          'add',
+                          ed.getSelection() ?? null,
                         );
                         this.setState({
                           decorationIds: decorationIds.splice(
@@ -388,6 +452,12 @@ class CodeEditor extends React.Component<IProps, IState> {
                               },
                             ],
                           );
+                          this.handlefeedbackList(
+                            newDecoration,
+                            filename,
+                            'reject',
+                            ed.getSelection() ?? null,
+                          );
                           this.setState({
                             decorationIds: decorationIds.splice(
                               decorationIds.length + 1,
@@ -408,6 +478,12 @@ class CodeEditor extends React.Component<IProps, IState> {
                                 },
                               },
                             ],
+                          );
+                          this.handlefeedbackList(
+                            newDecoration,
+                            filename,
+                            'reject',
+                            ed.getSelection() ?? null,
                           );
                           this.setState({
                             decorationIds: decorationIds.splice(
@@ -430,6 +506,12 @@ class CodeEditor extends React.Component<IProps, IState> {
                               },
                             },
                           ],
+                        );
+                        this.handlefeedbackList(
+                          newDecoration,
+                          filename,
+                          'reject',
+                          ed.getSelection() ?? null,
                         );
                         this.setState({
                           decorationIds: decorationIds.splice(
