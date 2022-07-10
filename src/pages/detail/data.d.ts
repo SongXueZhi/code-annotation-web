@@ -26,7 +26,19 @@ export type TableListData = {
   pagination: Partial<TableListPagination>;
 };
 
+export type DiffEditDetailItems = {
+  beginA: number;
+  beginB: number;
+  endA: number;
+  endB: number;
+  lengthA: number;
+  lengthB: number;
+  empty: boolean;
+  type: string;
+};
+
 export type CommitItem = {
+  editList: DiffEditDetailItems[];
   filename: string;
   newPath: string;
   oldPath: string;

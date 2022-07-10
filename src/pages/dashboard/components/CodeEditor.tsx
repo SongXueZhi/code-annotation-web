@@ -145,14 +145,14 @@ class ProgressInfo extends React.Component {
                   marginRight: '10px',
                 }}
               ></div>
-              Total projects: {progressInfo.totalProjectNum} |{' '}
+              Processed Projects: {progressInfo.totalProjectNum} |{' '}
               <span>({progressInfo.totalProgress}%)</span>
               <div style={{ position: 'absolute', right: '10px', top: '0px' }}>
                 <Button type="primary" onClick={this.updateProcessInfo.bind(this)}>
                   <span style={{ color: '#fff' }}>Start</span>
                 </Button>
                 <Button style={{ marginLeft: '10px' }} onClick={this.resetProcessInfo.bind(this)}>
-                  stop
+                  Stop
                 </Button>
               </div>
             </h2>
@@ -207,7 +207,8 @@ class ProgressInfo extends React.Component {
                   marginRight: '10px',
                 }}
               ></div>
-              current project: {progressInfo.currentProjectName} |
+              {/* current project: {progressInfo.currentProjectName}  */}
+              Processed Bug-fixing Commits |
               <span>
                 {' '}
                 {/* <SyncOutlined
@@ -260,15 +261,15 @@ class ProgressInfo extends React.Component {
                 className="dashboard-alert"
                 message={
                   <span className="content">
-                    {window.currentProjectName}: totalPRFCNum:
+                    {window.currentProjectName}: Potential regression fixing commit:
                     <Tag className="tag-content" color="processing">
                       {progressInfo.totalPRFCNum}
                     </Tag>
-                    prfcdoneNum:
+                    Done:
                     <Tag className="tag-content" color="green">
                       {progressInfo.prfcdoneNum}
                     </Tag>
-                    regressionNum:
+                    Regressions:
                     <Tag className="tag-content" color="#f50">
                       {progressInfo.regressionNum}
                     </Tag>

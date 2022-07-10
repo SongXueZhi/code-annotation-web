@@ -2,6 +2,7 @@ import CodeEditor from '@/components/CodeEditor';
 import { Tabs } from 'antd';
 import { useCallback } from 'react';
 import type { FilePaneItem } from '..';
+import { FeedbackList } from '../data';
 
 export type DiffEditor = {
   origin: string;
@@ -20,6 +21,7 @@ interface IProps {
   onPanesChange: (panes: FilePaneItem[]) => void;
   onActiveKey: (v: string | undefined) => void;
   onRunCode?: (v: string, version: string) => void;
+  onFeedbackList: (feedbacks: FeedbackList) => void;
 }
 
 const DiffEditorTabs: React.FC<IProps> = ({
@@ -34,6 +36,7 @@ const DiffEditorTabs: React.FC<IProps> = ({
   onActiveKey,
   onPanesChange,
   onRunCode,
+  onFeedbackList,
 }) => {
   const remove = useCallback(
     (targetKey: string) => {
@@ -74,7 +77,7 @@ const DiffEditorTabs: React.FC<IProps> = ({
       onEdit={onEdit}
       hideAdd
     >
-      {panes.map(({ key, oldCode, newCode }) => {
+      {panes.map(({ key, oldCode, newCode, editList }) => {
         return (
           <Tabs.TabPane tab={key.split(`${commit}-`)} key={key}>
             <div style={{ width: '100%', height: '86vh', display: 'flex' }}>
@@ -85,11 +88,13 @@ const DiffEditorTabs: React.FC<IProps> = ({
                 darkTheme={false}
                 original={oldCode}
                 value={newCode}
+                diffEditChanges={editList}
                 oldVersionText={oldVersionText}
                 newVersionText={newVersionText}
                 isRunning={isRunning}
                 consoleString={consoleString}
                 onRunCode={onRunCode}
+                onFeedbackList={onFeedbackList}
               />
             </div>
           </Tabs.TabPane>

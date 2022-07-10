@@ -1,6 +1,11 @@
 import { message } from 'antd';
 import request from 'umi-request';
-import type { RegressionCode, RegressionDetail } from './data';
+import type {
+  HunkEntityItems,
+  RegressionCode,
+  RegressionCriticalChangeDetail,
+  RegressionDetail,
+} from './data';
 
 export async function queryRegressionDetail(params: {
   regression_uuid: string;
@@ -80,4 +85,49 @@ export async function getRegressionConsole(params: { path: string }) {
     return null;
   }
   return data;
+}
+
+export async function getCriticalChangeByUuid(params: {
+  regression_uuid: string;
+  revision_name: 'bic' | 'bfc';
+}) {
+  const { code, msg, data } = await request<API.RegResponse<RegressionCriticalChangeDetail>>(
+    '/api/regression/criticalChange',
+    {
+      method: 'GET',
+      params,
+    },
+  );
+  if (code !== 200) {
+    message.error(msg);
+    return null;
+  } else {
+    return data;
+  }
+}
+
+export async function putCriticalChangeByUuid(
+  params: {
+    regression_uuid?: string;
+    revision_name?: 'bic' | 'bfc';
+  },
+  body: HunkEntityItems,
+) {
+  const { code, msg, data } = await request<API.RegResponse<null>>(
+    '/api/regression/criticalChange',
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      params,
+      data: body,
+    },
+  );
+  if (code !== 200) {
+    message.error(msg);
+    return null;
+  } else {
+    return data;
+  }
 }

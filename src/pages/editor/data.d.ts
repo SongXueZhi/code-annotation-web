@@ -26,7 +26,19 @@ export type TableListData = {
   pagination: Partial<TableListPagination>;
 };
 
+export type DiffEditDetailItems = {
+  beginA: number;
+  beginB: number;
+  endA: number;
+  endB: number;
+  lengthA: number;
+  lengthB: number;
+  empty: boolean;
+  type: string;
+};
+
 export type CommitItem = {
+  editList: DiffEditDetailItems[];
   filename: string;
   newPath: string;
   oldPath: string;
@@ -52,4 +64,26 @@ export type RegressionCode = {
   regressionUuid: string;
   oldCode: string;
   newCode: string;
+};
+
+export type RegressionCriticalChangeDetail = {
+  revissionName: 'bic' | 'bfc';
+  hunkEntityList: HunkEntityItems[];
+};
+
+export type HunkEntityItems = {
+  newPath: string;
+  oldPath: string;
+  beginA: number;
+  beginB: number;
+  endA: number;
+  endB: number;
+  type: string;
+};
+
+export type FeedbackList = {
+  key: string[];
+  fileName: string;
+  feedback: string;
+  hunkEntityList: HunkEntityItems[];
 };

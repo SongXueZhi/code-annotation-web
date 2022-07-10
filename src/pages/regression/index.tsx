@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Alert, Button, Col, Divider, message, Row, Skeleton, Tooltip } from 'antd';
+import { Button, Divider, message, Skeleton, Tooltip } from 'antd';
 import React, { useState, useRef } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
 import type { ProColumns, ActionType } from '@ant-design/pro-table';
@@ -8,7 +8,6 @@ import CreateForm from './components/CreateForm';
 import { queryRegressionList, addRegression, removeRegression } from './service';
 import { Link } from 'react-router-dom';
 import { stringify } from 'query-string';
-import { useIntl } from 'umi';
 import './index.less';
 
 /**
@@ -82,7 +81,6 @@ function withSkeleton(element: JSX.Element | string | number | number | undefine
 }
 
 const TableList: React.FC<{}> = () => {
-  const intl = useIntl();
   const [createModalVisible, handleModalVisible] = useState<boolean>(false);
   const actionRef = useRef<ActionType>();
   const columns: ProColumns<API.RegressionItem>[] = [

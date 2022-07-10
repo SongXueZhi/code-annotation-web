@@ -1,7 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { PageContainer } from '@ant-design/pro-layout';
-import { Button, Card, Descriptions, Menu, Radio, Spin, Tag, Tooltip, Typography } from 'antd';
-import { AppstoreOutlined } from '@ant-design/icons';
+import {
+  Button,
+  Card,
+  Descriptions,
+  Menu,
+  message,
+  Radio,
+  Spin,
+  Tag,
+  Tooltip,
+  Typography,
+} from 'antd';
+import { AppstoreOutlined, UploadOutlined } from '@ant-design/icons';
 import DiffEditorTabs from './components/DiffEditorTabs';
 import type { IRouteComponentProps } from 'umi';
 import {
@@ -11,7 +22,7 @@ import {
   getRegressionPath,
   regressionCheckout,
 } from './service';
-import type { CommitItem } from './data';
+import type { CommitItem, DiffEditDetailItems, FeedbackList } from './data';
 import { parse } from 'query-string';
 
 const { SubMenu } = Menu;
@@ -40,20 +51,8 @@ export type CommitFile = {
 
 export interface FilePaneItem extends CommitFile {
   key: string;
+  editList: DiffEditDetailItems[];
 }
-
-export const mockRegressionsList = [
-  '64bcef94-d8ee-46c9-a82b-393ef6a1d898',
-  'cfccf309-bbbe-42d2-865b-2a50a1288113',
-  '4efd2990-bd48-418e-9636-c035abd850f5',
-  '156eb75f-0b5a-4a35-bd59-db0a57ed9f0e',
-  'bd2ab6c2-5681-4605-ae06-3ee3ca0ad51b',
-  '19c7bc2b-8cc9-4477-b155-8c3a13bab168',
-  '76ea45dc-c810-4c26-b104-54a19c041ba0',
-  '82333b1d-79cf-449b-8b06-c2b042bb56a4',
-  '7606319e-1f8e-467d-b3fc-f51331f8c0a4',
-  'f5d0e242-30be-42c6-a852-082c958f0907',
-];
 
 // function markMatch(
 //   bic: CommitItem[],
@@ -106,6 +105,10 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   const [regressionDescription, setRegressionDescription] = useState<string>();
   const [BICisRunning, setBICIsRunning] = useState<boolean>(false);
   const [BFCisRunning, setBFCIsRunning] = useState<boolean>(false);
+  const [BICFeedbackList, setBICFeedbackList] = useState<FeedbackList[]>([]);
+  const [BFCFeedbackList, setBFCFeedbackList] = useState<FeedbackList[]>([]);
+  const [newBICFeedback, setNewBICFeedback] = useState<FeedbackList>();
+  const [newBFCFeedback, setNewBFCFeedback] = useState<FeedbackList>();
 
   const getFile = async (params: {
     commit: string;
@@ -265,7 +268,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   }
 
   const handleMenuClick = useCallback(
-    (commit, filename, oldPath, newPath) => {
+    (commit, filename, oldPath, newPath, editList) => {
       const key = `${commit}-${filename}`;
       // const [key, commit] = keyPath;
       // const [_, filename] = key.split(`${commit}-`);
@@ -286,7 +289,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
             ) {
               setPanesBIC(panesBIC);
             } else {
-              setPanesBIC(panesBIC.concat({ ...resp, key }));
+              setPanesBIC(panesBIC.concat({ ...resp, key, editList }));
             }
           }
           if (commit === 'BFC') {
@@ -297,7 +300,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
             ) {
               setPanesBFC(panesBFC);
             } else {
-              setPanesBFC(panesBFC.concat({ ...resp, key }));
+              setPanesBFC(panesBFC.concat({ ...resp, key, editList }));
             }
           }
         })
@@ -365,13 +368,36 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         }
       });
       bicTestCaseList.map((resp) => {
-        handleMenuClick('BIC', resp.filename, resp.oldPath, resp.newPath);
+        handleMenuClick('BIC', resp.filename, resp.oldPath, resp.newPath, resp.editList);
       });
       bfcTestCaseList.map((resp) => {
-        handleMenuClick('BFC', resp.filename, resp.oldPath, resp.newPath);
+        handleMenuClick('BFC', resp.filename, resp.oldPath, resp.newPath, resp.editList);
       });
     }
   };
+
+  const handleSubmitFeedbacks = useCallback(() => {
+    message.success('submited');
+    setBFCFeedbackList([]);
+    setBICFeedbackList([]);
+  }, [BICFeedbackList, BFCFeedbackList]);
+
+  const handleWithdrawSubmit = useCallback(
+    (index) => {
+      const newList = BICFeedbackList.splice(index, 1);
+      setBICFeedbackList(newList);
+    },
+    [BICFeedbackList, BFCFeedbackList],
+  );
+
+  useEffect(() => {
+    if (newBICFeedback) {
+      setBICFeedbackList(BICFeedbackList.splice(0, 0, newBICFeedback));
+    }
+    if (newBFCFeedback) {
+      setBFCFeedbackList(BFCFeedbackList.splice(0, 0, newBFCFeedback));
+    }
+  }, [newBICFeedback, newBFCFeedback]);
 
   const contentListNoTitle = {
     testcase: (
@@ -480,7 +506,6 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
               <Card title="Changed files" bordered={false} bodyStyle={{ padding: 0 }}>
                 <Menu
                   title="菜单"
-                  // onClick={handleMenuClick}
                   style={{ width: 286, maxHeight: '70vh', overflow: 'auto' }}
                   defaultOpenKeys={['BIC', 'BFC']}
                   mode="inline"
@@ -488,108 +513,136 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                   {/* 优先显示test，在有match时显示check然后tooltip上加‘recomend to check’。
                 （migrate迁移）*/}
                   <SubMenu key="BIC" icon={<AppstoreOutlined />} title="Bug Inducing Commit">
-                    {
-                      // delete here
-                      HISTORY_SEARCH.regressionUuid === '64bcef94-d8ee-46c9-a82b-393ef6a1d898'
-                        ? listBIC.map(({ filename, match, oldPath, newPath, type }) => {
-                            return (
-                              <Menu.Item
-                                key={`BIC-${filename}`}
-                                onClick={() => handleMenuClick('BIC', filename, oldPath, newPath)}
-                              >
-                                {filename === 'Github_424.java' ? (
-                                  <Tag color="processing">Migrate</Tag>
-                                ) : (
-                                  <Tooltip title="recommend to check">
-                                    <Tag color="warning">check</Tag>
-                                  </Tooltip>
-                                )}
-                                {filename}
-                              </Menu.Item>
-                            );
-                          })
-                        : listBIC.map(({ filename, match, oldPath, newPath, type }) => {
-                            let mark: any;
-                            if (match === 1 && type !== null && type !== undefined) {
-                              mark = <Tag color="success">Migrate</Tag>;
-                            } else if (type !== null && type !== undefined) {
-                              if (
-                                type.toLowerCase() === 'test suite' ||
-                                type.toLowerCase() === 'test_suite'
-                              ) {
-                                mark = <Tag color="processing">Migrate</Tag>;
-                              } else {
-                                mark = <Tag color="processing">{type}</Tag>;
-                              }
-                            } else if (match === 1) {
-                              mark = (
-                                <Tooltip title="recommend to check">
-                                  <Tag color="warning">check</Tag>
-                                </Tooltip>
-                              );
-                            }
-                            return (
-                              <Menu.Item
-                                key={`BIC-${filename}`}
-                                onClick={() => handleMenuClick('BIC', filename, oldPath, newPath)}
-                              >
-                                {mark}
-                                {filename}
-                              </Menu.Item>
-                            );
-                          })
-                    }
+                    {listBIC.map(({ filename, match, oldPath, newPath, type, editList }) => {
+                      let mark: any;
+                      if (match === 1 && type !== null && type !== undefined) {
+                        mark = <Tag color="success">Migrate</Tag>;
+                      } else if (type !== null && type !== undefined) {
+                        if (
+                          type.toLowerCase() === 'test suite' ||
+                          type.toLowerCase() === 'test_suite'
+                        ) {
+                          mark = <Tag color="processing">Migrate</Tag>;
+                        } else {
+                          mark = <Tag color="processing">{type}</Tag>;
+                        }
+                      } else if (match === 1) {
+                        mark = (
+                          <Tooltip title="recommend to check">
+                            <Tag color="warning">check</Tag>
+                          </Tooltip>
+                        );
+                      }
+                      return (
+                        <Menu.Item
+                          key={`BIC-${filename}`}
+                          onClick={() =>
+                            handleMenuClick('BIC', filename, oldPath, newPath, editList)
+                          }
+                        >
+                          {mark}
+                          {filename}
+                        </Menu.Item>
+                      );
+                    })}
                   </SubMenu>
                   <SubMenu key="BFC" icon={<AppstoreOutlined />} title="Bug Fixing Commit">
-                    {
-                      // delete here
-                      HISTORY_SEARCH.regressionUuid === '64bcef94-d8ee-46c9-a82b-393ef6a1d898'
-                        ? listBFC.map(({ filename, match, oldPath, newPath, type }) => {
-                            return (
-                              <Menu.Item
-                                key={`BFC-${filename}`}
-                                onClick={() => handleMenuClick('BFC', filename, oldPath, newPath)}
-                              >
-                                {filename === 'Github_424.java' ? null : (
-                                  <Tooltip title="recommend to check">
-                                    <Tag color="warning">check</Tag>
-                                  </Tooltip>
-                                )}
-                                {filename}
-                              </Menu.Item>
-                            );
-                          })
-                        : listBFC.map(({ filename, match, oldPath, newPath, type }) => {
-                            let mark: any;
-                            if (match === 1 && type !== null && type !== undefined) {
-                              mark = null;
-                            } else if (type !== null && type !== undefined) {
-                              if (
-                                type.toLowerCase() === 'test suite' ||
-                                type.toLowerCase() === 'test_suite'
-                              ) {
-                                mark = null;
-                              } else {
-                                mark = <Tag color="processing">{type}</Tag>;
-                              }
-                            } else if (match === 1) {
-                              mark = (
-                                <Tooltip title="recommend to check">
-                                  <Tag color="warning">check</Tag>
-                                </Tooltip>
-                              );
-                            }
-                            return (
-                              <Menu.Item
-                                key={`BFC-${filename}`}
-                                onClick={() => handleMenuClick('BFC', filename, oldPath, newPath)}
-                              >
-                                {mark}
-                                {filename}
-                              </Menu.Item>
-                            );
-                          })
-                    }
+                    {listBFC.map(({ filename, match, oldPath, newPath, type, editList }) => {
+                      let mark: any;
+                      if (match === 1 && type !== null && type !== undefined) {
+                        mark = null;
+                      } else if (type !== null && type !== undefined) {
+                        if (
+                          type.toLowerCase() === 'test suite' ||
+                          type.toLowerCase() === 'test_suite'
+                        ) {
+                          mark = null;
+                        } else {
+                          mark = <Tag color="processing">{type}</Tag>;
+                        }
+                      } else if (match === 1) {
+                        mark = (
+                          <Tooltip title="recommend to check">
+                            <Tag color="warning">check</Tag>
+                          </Tooltip>
+                        );
+                      }
+                      return (
+                        <Menu.Item
+                          key={`BFC-${filename}`}
+                          onClick={() =>
+                            handleMenuClick('BFC', filename, oldPath, newPath, editList)
+                          }
+                        >
+                          {mark}
+                          {filename}
+                        </Menu.Item>
+                      );
+                    })}
+                  </SubMenu>
+                </Menu>
+              </Card>
+              <Card
+                title="feedback list"
+                bordered={false}
+                bodyStyle={{ padding: 0 }}
+                extra={
+                  <Button
+                    type="primary"
+                    shape="round"
+                    icon={<UploadOutlined />}
+                    onClick={() => handleSubmitFeedbacks()}
+                  >
+                    Submit
+                  </Button>
+                }
+              >
+                <Menu
+                  style={{ width: 286, maxHeight: '70vh', overflow: 'auto' }}
+                  defaultOpenKeys={['BIC', 'BFC']}
+                  mode="inline"
+                >
+                  <SubMenu
+                    key="BIC-feedback"
+                    icon={<AppstoreOutlined />}
+                    title="Bug Inducing Commit"
+                  >
+                    {BICFeedbackList?.map(({ key, fileName, feedback, hunkEntityList }, index) => {
+                      return (
+                        <Menu.Item
+                          key={`BIC-${key}`}
+                          onClick={() => {
+                            console.log(key);
+                            console.log(hunkEntityList);
+                            console.log(index);
+                          }}
+                        >
+                          {fileName}-{feedback}
+                          <Button type="text" danger onClick={() => handleWithdrawSubmit(index)}>
+                            withdraw
+                          </Button>
+                        </Menu.Item>
+                      );
+                    })}
+                  </SubMenu>
+                  <SubMenu key="BFC-feedback" icon={<AppstoreOutlined />} title="Bug Fixing Commit">
+                    {BFCFeedbackList?.map(({ key, fileName, feedback, hunkEntityList }, index) => {
+                      return (
+                        <Menu.Item
+                          key={`BIC-${key}`}
+                          onClick={() => {
+                            console.log(key);
+                            console.log(hunkEntityList);
+                            console.log(index);
+                          }}
+                        >
+                          {fileName}-{feedback}
+                          <Button type="text" danger onClick={() => handleWithdrawSubmit(index)}>
+                            withdraw
+                          </Button>
+                        </Menu.Item>
+                      );
+                    })}
                   </SubMenu>
                 </Menu>
               </Card>
@@ -607,6 +660,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 onRunCode={handleBICRunClick}
                 isRunning={BICisRunning}
                 consoleString={BICConsoleResult}
+                onFeedbackList={setNewBICFeedback}
               />
             ) : null}
             {activeBFCKey !== undefined && activeBFCKey !== '' ? (
@@ -622,6 +676,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 onRunCode={handleBFCRunClick}
                 isRunning={BFCisRunning}
                 consoleString={BFCConsoleResult}
+                onFeedbackList={setNewBFCFeedback}
               />
             ) : null}
           </div>
