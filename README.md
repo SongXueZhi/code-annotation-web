@@ -1,46 +1,48 @@
-## 运行
+## Run program
 
-1. 第一次运行安装依赖
+1. Install dependencies
 
 ```
 npm install
 ```
 
-> 除了第一步和最后一步外，在遇到具体的报错时进行安装，如果 npm start 没有问题可以直接忽视 2. 安装 react-monaco-editor 和 monaco-editor-webpack-plugin
+> Except the first and the last step, if any error or warning is reported, you may try to install these followings dependencies to solve the problem. Otherwise, ignore it.
+
+2. In order to install 'react-monaco-editor' and 'monaco-editor-webpack-plugin'
 
 ```
 npm add react-monaco-editor
 npm install monaco-editor-webpack-plugin
 ```
 
-如果 monaco 还报错安装 monaco-editor
+if monaco continues to report error, re-install 'monaco-editor'
 
 ```
 npm install monaco-editor
 ```
 
-3. 安装 core-js 或者 core-js@3.18.3版本
+3. In order to install 'core-js' or 'core-js@3.18.3'
 
 ```
 npm install core-js
 npm install --save core-js@3.18.3
 ```
 
-4. 安装 blueprintjs
+4. In order to install 'blueprintjs'
 
 ```
 npm install --save @blueprintjs/core
 ```
 
-5. 安装 ts 自动生成 uuid
+5. In order to let Typescript automatic generated 'uuid'
 
 ```
 npm install --save @types/uuid
 ```
 
-6. @umi/ 安装教程 https://www.cnblogs.com/zhaoxxnbsp/p/12672652.html#2%E5%AE%89%E8%A3%85
+6. '@umi/' Installation tutorial: https://www.cnblogs.com/zhaoxxnbsp/p/12672652.html#2%E5%AE%89%E8%A3%85
 
-7. compile 出错时可参考
+7. When the terminal shows compile errors, you can refer to following installs
 
 ```
 npm i @ant-design/pro-card@1.18.0 --save
@@ -48,13 +50,13 @@ npm i @ant-design/pro-form@1.50.0 --save
 npm i @ant-design/pro-table@2.61.0 --save
 ```
 
-8. 出现 `export 'ReactReduxContext' (imported as 'ReactReduxContext') was not found in 'react-redux' ` Warning 时
+8. When `export 'ReactReduxContext' (imported as 'ReactReduxContext') was not found in 'react-redux' ` Warning appears
 
 ```
 npm install react-redux@7.2.4
 ```
 
-9. 运行项目（使用也推荐使用 mock 数据）
+9. Run project (support and suggest to use mock data )
 
 ```
 npm start
@@ -62,10 +64,10 @@ npm start
 
 ## Q & A
 
-### 1. 如何 mock ?
+### 1. How to mock ?
 
-这里的 mock 主要是 模型发送给后端的请求和返回模拟的数据。 npm start 的模式下，默认是开启了 mock,只需要借鉴 /mock 文件夹下的官方示例即可。即只要 mock 中的接口路径和后端中一致会先走 mock 的方法，如果 mock 中没有才会请求后端的接口。
+The 'mock' at here means the request send by the model to the backend and return the simulated data. After 'npm start', mock will be enable by default, just refer to the official examples in the '/mock' folder to learn more. In other words, as long as the interface path in the mock is consistent with that in the backend, the mock method will be taken first, if there is no interface in the mock, then the backend interface will be requested.
 
 ## TODO
 
-1. mock 掉 前端登陆的代码 --rich
+1. Try to overpass the login function at the front-end by mocking data. --rich
