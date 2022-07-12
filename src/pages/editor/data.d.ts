@@ -83,7 +83,8 @@ export type HunkEntityItems = {
 
 export type FeedbackList = {
   key: string[];
+  revision: 'bic' | 'bfc';
   fileName: string;
   feedback: string;
-  hunkEntityList: HunkEntityItems[];
+  hunkData: HunkEntityItems;
 };

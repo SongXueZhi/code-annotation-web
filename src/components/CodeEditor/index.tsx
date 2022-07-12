@@ -4,16 +4,13 @@ import { monaco, MonacoDiffEditor } from 'react-monaco-editor';
 import { v4 as uuidv4 } from 'uuid';
 import type * as monacoEditor from 'monaco-editor/esm/vs/editor/editor.api';
 import type { Directory, Depandency } from './sidebar.d';
-import type { ResizeEntry } from '@blueprintjs/core';
-import { ResizeSensor, Divider, Button } from '@blueprintjs/core';
+import { ResizeSensor, Divider, Button, ResizeEntry } from '@blueprintjs/core';
 import './styles.css';
 import EllipsisMiddle from '../EllipsisMiddle';
 import type { RadioChangeEvent } from 'antd';
-import { message } from 'antd';
 import { Radio, Modal } from 'antd';
 import CodeDetails from '../CodeDetails';
 import { DiffEditDetailItems, FeedbackList } from '@/pages/editor/data';
-import { getCriticalChangeByUuid } from '@/pages/editor/service';
 
 interface IProps {
   title: string;
@@ -22,6 +19,8 @@ interface IProps {
   extra?: JSX.Element;
   oldVersionText?: string;
   newVersionText?: string;
+  newPath: string;
+  oldPath: string;
   darkTheme: boolean;
   dirs?: Directory[];
   depandencies?: Depandency[];
@@ -36,7 +35,6 @@ interface IProps {
 interface IState {
   showConsole: boolean;
   showCodeDetails: boolean;
-  onCommitFeedback: boolean;
   feedbackContextList: FeedbackList;
   version: 'left' | 'right';
   consoleString?: string | null;
@@ -80,12 +78,20 @@ class CodeEditor extends React.Component<IProps, IState> {
     this.state = {
       showConsole: false,
       showCodeDetails: false,
-      onCommitFeedback: true,
       feedbackContextList: {
         key: [],
+        revision: 'bic',
         fileName: '',
         feedback: '',
-        hunkEntityList: [],
+        hunkData: {
+          newPath: '',
+          oldPath: '',
+          beginA: 0,
+          beginB: 0,
+          endA: 0,
+          endB: 0,
+          type: '',
+        },
       },
       version: 'left',
       monacoSize: { width: 0, height: 0 },
@@ -149,37 +155,37 @@ class CodeEditor extends React.Component<IProps, IState> {
   };
   private handlefeedbackList = async (
     key: string[],
+    revision: 'bic' | 'bfc',
     fileName: string,
     feedback: string,
     range: monaco.Selection | null,
   ) => {
     if (range) {
-      const hunkData = await getCriticalChangeByUuid({
-        regression_uuid: this.props.regressionUuid,
-        revision_name: this.props.title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
-      }).then((v) => {
-        if (v) {
-          return v?.hunkEntityList ?? [];
-        } else {
-          return [];
-        }
-      });
-      const diffs = hunkData.filter((values) => {
+      const hunkData = this.props.diffEditChanges.find((resp) => {
         if (
-          (range.startLineNumber <= values.beginB && range.endLineNumber >= values.beginB) ||
-          (range.startLineNumber >= values.beginB && range.startLineNumber <= values.endB)
+          (range.startLineNumber <= resp.beginB && range.endLineNumber >= resp.beginB) ||
+          (range.startLineNumber >= resp.beginB && range.startLineNumber <= resp.endB)
         ) {
-          return values;
+          return resp;
         } else {
-          return [];
+          return undefined;
         }
       });
       this.setState({
         feedbackContextList: {
           key: key,
+          revision: revision,
           fileName: fileName,
           feedback: feedback,
-          hunkEntityList: diffs,
+          hunkData: {
+            newPath: this.props.newPath,
+            oldPath: this.props.oldPath,
+            beginA: hunkData?.beginA ?? 0,
+            beginB: hunkData?.beginB ?? 0,
+            endA: hunkData?.endA ?? 0,
+            endB: hunkData?.endB ?? 0,
+            type: hunkData?.type ?? '',
+          },
         },
       });
       this.props.onFeedbackList?.call(this, this.state.feedbackContextList);
@@ -206,7 +212,6 @@ class CodeEditor extends React.Component<IProps, IState> {
       showConsole,
       version,
       showCodeDetails,
-      onCommitFeedback,
       // addFeedbackLines,
       // rejectFeedbackLines,
       // confirmFeedbackLines,
@@ -237,21 +242,7 @@ class CodeEditor extends React.Component<IProps, IState> {
                 >
                   Details
                 </Button>
-                <Button
-                  id="commit-feedback-changes"
-                  icon="upload"
-                  intent="primary"
-                  disabled={onCommitFeedback}
-                  style={{ marginLeft: '5px' }}
-                  onClick={() => {
-                    message.info('Feedback Commit success, please wait to update');
-                    this.setState({ onCommitFeedback: true });
-                  }}
-                >
-                  Commit
-                </Button>
               </div>
-
               <div className="run-button" style={{ border: 'solid', borderColor: 'green' }}>
                 {extra}
                 <Button
@@ -293,53 +284,18 @@ class CodeEditor extends React.Component<IProps, IState> {
                     contextMenuGroupId: 'navigation',
                     contextMenuOrder: 1,
                     run: (ed) => {
-                      // let selection = ed.getSelection();
-                      // if (selection !== null) {
-                      //   if (addFeedbackLines !== []) {
-                      //     console.log(addFeedbackLines);
-                      //     if (
-                      //       addFeedbackLines.some((value) => {
-                      //         if (selection) {
-                      //           return (
-                      //             (selection?.startLineNumber <= value.startLineNumber &&
-                      //               selection?.endLineNumber >= value.startLineNumber) ||
-                      //             (selection.startLineNumber > value.startLineNumber &&
-                      //               selection.startLineNumber >= value.endLineNumber)
-                      //           );
-                      //         } else {
-                      //           return;
-                      //         }
-                      //       })
-                      //     ) {
-                      //       console.log('feedback add has overlap');
-                      //     }
-                      //   }
-
-                      // const a = ed.getDecorationsInRange(
-                      //   ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                      // );
-                      // console.log(ed.getLineDecorations(ed.getSelection()?.startLineNumber ?? 0));
-                      // console.log(a);
-                      // console.log(a !== null ? a[0].id : 'asd');
-
-                      const oldlDecorations = ed.getDecorationsInRange(
+                      const oldDecorations = ed.getDecorationsInRange(
                         ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
                       );
-                      if (oldlDecorations !== null) {
-                        if (decorationIds.some((d) => d === oldlDecorations[0].id)) {
-                          console.log('existed');
-                          console.log(oldlDecorations[0].id);
-                          console.log(decorationIds);
-                          this.setState({
-                            decorationIds: decorationIds.filter((v) => v !== oldlDecorations[0].id),
-                          });
+                      if (oldDecorations !== null) {
+                        if (decorationIds.some((d) => d === oldDecorations[0].id)) {
+                          const newIdList = decorationIds.filter((v) => v !== oldDecorations[0].id);
                           const newDecoration = ed.deltaDecorations(
-                            [oldlDecorations[0].id],
+                            [oldDecorations[0].id],
                             [
                               {
                                 range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
                                 options: {
-                                  isWholeLine: true,
                                   className: 'addContentClass',
                                   hoverMessage: { value: 'Feedback: Add' },
                                 },
@@ -347,40 +303,31 @@ class CodeEditor extends React.Component<IProps, IState> {
                             ],
                           );
                           this.setState({
-                            decorationIds: decorationIds.splice(
-                              decorationIds.length + 1,
+                            decorationIds: newIdList.splice(
+                              newIdList.length + 1,
                               0,
                               newDecoration.toString(),
                             ),
                           });
                           this.handlefeedbackList(
                             newDecoration,
+                            title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
                             filename,
                             'add',
                             ed.getSelection() ?? null,
                           );
-                          console.log(decorationIds);
                         } else {
-                          console.log('not existed');
-                          console.log(oldlDecorations[0].id);
                           const newDecoration = ed.deltaDecorations(
                             [],
                             [
                               {
                                 range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
                                 options: {
-                                  isWholeLine: true,
                                   className: 'addContentClass',
                                   hoverMessage: { value: 'Feedback: Add' },
                                 },
                               },
                             ],
-                          );
-                          this.handlefeedbackList(
-                            newDecoration,
-                            filename,
-                            'add',
-                            ed.getSelection() ?? null,
                           );
                           this.setState({
                             decorationIds: decorationIds.splice(
@@ -389,39 +336,17 @@ class CodeEditor extends React.Component<IProps, IState> {
                               newDecoration.toString(),
                             ),
                           });
-                          console.log(newDecoration.toString());
-                          console.log(decorationIds);
+                          this.handlefeedbackList(
+                            newDecoration,
+                            title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
+                            filename,
+                            'add',
+                            ed.getSelection() ?? null,
+                          );
                         }
                       } else {
-                        const newDecoration = ed.deltaDecorations(
-                          [],
-                          [
-                            {
-                              range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                              options: {
-                                isWholeLine: true,
-                                className: 'addContentClass',
-                                hoverMessage: { value: 'Feedback: Add' },
-                              },
-                            },
-                          ],
-                        );
-                        this.handlefeedbackList(
-                          newDecoration,
-                          filename,
-                          'add',
-                          ed.getSelection() ?? null,
-                        );
-                        this.setState({
-                          decorationIds: decorationIds.splice(
-                            decorationIds.length + 1,
-                            0,
-                            newDecoration.toString(),
-                          ),
-                        });
-                        console.log(newDecoration);
+                        console.log('nothing');
                       }
-                      this.setState({ onCommitFeedback: false });
                     },
                   });
                   diffEditor.addAction({
@@ -431,40 +356,38 @@ class CodeEditor extends React.Component<IProps, IState> {
                     contextMenuGroupId: 'navigation',
                     contextMenuOrder: 2,
                     run: (ed) => {
-                      const oldlDecorations = ed.getDecorationsInRange(
+                      const oldDecorations = ed.getDecorationsInRange(
                         ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
                       );
-                      if (oldlDecorations !== null) {
-                        if (decorationIds.some((d) => d === oldlDecorations[0].id)) {
-                          this.setState({
-                            decorationIds: decorationIds.filter((v) => v !== oldlDecorations[0].id),
-                          });
+                      if (oldDecorations !== null) {
+                        if (decorationIds.some((d) => d === oldDecorations[0].id)) {
+                          const newIdList = decorationIds.filter((v) => v !== oldDecorations[0].id);
                           const newDecoration = ed.deltaDecorations(
-                            [oldlDecorations[0].id],
+                            [oldDecorations[0].id],
                             [
                               {
                                 range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
                                 options: {
-                                  isWholeLine: true,
                                   className: 'rejectContentClass',
                                   hoverMessage: { value: 'Feedback: Reject' },
                                 },
                               },
                             ],
                           );
-                          this.handlefeedbackList(
-                            newDecoration,
-                            filename,
-                            'reject',
-                            ed.getSelection() ?? null,
-                          );
                           this.setState({
-                            decorationIds: decorationIds.splice(
-                              decorationIds.length + 1,
+                            decorationIds: newIdList.splice(
+                              newIdList.length + 1,
                               0,
                               newDecoration.toString(),
                             ),
                           });
+                          this.handlefeedbackList(
+                            newDecoration,
+                            title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
+                            filename,
+                            'reject',
+                            ed.getSelection() ?? null,
+                          );
                         } else {
                           const newDecoration = ed.deltaDecorations(
                             [],
@@ -472,18 +395,11 @@ class CodeEditor extends React.Component<IProps, IState> {
                               {
                                 range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
                                 options: {
-                                  isWholeLine: true,
                                   className: 'rejectContentClass',
                                   hoverMessage: { value: 'Feedback: Reject' },
                                 },
                               },
                             ],
-                          );
-                          this.handlefeedbackList(
-                            newDecoration,
-                            filename,
-                            'reject',
-                            ed.getSelection() ?? null,
                           );
                           this.setState({
                             decorationIds: decorationIds.splice(
@@ -492,68 +408,19 @@ class CodeEditor extends React.Component<IProps, IState> {
                               newDecoration.toString(),
                             ),
                           });
+                          this.handlefeedbackList(
+                            newDecoration,
+                            title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
+                            filename,
+                            'reject',
+                            ed.getSelection() ?? null,
+                          );
                         }
                       } else {
-                        const newDecoration = ed.deltaDecorations(
-                          [],
-                          [
-                            {
-                              range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                              options: {
-                                isWholeLine: true,
-                                className: 'rejectContentClass',
-                                hoverMessage: { value: 'Feedback: Reject' },
-                              },
-                            },
-                          ],
-                        );
-                        this.handlefeedbackList(
-                          newDecoration,
-                          filename,
-                          'reject',
-                          ed.getSelection() ?? null,
-                        );
-                        this.setState({
-                          decorationIds: decorationIds.splice(
-                            decorationIds.length + 1,
-                            0,
-                            newDecoration.toString(),
-                          ),
-                        });
+                        console.log('nothing');
                       }
-                      this.setState({ onCommitFeedback: false });
                     },
                   });
-                  // diffEditor.addAction({
-                  //   id: 'feedback-accept',
-                  //   label: 'feedback: accept',
-                  //   keybindingContext: undefined,
-                  //   contextMenuGroupId: 'navigation',
-                  //   contextMenuOrder: 3,
-                  //   run: (ed) => {
-                  //     ed.deltaDecorations(
-                  //       [],
-                  //       [
-                  //         {
-                  //           range: new monaco.Range(
-                  //             ed.getPosition()?.lineNumber ?? 0,
-                  //             ed.getPosition()?.column ?? 0,
-                  //             ed.getPosition()?.lineNumber ?? 0,
-                  //             ed.getPosition()?.column ?? 0,
-                  //           ),
-                  //           options: {
-                  //             isWholeLine: true,
-                  //             className: 'acceptContentClass',
-                  //             hoverMessage: { value: 'Feedback: Accept' },
-                  //             // glyphMarginClassName: 'rejectContentClass',
-                  //           },
-                  //         },
-                  //       ],
-                  //     );
-                  //     message.info('Position ' + ed.getPosition() + ' feedback changed to accept.');
-                  //     this.setState({ onCommitFeedback: false });
-                  //   },
-                  // });
                   diffEditor.addAction({
                     id: 'feedback-confirm-ground-truth',
                     label: 'feedback: confirm',
@@ -561,21 +428,18 @@ class CodeEditor extends React.Component<IProps, IState> {
                     contextMenuGroupId: 'navigation',
                     contextMenuOrder: 3,
                     run: (ed) => {
-                      const oldlDecorations = ed.getDecorationsInRange(
+                      const oldDecorations = ed.getDecorationsInRange(
                         ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
                       );
-                      if (oldlDecorations !== null) {
-                        if (decorationIds.some((d) => d === oldlDecorations[0].id)) {
-                          this.setState({
-                            decorationIds: decorationIds.filter((v) => v !== oldlDecorations[0].id),
-                          });
+                      if (oldDecorations !== null) {
+                        if (decorationIds.some((d) => d === oldDecorations[0].id)) {
+                          const newIdList = decorationIds.filter((v) => v !== oldDecorations[0].id);
                           const newDecoration = ed.deltaDecorations(
-                            [oldlDecorations[0].id],
+                            [oldDecorations[0].id],
                             [
                               {
                                 range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
                                 options: {
-                                  isWholeLine: true,
                                   className: 'confirmContentClass',
                                   hoverMessage: { value: 'Feedback: Confirm' },
                                 },
@@ -583,8 +447,8 @@ class CodeEditor extends React.Component<IProps, IState> {
                             ],
                           );
                           this.setState({
-                            decorationIds: decorationIds.splice(
-                              decorationIds.length + 1,
+                            decorationIds: newIdList.splice(
+                              newIdList.length + 1,
                               0,
                               newDecoration.toString(),
                             ),
@@ -596,7 +460,6 @@ class CodeEditor extends React.Component<IProps, IState> {
                               {
                                 range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
                                 options: {
-                                  isWholeLine: true,
                                   className: 'confirmContentClass',
                                   hoverMessage: { value: 'Feedback: Confirm' },
                                 },
@@ -612,28 +475,8 @@ class CodeEditor extends React.Component<IProps, IState> {
                           });
                         }
                       } else {
-                        const newDecoration = ed.deltaDecorations(
-                          [],
-                          [
-                            {
-                              range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                              options: {
-                                isWholeLine: true,
-                                className: 'confirmContentClass',
-                                hoverMessage: { value: 'Feedback: Confirm' },
-                              },
-                            },
-                          ],
-                        );
-                        this.setState({
-                          decorationIds: decorationIds.splice(
-                            decorationIds.length + 1,
-                            0,
-                            newDecoration.toString(),
-                          ),
-                        });
+                        console.log('nothing');
                       }
-                      this.setState({ onCommitFeedback: false });
                     },
                   });
                 }}

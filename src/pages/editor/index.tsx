@@ -21,6 +21,8 @@ import {
   queryRegressionDetail,
   getRegressionPath,
   regressionCheckout,
+  getCriticalChangeByUuid,
+  putCriticalChangeByUuid,
 } from './service';
 import type { CommitItem, DiffEditDetailItems, FeedbackList } from './data';
 import { parse } from 'query-string';
@@ -107,8 +109,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   const [BFCisRunning, setBFCIsRunning] = useState<boolean>(false);
   const [BICFeedbackList, setBICFeedbackList] = useState<FeedbackList[]>([]);
   const [BFCFeedbackList, setBFCFeedbackList] = useState<FeedbackList[]>([]);
-  const [newBICFeedback, setNewBICFeedback] = useState<FeedbackList>();
-  const [newBFCFeedback, setNewBFCFeedback] = useState<FeedbackList>();
+  // const [newBICFeedback, setNewBICFeedback] = useState<FeedbackList>();
+  // const [newBFCFeedback, setNewBFCFeedback] = useState<FeedbackList>();
 
   const getFile = async (params: {
     commit: string;
@@ -289,7 +291,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
             ) {
               setPanesBIC(panesBIC);
             } else {
-              setPanesBIC(panesBIC.concat({ ...resp, key, editList }));
+              setPanesBIC(panesBIC.concat({ ...resp, key, editList, newPath, oldPath }));
             }
           }
           if (commit === 'BFC') {
@@ -300,7 +302,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
             ) {
               setPanesBFC(panesBFC);
             } else {
-              setPanesBFC(panesBFC.concat({ ...resp, key, editList }));
+              setPanesBFC(panesBFC.concat({ ...resp, key, editList, newPath, oldPath }));
             }
           }
         })
@@ -377,9 +379,35 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   };
 
   const handleSubmitFeedbacks = useCallback(() => {
-    message.success('submited');
+    BICFeedbackList.map((resp) => {
+      putCriticalChangeByUuid(
+        {
+          regression_uuid: HISTORY_SEARCH.regressionUuid,
+          revision_name: 'bic',
+        },
+        resp.hunkData,
+      );
+    });
+    BFCFeedbackList.map((resp) => {
+      putCriticalChangeByUuid(
+        {
+          regression_uuid: HISTORY_SEARCH.regressionUuid,
+          revision_name: 'bfc',
+        },
+        resp.hunkData,
+      );
+    });
     setBFCFeedbackList([]);
     setBICFeedbackList([]);
+    message.success('submited');
+    getCriticalChangeByUuid({
+      regression_uuid: HISTORY_SEARCH.regressionUuid,
+      revision_name: 'bic',
+    });
+    getCriticalChangeByUuid({
+      regression_uuid: HISTORY_SEARCH.regressionUuid,
+      revision_name: 'bfc',
+    });
   }, [BICFeedbackList, BFCFeedbackList]);
 
   const handleWithdrawSubmit = useCallback(
@@ -390,14 +418,19 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
     [BICFeedbackList, BFCFeedbackList],
   );
 
-  useEffect(() => {
-    if (newBICFeedback) {
-      setBICFeedbackList(BICFeedbackList.splice(0, 0, newBICFeedback));
-    }
-    if (newBFCFeedback) {
-      setBFCFeedbackList(BFCFeedbackList.splice(0, 0, newBFCFeedback));
-    }
-  }, [newBICFeedback, newBFCFeedback]);
+  const handleBICFeedbackList = useCallback((v: FeedbackList) => {
+    // const newList = BICFeedbackList.splice(0, 0, v)
+    setBICFeedbackList((value) => {
+      return [v, ...value];
+    });
+  }, []);
+
+  const handleBFCFeedbackList = useCallback((v: FeedbackList) => {
+    // const newList = BFCFeedbackList.splice(0, 0, v);
+    setBFCFeedbackList((value) => {
+      return [v, ...value];
+    });
+  }, []);
 
   const contentListNoTitle = {
     testcase: (
@@ -435,6 +468,14 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         });
       },
     );
+    getCriticalChangeByUuid({
+      regression_uuid: HISTORY_SEARCH.regressionUuid,
+      revision_name: 'bic',
+    });
+    getCriticalChangeByUuid({
+      regression_uuid: HISTORY_SEARCH.regressionUuid,
+      revision_name: 'bfc',
+    });
   }, [HISTORY_SEARCH.regressionUuid]);
 
   return (
@@ -591,7 +632,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                     type="primary"
                     shape="round"
                     icon={<UploadOutlined />}
-                    onClick={() => handleSubmitFeedbacks()}
+                    onClick={handleSubmitFeedbacks}
                   >
                     Submit
                   </Button>
@@ -599,7 +640,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
               >
                 <Menu
                   style={{ width: 286, maxHeight: '70vh', overflow: 'auto' }}
-                  defaultOpenKeys={['BIC', 'BFC']}
+                  defaultOpenKeys={['BIC-feedback', 'BFC-feedback']}
                   mode="inline"
                 >
                   <SubMenu
@@ -607,13 +648,13 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                     icon={<AppstoreOutlined />}
                     title="Bug Inducing Commit"
                   >
-                    {BICFeedbackList?.map(({ key, fileName, feedback, hunkEntityList }, index) => {
+                    {BICFeedbackList?.map(({ key, fileName, feedback, hunkData }, index) => {
                       return (
                         <Menu.Item
                           key={`BIC-${key}`}
                           onClick={() => {
                             console.log(key);
-                            console.log(hunkEntityList);
+                            console.log(hunkData);
                             console.log(index);
                           }}
                         >
@@ -626,13 +667,13 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                     })}
                   </SubMenu>
                   <SubMenu key="BFC-feedback" icon={<AppstoreOutlined />} title="Bug Fixing Commit">
-                    {BFCFeedbackList?.map(({ key, fileName, feedback, hunkEntityList }, index) => {
+                    {BFCFeedbackList?.map(({ key, fileName, feedback, hunkData }, index) => {
                       return (
                         <Menu.Item
-                          key={`BIC-${key}`}
+                          key={`BFC-${key}`}
                           onClick={() => {
                             console.log(key);
-                            console.log(hunkEntityList);
+                            console.log(hunkData);
                             console.log(index);
                           }}
                         >
@@ -660,7 +701,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 onRunCode={handleBICRunClick}
                 isRunning={BICisRunning}
                 consoleString={BICConsoleResult}
-                onFeedbackList={setNewBICFeedback}
+                onFeedbackList={handleBICFeedbackList}
               />
             ) : null}
             {activeBFCKey !== undefined && activeBFCKey !== '' ? (
@@ -676,7 +717,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 onRunCode={handleBFCRunClick}
                 isRunning={BFCisRunning}
                 consoleString={BFCConsoleResult}
-                onFeedbackList={setNewBFCFeedback}
+                onFeedbackList={handleBFCFeedbackList}
               />
             ) : null}
           </div>

@@ -77,7 +77,7 @@ const DiffEditorTabs: React.FC<IProps> = ({
       onEdit={onEdit}
       hideAdd
     >
-      {panes.map(({ key, oldCode, newCode, editList }) => {
+      {panes.map(({ key, oldCode, newCode, editList, newPath, oldPath }) => {
         return (
           <Tabs.TabPane tab={key.split(`${commit}-`)} key={key}>
             <div style={{ width: '100%', height: '86vh', display: 'flex' }}>
@@ -88,6 +88,8 @@ const DiffEditorTabs: React.FC<IProps> = ({
                 darkTheme={false}
                 original={oldCode}
                 value={newCode}
+                newPath={newPath}
+                oldPath={oldPath}
                 diffEditChanges={editList}
                 oldVersionText={oldVersionText}
                 newVersionText={newVersionText}
