@@ -131,3 +131,28 @@ export async function putCriticalChangeByUuid(
     return data;
   }
 }
+
+export async function postRegressionCodeModified(
+  params: {
+    token: string;
+    regression_uuid: string;
+    old_path: string;
+    revision_name: string;
+    new_code?: string;
+    cover_status: 0 | 1;
+  },
+  body: string,
+) {
+  const { code, msg, data } = await request<API.RegResponse<any>>('/api/regression/modified', {
+    method: 'POST',
+    headers: {},
+    params,
+    body,
+  });
+  if (code !== 200) {
+    message.error(msg);
+    return null;
+  } else {
+    return data;
+  }
+}
