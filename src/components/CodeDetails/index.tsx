@@ -1,7 +1,7 @@
 import { DiffEditDetailItems } from '@/pages/editor/data';
 import ProDescriptions from '@ant-design/pro-descriptions';
 import { Button, Input, message } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { MonacoDiffEditor } from 'react-monaco-editor';
 
 interface IProps {
@@ -83,10 +83,14 @@ const CodeDetails: React.FC<IProps> = ({
     return d.uuid === regressionUuid;
   });
 
+  // useEffect(() => {
+
+  // }, []);
+
   return (
     <>
       {target !== undefined ? (
-        <ProDescriptions column={2} title={fileName + ' Code Details'}>
+        <ProDescriptions column={2} title={fileName + ' Critical Change Details'}>
           <ProDescriptions.Item label="Regression Uuid">{regressionUuid}</ProDescriptions.Item>
           <ProDescriptions.Item label="Revision Flag">{revisionFlag}</ProDescriptions.Item>
           {revisionFlag === 'Bug Inducing Commit' ? (
@@ -135,7 +139,7 @@ const CodeDetails: React.FC<IProps> = ({
               }}
             />
           </ProDescriptions.Item>
-          <ProDescriptions.Item span={2} label="feedback">
+          {/* <ProDescriptions.Item span={2} label="feedback">
             <Input.Group compact>
               <Input.TextArea
                 rows={3}
@@ -157,7 +161,7 @@ const CodeDetails: React.FC<IProps> = ({
                 Submit
               </Button>
             </Input.Group>
-          </ProDescriptions.Item>
+          </ProDescriptions.Item> */}
         </ProDescriptions>
       ) : (
         <div>{diffEditDetails}</div>

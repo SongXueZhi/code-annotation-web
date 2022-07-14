@@ -7,7 +7,7 @@ import type { Directory, Depandency } from './sidebar.d';
 import { ResizeSensor, Divider, Button, ResizeEntry } from '@blueprintjs/core';
 import './styles.css';
 import EllipsisMiddle from '../EllipsisMiddle';
-import type { RadioChangeEvent } from 'antd';
+import { message, RadioChangeEvent } from 'antd';
 import { Radio, Modal } from 'antd';
 import CodeDetails from '../CodeDetails';
 import { DiffEditDetailItems, FeedbackList } from '@/pages/editor/data';
@@ -66,9 +66,9 @@ class CodeEditor extends React.Component<IProps, IState> {
     lineHeight: 20,
     extraEditorClassName: 'CodeEditor',
     //+ -指示器
-    renderIndicators: false,
+    renderIndicators: true,
     // 原来的editor是否可编辑
-    originalEditable: true,
+    originalEditable: false,
   };
   private uuid: string = '';
   private editorRef: RefObject<MonacoDiffEditor> = createRef<MonacoDiffEditor>();
@@ -158,40 +158,27 @@ class CodeEditor extends React.Component<IProps, IState> {
     revision: 'bic' | 'bfc',
     fileName: string,
     feedback: string,
-    range: monaco.Selection | null,
+    range: monaco.Selection,
+    hunkData: DiffEditDetailItems,
   ) => {
-    if (range) {
-      const hunkData = this.props.diffEditChanges.find((resp) => {
-        if (
-          (range.startLineNumber <= resp.beginB && range.endLineNumber >= resp.beginB) ||
-          (range.startLineNumber >= resp.beginB && range.startLineNumber <= resp.endB)
-        ) {
-          return resp;
-        } else {
-          return undefined;
-        }
-      });
-      this.setState({
-        feedbackContextList: {
-          key: key,
-          revision: revision,
-          fileName: fileName,
-          feedback: feedback,
-          hunkData: {
-            newPath: this.props.newPath,
-            oldPath: this.props.oldPath,
-            beginA: hunkData?.beginA ?? 0,
-            beginB: hunkData?.beginB ?? 0,
-            endA: hunkData?.endA ?? 0,
-            endB: hunkData?.endB ?? 0,
-            type: hunkData?.type ?? '',
-          },
+    this.setState({
+      feedbackContextList: {
+        key: key,
+        revision: revision,
+        fileName: fileName,
+        feedback: feedback,
+        hunkData: {
+          newPath: this.props.newPath,
+          oldPath: this.props.oldPath,
+          beginA: hunkData.beginA ?? range.startLineNumber,
+          beginB: hunkData.beginB ?? range.startLineNumber,
+          endA: hunkData.endA ?? range.endLineNumber,
+          endB: hunkData.endB ?? range.endLineNumber,
+          type: hunkData.type ?? '',
         },
-      });
-      this.props.onFeedbackList?.call(this, this.state.feedbackContextList);
-    } else {
-      return;
-    }
+      },
+    });
+    this.props.onFeedbackList?.call(this, this.state.feedbackContextList);
   };
   render() {
     const {
@@ -284,65 +271,84 @@ class CodeEditor extends React.Component<IProps, IState> {
                     contextMenuGroupId: 'navigation',
                     contextMenuOrder: 1,
                     run: (ed) => {
-                      const oldDecorations = ed.getDecorationsInRange(
-                        ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                      );
-                      if (oldDecorations !== null) {
-                        if (decorationIds.some((d) => d === oldDecorations[0].id)) {
-                          const newIdList = decorationIds.filter((v) => v !== oldDecorations[0].id);
-                          const newDecoration = ed.deltaDecorations(
-                            [oldDecorations[0].id],
-                            [
-                              {
-                                range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                                options: {
-                                  className: 'addContentClass',
-                                  hoverMessage: { value: 'Feedback: Add' },
+                      const selectionRange = ed.getSelection();
+                      if (selectionRange) {
+                        const hunkData = diffEditChanges.find((resp) => {
+                          if (
+                            (selectionRange.startLineNumber <= resp.beginB &&
+                              selectionRange.endLineNumber >= resp.beginB) ||
+                            (selectionRange.startLineNumber >= resp.beginB &&
+                              selectionRange.startLineNumber <= resp.endB)
+                          ) {
+                            return resp;
+                          } else {
+                            return undefined;
+                          }
+                        });
+                        const oldDecorations = ed.getDecorationsInRange(selectionRange);
+                        if (oldDecorations !== null && hunkData !== undefined) {
+                          if (decorationIds.some((d) => d === oldDecorations[0].id)) {
+                            const newIdList = decorationIds.filter(
+                              (v) => v !== oldDecorations[0].id,
+                            );
+                            const newDecoration = ed.deltaDecorations(
+                              [oldDecorations[0].id],
+                              [
+                                {
+                                  range: selectionRange,
+                                  options: {
+                                    className: 'addContentClass',
+                                    hoverMessage: { value: 'Feedback: Add' },
+                                  },
                                 },
-                              },
-                            ],
-                          );
-                          this.setState({
-                            decorationIds: newIdList.splice(
-                              newIdList.length + 1,
-                              0,
-                              newDecoration.toString(),
-                            ),
-                          });
-                          this.handlefeedbackList(
-                            newDecoration,
-                            title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
-                            filename,
-                            'add',
-                            ed.getSelection() ?? null,
-                          );
+                              ],
+                            );
+                            this.setState({
+                              decorationIds: newIdList.splice(
+                                newIdList.length + 1,
+                                0,
+                                newDecoration.toString(),
+                              ),
+                            });
+                            this.handlefeedbackList(
+                              newDecoration,
+                              title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
+                              filename,
+                              'add',
+                              selectionRange,
+                              hunkData,
+                            );
+                          } else {
+                            const newDecoration = ed.deltaDecorations(
+                              [],
+                              [
+                                {
+                                  range: selectionRange,
+                                  options: {
+                                    className: 'addContentClass',
+                                    hoverMessage: { value: 'Feedback: Add' },
+                                  },
+                                },
+                              ],
+                            );
+                            this.setState({
+                              decorationIds: decorationIds.splice(
+                                decorationIds.length + 1,
+                                0,
+                                newDecoration.toString(),
+                              ),
+                            });
+                            this.handlefeedbackList(
+                              newDecoration,
+                              title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
+                              filename,
+                              'add',
+                              selectionRange,
+                              hunkData,
+                            );
+                          }
                         } else {
-                          const newDecoration = ed.deltaDecorations(
-                            [],
-                            [
-                              {
-                                range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                                options: {
-                                  className: 'addContentClass',
-                                  hoverMessage: { value: 'Feedback: Add' },
-                                },
-                              },
-                            ],
-                          );
-                          this.setState({
-                            decorationIds: decorationIds.splice(
-                              decorationIds.length + 1,
-                              0,
-                              newDecoration.toString(),
-                            ),
-                          });
-                          this.handlefeedbackList(
-                            newDecoration,
-                            title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
-                            filename,
-                            'add',
-                            ed.getSelection() ?? null,
-                          );
+                          message.warning('The code you select does not have hunk information!');
                         }
                       } else {
                         console.log('nothing');
@@ -356,65 +362,84 @@ class CodeEditor extends React.Component<IProps, IState> {
                     contextMenuGroupId: 'navigation',
                     contextMenuOrder: 2,
                     run: (ed) => {
-                      const oldDecorations = ed.getDecorationsInRange(
-                        ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                      );
-                      if (oldDecorations !== null) {
-                        if (decorationIds.some((d) => d === oldDecorations[0].id)) {
-                          const newIdList = decorationIds.filter((v) => v !== oldDecorations[0].id);
-                          const newDecoration = ed.deltaDecorations(
-                            [oldDecorations[0].id],
-                            [
-                              {
-                                range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                                options: {
-                                  className: 'rejectContentClass',
-                                  hoverMessage: { value: 'Feedback: Reject' },
+                      const selectionRange = ed.getSelection();
+                      if (selectionRange) {
+                        const hunkData = diffEditChanges.find((resp) => {
+                          if (
+                            (selectionRange.startLineNumber <= resp.beginB &&
+                              selectionRange.endLineNumber >= resp.beginB) ||
+                            (selectionRange.startLineNumber >= resp.beginB &&
+                              selectionRange.startLineNumber <= resp.endB)
+                          ) {
+                            return resp;
+                          } else {
+                            return undefined;
+                          }
+                        });
+                        const oldDecorations = ed.getDecorationsInRange(selectionRange);
+                        if (oldDecorations !== null && hunkData !== undefined) {
+                          if (decorationIds.some((d) => d === oldDecorations[0].id)) {
+                            const newIdList = decorationIds.filter(
+                              (v) => v !== oldDecorations[0].id,
+                            );
+                            const newDecoration = ed.deltaDecorations(
+                              [oldDecorations[0].id],
+                              [
+                                {
+                                  range: selectionRange,
+                                  options: {
+                                    className: 'rejectContentClass',
+                                    hoverMessage: { value: 'Feedback: Reject' },
+                                  },
                                 },
-                              },
-                            ],
-                          );
-                          this.setState({
-                            decorationIds: newIdList.splice(
-                              newIdList.length + 1,
-                              0,
-                              newDecoration.toString(),
-                            ),
-                          });
-                          this.handlefeedbackList(
-                            newDecoration,
-                            title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
-                            filename,
-                            'reject',
-                            ed.getSelection() ?? null,
-                          );
+                              ],
+                            );
+                            this.setState({
+                              decorationIds: newIdList.splice(
+                                newIdList.length + 1,
+                                0,
+                                newDecoration.toString(),
+                              ),
+                            });
+                            this.handlefeedbackList(
+                              newDecoration,
+                              title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
+                              filename,
+                              'reject',
+                              selectionRange,
+                              hunkData,
+                            );
+                          } else {
+                            const newDecoration = ed.deltaDecorations(
+                              [],
+                              [
+                                {
+                                  range: selectionRange,
+                                  options: {
+                                    className: 'rejectContentClass',
+                                    hoverMessage: { value: 'Feedback: Reject' },
+                                  },
+                                },
+                              ],
+                            );
+                            this.setState({
+                              decorationIds: decorationIds.splice(
+                                decorationIds.length + 1,
+                                0,
+                                newDecoration.toString(),
+                              ),
+                            });
+                            this.handlefeedbackList(
+                              newDecoration,
+                              title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
+                              filename,
+                              'reject',
+                              selectionRange,
+                              hunkData,
+                            );
+                          }
                         } else {
-                          const newDecoration = ed.deltaDecorations(
-                            [],
-                            [
-                              {
-                                range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                                options: {
-                                  className: 'rejectContentClass',
-                                  hoverMessage: { value: 'Feedback: Reject' },
-                                },
-                              },
-                            ],
-                          );
-                          this.setState({
-                            decorationIds: decorationIds.splice(
-                              decorationIds.length + 1,
-                              0,
-                              newDecoration.toString(),
-                            ),
-                          });
-                          this.handlefeedbackList(
-                            newDecoration,
-                            title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
-                            filename,
-                            'reject',
-                            ed.getSelection() ?? null,
-                          );
+                          message.warning('The code you select does not have hunk information!');
                         }
                       } else {
                         console.log('nothing');
@@ -428,51 +453,68 @@ class CodeEditor extends React.Component<IProps, IState> {
                     contextMenuGroupId: 'navigation',
                     contextMenuOrder: 3,
                     run: (ed) => {
-                      const oldDecorations = ed.getDecorationsInRange(
-                        ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                      );
-                      if (oldDecorations !== null) {
-                        if (decorationIds.some((d) => d === oldDecorations[0].id)) {
-                          const newIdList = decorationIds.filter((v) => v !== oldDecorations[0].id);
-                          const newDecoration = ed.deltaDecorations(
-                            [oldDecorations[0].id],
-                            [
-                              {
-                                range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                                options: {
-                                  className: 'confirmContentClass',
-                                  hoverMessage: { value: 'Feedback: Confirm' },
+                      const selectionRange = ed.getSelection();
+                      if (selectionRange) {
+                        const hunkData = diffEditChanges.find((resp) => {
+                          if (
+                            (selectionRange.startLineNumber <= resp.beginB &&
+                              selectionRange.endLineNumber >= resp.beginB) ||
+                            (selectionRange.startLineNumber >= resp.beginB &&
+                              selectionRange.startLineNumber <= resp.endB)
+                          ) {
+                            return resp;
+                          } else {
+                            return undefined;
+                          }
+                        });
+                        const oldDecorations = ed.getDecorationsInRange(selectionRange);
+                        if (oldDecorations !== null && hunkData !== undefined) {
+                          if (decorationIds.some((d) => d === oldDecorations[0].id)) {
+                            const newIdList = decorationIds.filter(
+                              (v) => v !== oldDecorations[0].id,
+                            );
+                            const newDecoration = ed.deltaDecorations(
+                              [oldDecorations[0].id],
+                              [
+                                {
+                                  range: selectionRange,
+                                  options: {
+                                    className: 'confirmContentClass',
+                                    hoverMessage: { value: 'Feedback: Confirm' },
+                                  },
                                 },
-                              },
-                            ],
-                          );
-                          this.setState({
-                            decorationIds: newIdList.splice(
-                              newIdList.length + 1,
-                              0,
-                              newDecoration.toString(),
-                            ),
-                          });
+                              ],
+                            );
+                            this.setState({
+                              decorationIds: newIdList.splice(
+                                newIdList.length + 1,
+                                0,
+                                newDecoration.toString(),
+                              ),
+                            });
+                          } else {
+                            const newDecoration = ed.deltaDecorations(
+                              [],
+                              [
+                                {
+                                  range: selectionRange,
+                                  options: {
+                                    className: 'confirmContentClass',
+                                    hoverMessage: { value: 'Feedback: Confirm' },
+                                  },
+                                },
+                              ],
+                            );
+                            this.setState({
+                              decorationIds: decorationIds.splice(
+                                decorationIds.length + 1,
+                                0,
+                                newDecoration.toString(),
+                              ),
+                            });
+                          }
                         } else {
-                          const newDecoration = ed.deltaDecorations(
-                            [],
-                            [
-                              {
-                                range: ed.getSelection() ?? new monaco.Range(0, 0, 0, 0),
-                                options: {
-                                  className: 'confirmContentClass',
-                                  hoverMessage: { value: 'Feedback: Confirm' },
-                                },
-                              },
-                            ],
-                          );
-                          this.setState({
-                            decorationIds: decorationIds.splice(
-                              decorationIds.length + 1,
-                              0,
-                              newDecoration.toString(),
-                            ),
-                          });
+                          message.warning('The code you select does not have hunk information!');
                         }
                       } else {
                         console.log('nothing');
