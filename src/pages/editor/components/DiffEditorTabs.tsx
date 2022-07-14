@@ -2,7 +2,7 @@ import CodeEditor from '@/components/CodeEditor';
 import { Tabs } from 'antd';
 import { useCallback } from 'react';
 import type { FilePaneItem } from '..';
-import { FeedbackList } from '../data';
+import type { FeedbackList } from '../data';
 
 export type DiffEditor = {
   origin: string;
@@ -77,7 +77,7 @@ const DiffEditorTabs: React.FC<IProps> = ({
       onEdit={onEdit}
       hideAdd
     >
-      {panes.map(({ key, oldCode, newCode, editList, newPath, oldPath }) => {
+      {panes.map(({ key, oldCode, newCode, editList, newPath, oldPath, CriticalChange }) => {
         return (
           <Tabs.TabPane tab={key.split(`${commit}-`)} key={key}>
             <div style={{ width: '100%', height: '86vh', display: 'flex' }}>
@@ -95,6 +95,7 @@ const DiffEditorTabs: React.FC<IProps> = ({
                 newVersionText={newVersionText}
                 isRunning={isRunning}
                 consoleString={consoleString}
+                CriticalChange={CriticalChange}
                 onRunCode={onRunCode}
                 onFeedbackList={onFeedbackList}
               />

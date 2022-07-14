@@ -1,7 +1,5 @@
 import { DiffEditDetailItems } from '@/pages/editor/data';
 import ProDescriptions from '@ant-design/pro-descriptions';
-import { Button, Input, message } from 'antd';
-import { useEffect, useState } from 'react';
 import { MonacoDiffEditor } from 'react-monaco-editor';
 
 interface IProps {
@@ -13,7 +11,6 @@ interface IProps {
   fileName: string; // index
   codeRange?: number[];
   endLine?: number[];
-  onCancel: (v: boolean) => void;
 }
 
 // interface SearchParams {
@@ -76,9 +73,7 @@ const CodeDetails: React.FC<IProps> = ({
   criticalChangeNew,
   diffEditDetails,
   fileName,
-  onCancel,
 }) => {
-  const [onSubmit, setOnSubmit] = useState<boolean>(true);
   const target = mockData.find((d) => {
     return d.uuid === regressionUuid;
   });
@@ -129,7 +124,7 @@ const CodeDetails: React.FC<IProps> = ({
               }}
               original={criticalChangeOriginal}
               value={criticalChangeNew}
-              editorDidMount={(diffEditor, monaco) => {
+              editorDidMount={(diffEditor) => {
                 if (revisionFlag === 'Bug Inducing Commit') {
                   diffEditor.revealLineInCenter(target.codeRange[0]);
                 } else {

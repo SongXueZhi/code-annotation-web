@@ -24,7 +24,7 @@ import {
   getCriticalChangeByUuid,
   putCriticalChangeByUuid,
 } from './service';
-import type { CommitItem, DiffEditDetailItems, FeedbackList } from './data';
+import type { CommitItem, DiffEditDetailItems, FeedbackList, HunkEntityItems } from './data';
 import { parse } from 'query-string';
 
 const { SubMenu } = Menu;
@@ -32,11 +32,11 @@ const { SubMenu } = Menu;
 const testMethodList = [
   {
     key: 'testcase',
-    tab: 'test cases',
+    tab: 'Test cases',
   },
   {
     key: 'features',
-    tab: 'features',
+    tab: 'Features',
   },
 ];
 
@@ -54,6 +54,7 @@ export type CommitFile = {
 export interface FilePaneItem extends CommitFile {
   key: string;
   editList: DiffEditDetailItems[];
+  CriticalChange: HunkEntityItems | undefined;
 }
 
 // function markMatch(
@@ -109,8 +110,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   const [BFCisRunning, setBFCIsRunning] = useState<boolean>(false);
   const [BICFeedbackList, setBICFeedbackList] = useState<FeedbackList[]>([]);
   const [BFCFeedbackList, setBFCFeedbackList] = useState<FeedbackList[]>([]);
-  // const [newBICFeedback, setNewBICFeedback] = useState<FeedbackList>();
-  // const [newBFCFeedback, setNewBFCFeedback] = useState<FeedbackList>();
+  const [BICCriticalChanges, setBICCriticalChanges] = useState<HunkEntityItems[]>([]);
+  const [BFCCriticalChanges, setBFCCriticalChanges] = useState<HunkEntityItems[]>([]);
 
   const getFile = async (params: {
     commit: string;
@@ -270,7 +271,14 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   }
 
   const handleMenuClick = useCallback(
-    (commit, filename, oldPath, newPath, editList) => {
+    (
+      commit,
+      filename,
+      oldPath,
+      newPath,
+      editList: DiffEditDetailItems[],
+      CriticalChange: HunkEntityItems | undefined,
+    ) => {
       const key = `${commit}-${filename}`;
       // const [key, commit] = keyPath;
       // const [_, filename] = key.split(`${commit}-`);
@@ -291,7 +299,9 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
             ) {
               setPanesBIC(panesBIC);
             } else {
-              setPanesBIC(panesBIC.concat({ ...resp, key, editList, newPath, oldPath }));
+              setPanesBIC(
+                panesBIC.concat({ ...resp, key, editList, newPath, oldPath, CriticalChange }),
+              );
             }
           }
           if (commit === 'BFC') {
@@ -302,7 +312,9 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
             ) {
               setPanesBFC(panesBFC);
             } else {
-              setPanesBFC(panesBFC.concat({ ...resp, key, editList, newPath, oldPath }));
+              setPanesBFC(
+                panesBFC.concat({ ...resp, key, editList, newPath, oldPath, CriticalChange }),
+              );
             }
           }
         })
@@ -370,10 +382,10 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         }
       });
       bicTestCaseList.map((resp) => {
-        handleMenuClick('BIC', resp.filename, resp.oldPath, resp.newPath, resp.editList);
+        handleMenuClick('BIC', resp.filename, resp.oldPath, resp.newPath, resp.editList, undefined);
       });
       bfcTestCaseList.map((resp) => {
-        handleMenuClick('BFC', resp.filename, resp.oldPath, resp.newPath, resp.editList);
+        handleMenuClick('BFC', resp.filename, resp.oldPath, resp.newPath, resp.editList, undefined);
       });
     }
   };
@@ -471,10 +483,18 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
     getCriticalChangeByUuid({
       regression_uuid: HISTORY_SEARCH.regressionUuid,
       revision_name: 'bic',
+    }).then((resp) => {
+      if (resp !== null && resp !== undefined) {
+        setBICCriticalChanges(resp.hunkEntityList);
+      }
     });
     getCriticalChangeByUuid({
       regression_uuid: HISTORY_SEARCH.regressionUuid,
       revision_name: 'bfc',
+    }).then((resp) => {
+      if (resp !== null && resp !== undefined) {
+        setBFCCriticalChanges(resp.hunkEntityList);
+      }
     });
   }, [HISTORY_SEARCH.regressionUuid]);
 
@@ -544,7 +564,12 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
               >
                 {contentListNoTitle[testTabKey]}
               </Card>
-              <Card title="Changed files" bordered={false} bodyStyle={{ padding: 0 }}>
+              <Card
+                title="Changed files"
+                style={{ marginBottom: 10 }}
+                bordered={false}
+                bodyStyle={{ padding: 0 }}
+              >
                 <Menu
                   title="菜单"
                   style={{ width: 286, maxHeight: '70vh', overflow: 'auto' }}
@@ -578,7 +603,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                         <Menu.Item
                           key={`BIC-${filename}`}
                           onClick={() =>
-                            handleMenuClick('BIC', filename, oldPath, newPath, editList)
+                            handleMenuClick('BIC', filename, oldPath, newPath, editList, undefined)
                           }
                         >
                           {mark}
@@ -612,7 +637,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                         <Menu.Item
                           key={`BFC-${filename}`}
                           onClick={() =>
-                            handleMenuClick('BFC', filename, oldPath, newPath, editList)
+                            handleMenuClick('BFC', filename, oldPath, newPath, editList, undefined)
                           }
                         >
                           {mark}
@@ -624,7 +649,86 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 </Menu>
               </Card>
               <Card
-                title="feedback list"
+                title="Critical changes"
+                bordered={false}
+                bodyStyle={{ padding: 0 }}
+                style={{ marginBottom: 10 }}
+              >
+                <Menu
+                  style={{ width: 286, maxHeight: '70vh', overflow: 'auto' }}
+                  defaultOpenKeys={['BIC-Critical-Changes', 'BFC-Critical-Changes']}
+                  mode="inline"
+                >
+                  <SubMenu
+                    key="BIC-Critical-Changes"
+                    icon={<AppstoreOutlined />}
+                    title="Bug Inducing Commit"
+                  >
+                    {BICCriticalChanges.map((CCData, index) => {
+                      const BICFileItems = listBIC.find(
+                        (resp) =>
+                          resp.newPath === CCData.newPath && resp.oldPath === CCData.oldPath,
+                      );
+                      if (BICFileItems) {
+                        return (
+                          <Menu.Item
+                            key={`${index}-BIC-${BICFileItems.filename}-Critical-Change`}
+                            onClick={() => {
+                              handleMenuClick(
+                                'BIC',
+                                BICFileItems.filename,
+                                BICFileItems.oldPath,
+                                BICFileItems.newPath,
+                                BICFileItems.editList,
+                                CCData,
+                              );
+                            }}
+                          >
+                            {BICFileItems.filename}
+                          </Menu.Item>
+                        );
+                      } else {
+                        return null;
+                      }
+                    })}
+                  </SubMenu>
+                  <SubMenu
+                    key="BFC-Critical-Changes"
+                    icon={<AppstoreOutlined />}
+                    title="Bug Fixing Commit"
+                  >
+                    {BFCCriticalChanges.map((CCData, index) => {
+                      const BFCFileItems = listBFC.find(
+                        (resp) =>
+                          resp.newPath === CCData.newPath && resp.oldPath === CCData.oldPath,
+                      );
+                      if (BFCFileItems) {
+                        return (
+                          <Menu.Item
+                            key={`${index}-BFC-${BFCFileItems.filename}-Critical-Change`}
+                            onClick={() => {
+                              handleMenuClick(
+                                'BFC',
+                                BFCFileItems.filename,
+                                BFCFileItems.oldPath,
+                                BFCFileItems.newPath,
+                                BFCFileItems.editList,
+                                CCData,
+                              );
+                            }}
+                          >
+                            {BFCFileItems.filename}
+                          </Menu.Item>
+                        );
+                      } else {
+                        return null;
+                      }
+                    })}
+                  </SubMenu>
+                </Menu>
+              </Card>
+              <Card
+                title="Feedbacks"
                 bordered={false}
                 bodyStyle={{ padding: 0 }}
                 extra={
@@ -633,6 +737,9 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                     shape="round"
                     icon={<UploadOutlined />}
                     onClick={handleSubmitFeedbacks}
+                    disabled={
+                      BICFeedbackList.length === 0 && BFCFeedbackList.length === 0 ? true : false
+                    }
                   >
                     Submit
                   </Button>
@@ -658,7 +765,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                             console.log(index);
                           }}
                         >
-                          {fileName}-{feedback}
+                          <Tag color="processing">{feedback}</Tag>
+                          {fileName}
                           <Button type="text" danger onClick={() => handleWithdrawSubmit(index)}>
                             withdraw
                           </Button>
@@ -677,7 +785,8 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                             console.log(index);
                           }}
                         >
-                          {fileName}-{feedback}
+                          <Tag color="processing">{feedback}</Tag>
+                          {fileName}
                           <Button type="text" danger onClick={() => handleWithdrawSubmit(index)}>
                             withdraw
                           </Button>

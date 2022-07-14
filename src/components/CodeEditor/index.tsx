@@ -10,7 +10,7 @@ import EllipsisMiddle from '../EllipsisMiddle';
 import { message, RadioChangeEvent } from 'antd';
 import { Radio, Modal } from 'antd';
 import CodeDetails from '../CodeDetails';
-import { DiffEditDetailItems, FeedbackList } from '@/pages/editor/data';
+import type { DiffEditDetailItems, FeedbackList, HunkEntityItems } from '@/pages/editor/data';
 
 interface IProps {
   title: string;
@@ -29,6 +29,7 @@ interface IProps {
   diffEditChanges: DiffEditDetailItems[];
   isRunning: boolean;
   consoleString?: string;
+  CriticalChange: HunkEntityItems | undefined;
   onRunCode?: (code: string, version: string) => void;
   onFeedbackList?: (feedback: FeedbackList) => void;
 }
@@ -39,9 +40,6 @@ interface IState {
   version: 'left' | 'right';
   consoleString?: string | null;
   monacoSize: { width: string | number; height: string | number };
-  // addFeedbackLines: monacoEditor.IRange[];
-  // rejectFeedbackLines: monacoEditor.IRange[];
-  // confirmFeedbackLines: monacoEditor.IRange[];
   decorationIds: string[];
 }
 
@@ -95,9 +93,6 @@ class CodeEditor extends React.Component<IProps, IState> {
       },
       version: 'left',
       monacoSize: { width: 0, height: 0 },
-      // addFeedbackLines: [],
-      // rejectFeedbackLines: [],
-      // confirmFeedbackLines: [],
       decorationIds: [],
     };
   }
@@ -194,16 +189,9 @@ class CodeEditor extends React.Component<IProps, IState> {
       newVersionText,
       consoleString,
       isRunning,
+      CriticalChange,
     } = this.props;
-    const {
-      showConsole,
-      version,
-      showCodeDetails,
-      // addFeedbackLines,
-      // rejectFeedbackLines,
-      // confirmFeedbackLines,
-      decorationIds,
-    } = this.state;
+    const { showConsole, version, showCodeDetails, decorationIds } = this.state;
     const { width, height } = this.state.monacoSize;
     const logs = (
       <pre className="log output" style={{ overflow: 'unset' }}>
@@ -264,6 +252,29 @@ class CodeEditor extends React.Component<IProps, IState> {
                 original={original}
                 value={value}
                 editorDidMount={(diffEditor) => {
+                  if (CriticalChange !== undefined) {
+                    console.log(CriticalChange.beginB);
+                    const codeEditor = diffEditor.getModifiedEditor();
+                    diffEditor.revealLineInCenter(
+                      CriticalChange.beginB - 10 >= 0
+                        ? CriticalChange.beginB - 10
+                        : CriticalChange.beginB,
+                    );
+                    codeEditor.deltaDecorations(
+                      [],
+                      [
+                        {
+                          range: new monaco.Range(CriticalChange.beginB, 0, CriticalChange.endB, 0),
+                          options: {
+                            isWholeLine: true,
+                            className: 'criticalChangeHintClass',
+                          },
+                        },
+                      ],
+                    );
+                  } else {
+                    console.log('no hunk');
+                  }
                   diffEditor.addAction({
                     id: 'feedback-add',
                     label: 'feedback: add',
@@ -560,7 +571,6 @@ class CodeEditor extends React.Component<IProps, IState> {
             criticalChangeOriginal={original}
             criticalChangeNew={value}
             fileName={filename}
-            onCancel={() => this.setState({ showCodeDetails: false })}
           />
         </Modal>
       </>
