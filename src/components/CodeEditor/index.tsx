@@ -77,11 +77,12 @@ class CodeEditor extends React.Component<IProps, IState> {
       showConsole: false,
       showCodeDetails: false,
       feedbackContextList: {
-        key: [],
+        decorationKey: [],
         revision: 'bic',
         fileName: '',
         feedback: '',
         hunkData: {
+          criticalChangeId: 0,
           newPath: '',
           oldPath: '',
           beginA: 0,
@@ -158,7 +159,7 @@ class CodeEditor extends React.Component<IProps, IState> {
   ) => {
     this.setState({
       feedbackContextList: {
-        key: key,
+        decorationKey: key,
         revision: revision,
         fileName: fileName,
         feedback: feedback,

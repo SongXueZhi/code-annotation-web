@@ -72,7 +72,7 @@ export type RegressionCriticalChangeDetail = {
 };
 
 export type HunkEntityItems = {
-  criticalChangeId: number;
+  criticalChangeId?: number;
   newPath: string;
   oldPath: string;
   beginA: number;
@@ -83,7 +83,7 @@ export type HunkEntityItems = {
 };
 
 export type FeedbackList = {
-  key: string[];
+  decorationKey: string[];
   revision: 'bic' | 'bfc';
   fileName: string;
   feedback: string;

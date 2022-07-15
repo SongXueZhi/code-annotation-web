@@ -6,6 +6,7 @@ import {
   Descriptions,
   Menu,
   message,
+  Popconfirm,
   Radio,
   Spin,
   Tag,
@@ -423,9 +424,16 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   }, [BICFeedbackList, BFCFeedbackList]);
 
   const handleWithdrawSubmit = useCallback(
-    (index) => {
-      const newList = BICFeedbackList.splice(index, 1);
-      setBICFeedbackList(newList);
+    (decorationKey, hunkData, revision) => {
+      console.log(revision);
+      console.log(hunkData);
+      if (revision === 'bic') {
+        const newList = BICFeedbackList.filter((resp) => resp.decorationKey !== decorationKey);
+        setBICFeedbackList(newList);
+      } else {
+        const newList = BFCFeedbackList.filter((resp) => resp.decorationKey !== decorationKey);
+        setBFCFeedbackList(newList);
+      }
     },
     [BICFeedbackList, BFCFeedbackList],
   );
@@ -664,7 +672,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                     icon={<AppstoreOutlined />}
                     title="Bug Inducing Commit"
                   >
-                    {BICCriticalChanges.map((CCData, index) => {
+                    {BICCriticalChanges.map((CCData) => {
                       const BICFileItems = listBIC.find(
                         (resp) =>
                           resp.newPath === CCData.newPath && resp.oldPath === CCData.oldPath,
@@ -672,7 +680,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                       if (BICFileItems) {
                         return (
                           <Menu.Item
-                            key={`${index}-BIC-${BICFileItems.filename}-Critical-Change`}
+                            key={`BIC-${BICFileItems.filename}-${CCData.criticalChangeId}`}
                             onClick={() => {
                               handleMenuClick(
                                 'BIC',
@@ -684,7 +692,9 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                               );
                             }}
                           >
-                            {BICFileItems.filename}
+                            <Tooltip title={`Line: ${CCData.beginB} ~ ${CCData.endB}`}>
+                              {BICFileItems.filename}
+                            </Tooltip>
                           </Menu.Item>
                         );
                       } else {
@@ -697,7 +707,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                     icon={<AppstoreOutlined />}
                     title="Bug Fixing Commit"
                   >
-                    {BFCCriticalChanges.map((CCData, index) => {
+                    {BFCCriticalChanges.map((CCData) => {
                       const BFCFileItems = listBFC.find(
                         (resp) =>
                           resp.newPath === CCData.newPath && resp.oldPath === CCData.oldPath,
@@ -705,7 +715,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                       if (BFCFileItems) {
                         return (
                           <Menu.Item
-                            key={`${index}-BFC-${BFCFileItems.filename}-Critical-Change`}
+                            key={`BFC-${BFCFileItems.filename}-${CCData.criticalChangeId}`}
                             onClick={() => {
                               handleMenuClick(
                                 'BFC',
@@ -717,7 +727,9 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                               );
                             }}
                           >
-                            {BFCFileItems.filename}
+                            <Tooltip title={`Line: ${CCData.beginB} ~ ${CCData.endB}`}>
+                              {BFCFileItems.filename}
+                            </Tooltip>
                           </Menu.Item>
                         );
                       } else {
@@ -755,44 +767,60 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                     icon={<AppstoreOutlined />}
                     title="Bug Inducing Commit"
                   >
-                    {BICFeedbackList?.map(({ key, fileName, feedback, hunkData }, index) => {
-                      return (
-                        <Menu.Item
-                          key={`BIC-${key}`}
-                          onClick={() => {
-                            console.log(key);
-                            console.log(hunkData);
-                            console.log(index);
-                          }}
-                        >
-                          <Tag color="processing">{feedback}</Tag>
-                          {fileName}
-                          <Button type="text" danger onClick={() => handleWithdrawSubmit(index)}>
-                            withdraw
-                          </Button>
-                        </Menu.Item>
-                      );
-                    })}
+                    {BICFeedbackList?.map(
+                      ({ decorationKey, fileName, feedback, hunkData, revision }, index) => {
+                        return (
+                          <Popconfirm
+                            key={`BIC-popconfirm-${index}`}
+                            title={
+                              <>
+                                <div>Feedback type: {feedback}</div>
+                                <div>
+                                  Feedback line: {hunkData.beginB} ~ {hunkData.endB}
+                                </div>
+                              </>
+                            }
+                            placement="top"
+                            onCancel={() => handleWithdrawSubmit(decorationKey, hunkData, revision)}
+                            okText="OK"
+                            cancelText="Withdraw"
+                          >
+                            <Menu.Item key={`BIC-${decorationKey}`}>
+                              <Tag color="processing">{feedback}</Tag>
+                              {fileName}
+                            </Menu.Item>
+                          </Popconfirm>
+                        );
+                      },
+                    )}
                   </SubMenu>
                   <SubMenu key="BFC-feedback" icon={<AppstoreOutlined />} title="Bug Fixing Commit">
-                    {BFCFeedbackList?.map(({ key, fileName, feedback, hunkData }, index) => {
-                      return (
-                        <Menu.Item
-                          key={`BFC-${key}`}
-                          onClick={() => {
-                            console.log(key);
-                            console.log(hunkData);
-                            console.log(index);
-                          }}
-                        >
-                          <Tag color="processing">{feedback}</Tag>
-                          {fileName}
-                          <Button type="text" danger onClick={() => handleWithdrawSubmit(index)}>
-                            withdraw
-                          </Button>
-                        </Menu.Item>
-                      );
-                    })}
+                    {BFCFeedbackList?.map(
+                      ({ decorationKey, fileName, feedback, hunkData, revision }, index) => {
+                        return (
+                          <Popconfirm
+                            key={`BIC-popconfirm-${index}`}
+                            title={
+                              <>
+                                <div>Feedback type: {feedback}</div>
+                                <div>
+                                  Feedback line: {hunkData.beginB} ~ {hunkData.endB}
+                                </div>
+                              </>
+                            }
+                            placement="top"
+                            onCancel={() => handleWithdrawSubmit(decorationKey, hunkData, revision)}
+                            okText="OK"
+                            cancelText="Withdraw"
+                          >
+                            <Menu.Item key={`BFC-${decorationKey}`}>
+                              <Tag color="processing">{feedback}</Tag>
+                              {fileName}
+                            </Menu.Item>
+                          </Popconfirm>
+                        );
+                      },
+                    )}
                   </SubMenu>
                 </Menu>
               </Card>
