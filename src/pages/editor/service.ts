@@ -132,6 +132,29 @@ export async function putCriticalChangeByUuid(
   }
 }
 
+export async function deleteCriticalChangeById(params: {
+  regression_uuid: string;
+  revision_name: 'bic' | 'bfc';
+  critical_change_id: number;
+}) {
+  const { code, msg, data } = await request<API.RegResponse<RegressionCriticalChangeDetail>>(
+    '/api/regression/criticalChange',
+    {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      params,
+    },
+  );
+  if (code !== 200) {
+    message.error(msg);
+    return null;
+  } else {
+    return data;
+  }
+}
+
 export async function postRegressionCodeModified(
   params: {
     token: string;

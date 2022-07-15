@@ -72,6 +72,7 @@ export type RegressionCriticalChangeDetail = {
 };
 
 export type HunkEntityItems = {
+  criticalChangeId: number;
   newPath: string;
   oldPath: string;
   beginA: number;
