@@ -1,7 +1,7 @@
 import { message } from 'antd';
 import request from 'umi-request';
 import type {
-  HunkEntityItems,
+  HunkEntityParams,
   RegressionCode,
   RegressionCriticalChangeDetail,
   RegressionDetail,
@@ -111,7 +111,7 @@ export async function putCriticalChangeByUuid(
     regression_uuid?: string;
     revision_name?: 'bic' | 'bfc';
   },
-  body: HunkEntityItems,
+  body: HunkEntityParams,
 ) {
   const { code, msg, data } = await request<API.RegResponse<null>>(
     '/api/regression/criticalChange',

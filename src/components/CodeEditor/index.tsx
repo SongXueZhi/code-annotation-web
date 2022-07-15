@@ -82,7 +82,6 @@ class CodeEditor extends React.Component<IProps, IState> {
         fileName: '',
         feedback: '',
         hunkData: {
-          criticalChangeId: 0,
           newPath: '',
           oldPath: '',
           beginA: 0,

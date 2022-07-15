@@ -24,6 +24,7 @@ import {
   regressionCheckout,
   getCriticalChangeByUuid,
   putCriticalChangeByUuid,
+  deleteCriticalChangeById,
 } from './service';
 import type { CommitItem, DiffEditDetailItems, FeedbackList, HunkEntityItems } from './data';
 import { parse } from 'query-string';
@@ -393,22 +394,70 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
 
   const handleSubmitFeedbacks = useCallback(() => {
     BICFeedbackList.map((resp) => {
-      putCriticalChangeByUuid(
-        {
-          regression_uuid: HISTORY_SEARCH.regressionUuid,
-          revision_name: 'bic',
-        },
-        resp.hunkData,
-      );
+      if (resp.feedback === 'add') {
+        putCriticalChangeByUuid(
+          {
+            regression_uuid: HISTORY_SEARCH.regressionUuid,
+            revision_name: 'bic',
+          },
+          resp.hunkData,
+        );
+      } else if (resp.feedback === 'reject') {
+        const targetCC = BICCriticalChanges.find((d) => {
+          if (
+            (resp.hunkData.beginB <= d.beginB && resp.hunkData.endB >= d.beginB) ||
+            (resp.hunkData.beginB >= d.beginB && resp.hunkData.beginB <= d.endB)
+          ) {
+            return d;
+          } else {
+            return undefined;
+          }
+        });
+        if (targetCC) {
+          deleteCriticalChangeById({
+            regression_uuid: HISTORY_SEARCH.regressionUuid,
+            revision_name: 'bic',
+            critical_change_id: targetCC.criticalChangeId,
+          });
+        } else {
+          alert(
+            `The reject feedback ${resp.fileName} does not include any critical change, auto withdrawed!`,
+          );
+        }
+      } else {
+        console.log('feedback type not right');
+      }
     });
     BFCFeedbackList.map((resp) => {
-      putCriticalChangeByUuid(
-        {
-          regression_uuid: HISTORY_SEARCH.regressionUuid,
-          revision_name: 'bfc',
-        },
-        resp.hunkData,
-      );
+      if (resp.feedback === 'add') {
+        putCriticalChangeByUuid(
+          {
+            regression_uuid: HISTORY_SEARCH.regressionUuid,
+            revision_name: 'bfc',
+          },
+          resp.hunkData,
+        );
+      } else if (resp.feedback === 'reject') {
+        const targetCC = BFCCriticalChanges.find((d) => {
+          if (
+            (resp.hunkData.beginB <= d.beginB && resp.hunkData.endB >= d.beginB) ||
+            (resp.hunkData.beginB >= d.beginB && resp.hunkData.beginB <= d.endB)
+          ) {
+            return d;
+          } else {
+            return undefined;
+          }
+        });
+        if (targetCC) {
+          deleteCriticalChangeById({
+            regression_uuid: HISTORY_SEARCH.regressionUuid,
+            revision_name: 'bfc',
+            critical_change_id: targetCC.criticalChangeId,
+          });
+        }
+      } else {
+        console.log('feedback type not right');
+      }
     });
     setBFCFeedbackList([]);
     setBICFeedbackList([]);
@@ -416,17 +465,23 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
     getCriticalChangeByUuid({
       regression_uuid: HISTORY_SEARCH.regressionUuid,
       revision_name: 'bic',
+    }).then((resp) => {
+      if (resp !== null && resp !== undefined) {
+        setBICCriticalChanges(resp.hunkEntityList);
+      }
     });
     getCriticalChangeByUuid({
       regression_uuid: HISTORY_SEARCH.regressionUuid,
       revision_name: 'bfc',
+    }).then((resp) => {
+      if (resp !== null && resp !== undefined) {
+        setBFCCriticalChanges(resp.hunkEntityList);
+      }
     });
-  }, [BICFeedbackList, BFCFeedbackList]);
+  }, [BICFeedbackList, BFCFeedbackList, BICCriticalChanges, BFCCriticalChanges]);
 
-  const handleWithdrawSubmit = useCallback(
+  const handleWithdrawFeedbacks = useCallback(
     (decorationKey, hunkData, revision) => {
-      console.log(revision);
-      console.log(hunkData);
       if (revision === 'bic') {
         const newList = BICFeedbackList.filter((resp) => resp.decorationKey !== decorationKey);
         setBICFeedbackList(newList);
@@ -781,7 +836,9 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                               </>
                             }
                             placement="top"
-                            onCancel={() => handleWithdrawSubmit(decorationKey, hunkData, revision)}
+                            onCancel={() =>
+                              handleWithdrawFeedbacks(decorationKey, hunkData, revision)
+                            }
                             okText="OK"
                             cancelText="Withdraw"
                           >
@@ -809,7 +866,9 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                               </>
                             }
                             placement="top"
-                            onCancel={() => handleWithdrawSubmit(decorationKey, hunkData, revision)}
+                            onCancel={() =>
+                              handleWithdrawFeedbacks(decorationKey, hunkData, revision)
+                            }
                             okText="OK"
                             cancelText="Withdraw"
                           >

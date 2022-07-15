@@ -71,8 +71,18 @@ export type RegressionCriticalChangeDetail = {
   hunkEntityList: HunkEntityItems[];
 };
 
+export interface HunkEntityParams {
+  newPath: string;
+  oldPath: string;
+  beginA: number;
+  beginB: number;
+  endA: number;
+  endB: number;
+  type: string;
+}
+
 export type HunkEntityItems = {
-  criticalChangeId?: number;
+  criticalChangeId: number;
   newPath: string;
   oldPath: string;
   beginA: number;
@@ -87,5 +97,5 @@ export type FeedbackList = {
   revision: 'bic' | 'bfc';
   fileName: string;
   feedback: string;
-  hunkData: HunkEntityItems;
+  hunkData: HunkEntityParams;
 };
