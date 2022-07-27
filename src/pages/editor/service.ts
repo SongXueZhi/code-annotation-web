@@ -157,20 +157,21 @@ export async function deleteCriticalChangeById(params: {
 
 export async function postRegressionCodeModified(
   params: {
-    token: string;
+    userToken: string;
     regression_uuid: string;
     old_path: string;
     revision_name: string;
-    new_code?: string;
+    // new_code?: string;
     cover_status: 0 | 1;
   },
   body: string,
 ) {
   const { code, msg, data } = await request<API.RegResponse<any>>('/api/regression/modified', {
     method: 'POST',
-    headers: {},
-    params,
-    body,
+    headers: { 'Content-Type': 'application/json' },
+    params: { ...params },
+    body: body,
+    // data: { body },
   });
   if (code !== 200) {
     message.error(msg);

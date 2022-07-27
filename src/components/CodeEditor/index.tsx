@@ -11,6 +11,7 @@ import { message, RadioChangeEvent } from 'antd';
 import { Radio, Modal } from 'antd';
 import CodeDetails from '../CodeDetails';
 import type { DiffEditDetailItems, FeedbackList, HunkEntityItems } from '@/pages/editor/data';
+import { postRegressionCodeModified } from '@/pages/editor/service';
 
 interface IProps {
   title: string;
@@ -190,6 +191,7 @@ class CodeEditor extends React.Component<IProps, IState> {
       consoleString,
       isRunning,
       CriticalChange,
+      oldPath,
     } = this.props;
     const { showConsole, version, showCodeDetails, decorationIds } = this.state;
     const { width, height } = this.state.monacoSize;
@@ -251,7 +253,11 @@ class CodeEditor extends React.Component<IProps, IState> {
                 options={this.options}
                 original={original}
                 value={value}
-                editorDidMount={(diffEditor) => {
+                // onChange={(v, content) => {
+                //   console.log(v);
+                //   console.log(content.changes);
+                // }}
+                editorDidMount={(diffEditor, diffMonaco) => {
                   if (CriticalChange !== undefined) {
                     console.log(CriticalChange.beginB);
                     const codeEditor = diffEditor.getModifiedEditor();
@@ -530,6 +536,32 @@ class CodeEditor extends React.Component<IProps, IState> {
                       } else {
                         console.log('nothing');
                       }
+                    },
+                  });
+
+                  diffEditor.addAction({
+                    id: 'update-modified-code',
+                    label: 'update new code',
+                    keybindingContext: undefined,
+                    contextMenuGroupId: '1_cutcopypaste',
+                    run: (ed) => {
+                      const newCode = ed.getValue();
+                      postRegressionCodeModified(
+                        {
+                          userToken: '123',
+                          regression_uuid: regressionUuid,
+                          old_path: oldPath,
+                          revision_name: title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
+                          cover_status: 1,
+                        },
+                        newCode,
+                      )
+                        .then(() => {
+                          message.success('Code updated');
+                        })
+                        .catch(() => {
+                          message.error('Failed to update, check the code again!');
+                        });
                     },
                   });
                 }}
