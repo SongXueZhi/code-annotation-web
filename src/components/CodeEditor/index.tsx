@@ -1,4 +1,4 @@
-import type { RefObject } from 'react';
+import { RefObject } from 'react';
 import React, { createRef } from 'react';
 import { monaco, MonacoDiffEditor } from 'react-monaco-editor';
 import { v4 as uuidv4 } from 'uuid';
@@ -7,11 +7,12 @@ import type { Directory, Depandency } from './sidebar.d';
 import { ResizeSensor, Divider, Button, ResizeEntry } from '@blueprintjs/core';
 import './styles.css';
 import EllipsisMiddle from '../EllipsisMiddle';
-import { message, RadioChangeEvent } from 'antd';
+import { Dropdown, Menu, message, RadioChangeEvent, Space } from 'antd';
 import { Radio, Modal } from 'antd';
 import CodeDetails from '../CodeDetails';
 import type { DiffEditDetailItems, FeedbackList, HunkEntityItems } from '@/pages/editor/data';
 import { postRegressionCodeModified } from '@/pages/editor/service';
+import { DownOutlined } from '@ant-design/icons';
 
 interface IProps {
   title: string;
@@ -33,12 +34,21 @@ interface IProps {
   CriticalChange: HunkEntityItems | undefined;
   onRunCode?: (code: string, version: string) => void;
   onFeedbackList?: (feedback: FeedbackList) => void;
+  onRevertCode?: (
+    commit: string,
+    filename: string,
+    oldPath: string,
+    newPath: string,
+    editList: DiffEditDetailItems[],
+    CriticalChange: HunkEntityItems | undefined,
+  ) => void;
 }
 interface IState {
   showConsole: boolean;
   showCodeDetails: boolean;
   feedbackContextList: FeedbackList;
-  version: 'left' | 'right';
+  version: 'firstOp' | 'secondOp';
+  testversion: string;
   consoleString?: string | null;
   monacoSize: { width: string | number; height: string | number };
   decorationIds: string[];
@@ -92,7 +102,8 @@ class CodeEditor extends React.Component<IProps, IState> {
           type: '',
         },
       },
-      version: 'left',
+      version: 'firstOp',
+      testversion: 'firstOp',
       monacoSize: { width: 0, height: 0 },
       decorationIds: [],
     };
@@ -117,19 +128,19 @@ class CodeEditor extends React.Component<IProps, IState> {
   };
   private handleVersionChange = ({ target }: RadioChangeEvent) => {
     this.setState({
-      version: target.value as 'left' | 'right',
+      version: target.value as 'firstOp' | 'secondOp',
     });
   };
   private handleRunClick = async () => {
     let content: string | undefined = (
-      this.state.version === 'left'
+      this.state.version === 'firstOp'
         ? this.editorRef.current?.editor?.getOriginalEditor()
         : this.editorRef.current?.editor?.getModifiedEditor()
     )?.getValue();
     const version =
-      this.state.version === 'left'
-        ? this.props.oldVersionText ?? 'left'
-        : this.props.newVersionText ?? 'right';
+      this.state.version === 'firstOp'
+        ? this.props.oldVersionText ?? 'firstOp'
+        : this.props.newVersionText ?? 'secondOp';
     if (typeof content === 'undefined') content = '';
     this.props.onRunCode?.call(this, content, version);
     if (!this.state.showConsole) {
@@ -176,6 +187,34 @@ class CodeEditor extends React.Component<IProps, IState> {
     });
     this.props.onFeedbackList?.call(this, this.state.feedbackContextList);
   };
+  private handleRevertCode = async () => {
+    const newCode = ' ';
+    await postRegressionCodeModified(
+      {
+        regression_uuid: this.props.regressionUuid,
+        userToken: '123',
+        old_path: this.props.oldPath,
+        revision_name: this.props.title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
+        cover_status: 0,
+      },
+      newCode,
+    )
+      .then(() => {
+        message.success('Code reverted!');
+        this.props.onRevertCode?.call(
+          this,
+          this.props.title === 'Bug Inducing Commit' ? 'BIC' : 'BFC',
+          this.props.filename,
+          this.props.oldPath,
+          this.props.newPath,
+          this.props.diffEditChanges,
+          undefined,
+        );
+      })
+      .catch(() => {
+        message.error('Revert failed, please try again!');
+      });
+  };
   render() {
     const {
       regressionUuid,
@@ -206,7 +245,8 @@ class CodeEditor extends React.Component<IProps, IState> {
           <div className="EditorRoot" id={this.uuid}>
             <div
               className={darkTheme ? 'TitlebarView flex between dark' : 'TitlebarView flex between'}
-              style={{ width: '100%', height: 'auto' }}
+              // style={{ width: '100%' }}
+              style={{ width: '100%', display: 'inline-flex' }}
             >
               <div className="project-title">
                 <EllipsisMiddle suffixCount={12}>{title}</EllipsisMiddle>
@@ -220,8 +260,46 @@ class CodeEditor extends React.Component<IProps, IState> {
                   Details
                 </Button>
               </div>
+              <div className="update-new-code-btn">
+                <Button
+                  id="revert-new-code-btn"
+                  data-imitate
+                  style={{ height: '30px', marginRight: '5px' }}
+                  intent="success"
+                  icon="upload"
+                  onClick={() => {
+                    message.info('Update Code');
+                  }}
+                >
+                  Update Code
+                </Button>
+              </div>
+              <div className="revert-code-btn">
+                <Button
+                  id="revert-new-code-btn"
+                  data-imitate
+                  style={{ height: '30px', marginRight: '5px' }}
+                  intent="success"
+                  icon="repeat"
+                  onClick={this.handleRevertCode}
+                >
+                  Revert
+                </Button>
+              </div>
               <div className="run-button" style={{ border: 'solid', borderColor: 'green' }}>
                 {extra}
+                {/* <Button
+                  id="revert-new-code-btn"
+                  data-imitate
+                  style={{ height: '30px', marginRight: '5px' }}
+                  intent="success"
+                  icon="repeat"
+                  onClick={() => {
+                    message.info('Developing revert function');
+                  }}
+                >
+                  Revert
+                </Button> */}
                 <Button
                   id="run-code-btn"
                   data-imitate
@@ -238,9 +316,32 @@ class CodeEditor extends React.Component<IProps, IState> {
                   buttonStyle="solid"
                   onChange={this.handleVersionChange}
                 >
-                  <Radio value="left">{oldVersionText ?? 'left'}</Radio>
-                  <Radio value="right">{newVersionText ?? 'right'}</Radio>
+                  <Radio value="firstOp">{oldVersionText ?? 'firstOp'}</Radio>
+                  <Radio value="secondOp">{newVersionText ?? 'secondOp'}</Radio>
                 </Radio.Group>
+                <Dropdown
+                  overlay={
+                    <Menu
+                      selectable
+                      defaultSelectedKeys={[version]}
+                      onClick={(v) => {
+                        console.log('run', v.key);
+                      }}
+                      items={[
+                        { label: oldVersionText ?? 'firstOp', key: 'firstOp' },
+                        { label: newVersionText ?? 'secondOp', key: 'secondOp' },
+                        { label: 'bug introduce with new code', key: 'thirdOp', disabled: true },
+                      ]}
+                    />
+                  }
+                >
+                  <Button intent="success" icon="play" loading={isRunning}>
+                    <Space>
+                      Run
+                      <DownOutlined />
+                    </Space>
+                  </Button>
+                </Dropdown>
               </div>
             </div>
             <div className="EditorView">
@@ -278,8 +379,6 @@ class CodeEditor extends React.Component<IProps, IState> {
                         },
                       ],
                     );
-                  } else {
-                    console.log('no hunk');
                   }
                   diffEditor.addAction({
                     id: 'feedback-add',
@@ -538,7 +637,6 @@ class CodeEditor extends React.Component<IProps, IState> {
                       }
                     },
                   });
-
                   diffEditor.addAction({
                     id: 'update-modified-code',
                     label: 'update new code',
@@ -578,7 +676,9 @@ class CodeEditor extends React.Component<IProps, IState> {
               <Divider className={darkTheme ? 'divider dark' : 'divider'} />
               <section className="flex vertical" style={{ width: '100%', height: '97%' }}>
                 <div className="header flex between none" onClick={this.handleShowConsole}>
-                  <div className="title">Console</div>
+                  <div className="title" style={{ fontSize: '16px', fontWeight: 'bolder' }}>
+                    Console {version === 'firstOp' ? oldVersionText : newVersionText}
+                  </div>
                   <div className="tools">
                     <Button minimal icon={showConsole ? 'chevron-down' : 'chevron-up'} />
                   </div>

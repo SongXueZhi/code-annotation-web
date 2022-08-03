@@ -2,7 +2,7 @@ import CodeEditor from '@/components/CodeEditor';
 import { Tabs } from 'antd';
 import { useCallback } from 'react';
 import type { FilePaneItem } from '..';
-import type { FeedbackList } from '../data';
+import type { DiffEditDetailItems, FeedbackList, HunkEntityItems } from '../data';
 
 export type DiffEditor = {
   origin: string;
@@ -22,6 +22,14 @@ interface IProps {
   onActiveKey: (v: string | undefined) => void;
   onRunCode?: (v: string, version: string) => void;
   onFeedbackList: (feedbacks: FeedbackList) => void;
+  onRevertCode?: (
+    commit: string,
+    filename: string,
+    oldPath: string,
+    newPath: string,
+    editList: DiffEditDetailItems[],
+    CriticalChange: HunkEntityItems | undefined,
+  ) => void;
 }
 
 const DiffEditorTabs: React.FC<IProps> = ({
@@ -37,6 +45,7 @@ const DiffEditorTabs: React.FC<IProps> = ({
   onPanesChange,
   onRunCode,
   onFeedbackList,
+  onRevertCode,
 }) => {
   const remove = useCallback(
     (targetKey: string) => {
@@ -57,12 +66,25 @@ const DiffEditorTabs: React.FC<IProps> = ({
     },
     [activeKey, onActiveKey, onPanesChange, panes],
   );
-
   const onEdit = useCallback(
     (targetKey: any, action: string | number) => {
       if (action === 'remove') remove(targetKey);
     },
     [remove],
+  );
+  const onRevert = useCallback(
+    (
+      Commit, // commit
+      filename,
+      oldPath,
+      newPath,
+      editList: DiffEditDetailItems[],
+      CriticalChange: HunkEntityItems | undefined,
+    ) => {
+      onEdit(activeKey, 'remove');
+      onRevertCode?.call(this, Commit, filename, oldPath, newPath, editList, CriticalChange);
+    },
+    [],
   );
 
   return (
@@ -98,6 +120,7 @@ const DiffEditorTabs: React.FC<IProps> = ({
                 CriticalChange={CriticalChange}
                 onRunCode={onRunCode}
                 onFeedbackList={onFeedbackList}
+                onRevertCode={onRevert}
               />
             </div>
           </Tabs.TabPane>

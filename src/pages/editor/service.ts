@@ -162,7 +162,7 @@ export async function postRegressionCodeModified(
     old_path: string;
     revision_name: string;
     // new_code?: string;
-    cover_status: 0 | 1;
+    cover_status: 0 | 1; // 0 - reset the code to original, 1 - cover with new code
   },
   body: string,
 ) {

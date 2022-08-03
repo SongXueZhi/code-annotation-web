@@ -117,7 +117,6 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
 
   const getFile = async (params: {
     commit: string;
-    repoUuid: string;
     bugId: string;
     filename: string;
     newPath: string;
@@ -286,7 +285,6 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
       // const [_, filename] = key.split(`${commit}-`);
       getFile({
         commit: commit,
-        repoUuid: '',
         bugId: '',
         filename: filename,
         newPath: newPath,
@@ -898,6 +896,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 isRunning={BICisRunning}
                 consoleString={BICConsoleResult}
                 onFeedbackList={handleBICFeedbackList}
+                onRevertCode={handleMenuClick}
               />
             ) : null}
             {activeBFCKey !== undefined && activeBFCKey !== '' ? (
@@ -914,6 +913,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                 isRunning={BFCisRunning}
                 consoleString={BFCConsoleResult}
                 onFeedbackList={handleBFCFeedbackList}
+                onRevertCode={handleMenuClick}
               />
             ) : null}
           </div>
