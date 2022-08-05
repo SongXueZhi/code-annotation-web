@@ -295,6 +295,8 @@ class CodeEditor extends React.Component<IProps, IState> {
             >
               <div className="project-title">
                 <EllipsisMiddle suffixCount={12}>{title}</EllipsisMiddle>
+              </div>
+              <div className="regression-file-details-btn">
                 <Button
                   id="show-code-details"
                   icon="search"
@@ -309,7 +311,7 @@ class CodeEditor extends React.Component<IProps, IState> {
                 <Button
                   id="revert-new-code-btn"
                   data-imitate
-                  style={{ height: '30px', marginRight: '5px' }}
+                  style={{ height: '30px' }}
                   intent="success"
                   icon="upload"
                   onClick={this.handleUpdateNewCodeClick}
@@ -322,7 +324,7 @@ class CodeEditor extends React.Component<IProps, IState> {
                 <Button
                   id="revert-new-code-btn"
                   data-imitate
-                  style={{ height: '30px', marginRight: '5px' }}
+                  style={{ height: '30px' }}
                   intent="success"
                   icon="repeat"
                   onClick={this.handleRevertCode}
