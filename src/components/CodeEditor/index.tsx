@@ -52,6 +52,8 @@ interface IState {
   consoleString?: string | null;
   monacoSize: { width: string | number; height: string | number };
   decorationIds: string[];
+  modifiedFlag: boolean;
+  modifiedNewCode?: string;
 }
 
 const REVEAL_CONSOLE_HEIHGT = 31;
@@ -106,6 +108,8 @@ class CodeEditor extends React.Component<IProps, IState> {
       testversion: 'firstOp',
       monacoSize: { width: 0, height: 0 },
       decorationIds: [],
+      modifiedFlag: false,
+      modifiedNewCode: props.value,
     };
   }
   componentDidMount() {
@@ -187,6 +191,33 @@ class CodeEditor extends React.Component<IProps, IState> {
     });
     this.props.onFeedbackList?.call(this, this.state.feedbackContextList);
   };
+  private handleDiffEditorOnChange = async (
+    v: string,
+    // content: monaco.editor.IModelContentChangedEvent,
+  ) => {
+    this.setState({ modifiedNewCode: v });
+  };
+  private handleUpdateNewCodeClick = async () => {
+    // console.log('update code');
+    // console.log(this.state.modifiedNewCode);
+    const newCode = this.state.modifiedNewCode;
+    postRegressionCodeModified(
+      {
+        userToken: '123',
+        regression_uuid: this.props.regressionUuid,
+        old_path: this.props.oldPath,
+        revision_name: this.props.title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
+        cover_status: 1,
+      },
+      newCode ?? ' ',
+    )
+      .then(() => {
+        message.success('Code updated');
+      })
+      .catch(() => {
+        message.error('Failed to update, check the code again!');
+      });
+  };
   private handleRevertCode = async () => {
     const newCode = ' ';
     await postRegressionCodeModified(
@@ -221,7 +252,6 @@ class CodeEditor extends React.Component<IProps, IState> {
       filename,
       darkTheme,
       original,
-      value,
       title,
       extra,
       diffEditChanges,
@@ -230,9 +260,8 @@ class CodeEditor extends React.Component<IProps, IState> {
       consoleString,
       isRunning,
       CriticalChange,
-      oldPath,
     } = this.props;
-    const { showConsole, version, showCodeDetails, decorationIds } = this.state;
+    const { showConsole, version, showCodeDetails, decorationIds, modifiedNewCode } = this.state;
     const { width, height } = this.state.monacoSize;
     const logs = (
       <pre className="log output" style={{ overflow: 'unset' }}>
@@ -267,9 +296,8 @@ class CodeEditor extends React.Component<IProps, IState> {
                   style={{ height: '30px', marginRight: '5px' }}
                   intent="success"
                   icon="upload"
-                  onClick={() => {
-                    message.info('Update Code');
-                  }}
+                  onClick={this.handleUpdateNewCodeClick}
+                  disabled={modifiedNewCode === this.props.value}
                 >
                   Update Code
                 </Button>
@@ -288,18 +316,6 @@ class CodeEditor extends React.Component<IProps, IState> {
               </div>
               <div className="run-button" style={{ border: 'solid', borderColor: 'green' }}>
                 {extra}
-                {/* <Button
-                  id="revert-new-code-btn"
-                  data-imitate
-                  style={{ height: '30px', marginRight: '5px' }}
-                  intent="success"
-                  icon="repeat"
-                  onClick={() => {
-                    message.info('Developing revert function');
-                  }}
-                >
-                  Revert
-                </Button> */}
                 <Button
                   id="run-code-btn"
                   data-imitate
@@ -353,11 +369,8 @@ class CodeEditor extends React.Component<IProps, IState> {
                 theme={darkTheme ? 'vs-dark' : 'vs-light'}
                 options={this.options}
                 original={original}
-                value={value}
-                // onChange={(v, content) => {
-                //   console.log(v);
-                //   console.log(content.changes);
-                // }}
+                value={modifiedNewCode}
+                onChange={this.handleDiffEditorOnChange}
                 editorDidMount={(diffEditor, diffMonaco) => {
                   if (CriticalChange !== undefined) {
                     console.log(CriticalChange.beginB);
@@ -637,31 +650,6 @@ class CodeEditor extends React.Component<IProps, IState> {
                       }
                     },
                   });
-                  diffEditor.addAction({
-                    id: 'update-modified-code',
-                    label: 'update new code',
-                    keybindingContext: undefined,
-                    contextMenuGroupId: '1_cutcopypaste',
-                    run: (ed) => {
-                      const newCode = ed.getValue();
-                      postRegressionCodeModified(
-                        {
-                          userToken: '123',
-                          regression_uuid: regressionUuid,
-                          old_path: oldPath,
-                          revision_name: title === 'Bug Inducing Commit' ? 'bic' : 'bfc',
-                          cover_status: 1,
-                        },
-                        newCode,
-                      )
-                        .then(() => {
-                          message.success('Code updated');
-                        })
-                        .catch(() => {
-                          message.error('Failed to update, check the code again!');
-                        });
-                    },
-                  });
                 }}
               />
             </div>
@@ -701,7 +689,7 @@ class CodeEditor extends React.Component<IProps, IState> {
             diffEditDetails={diffEditChanges}
             revisionFlag={title}
             criticalChangeOriginal={original}
-            criticalChangeNew={value}
+            criticalChangeNew={modifiedNewCode}
             fileName={filename}
           />
         </Modal>
