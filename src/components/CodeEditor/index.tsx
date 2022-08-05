@@ -7,8 +7,8 @@ import type { Directory, Depandency } from './sidebar.d';
 import { ResizeSensor, Divider, Button, ResizeEntry } from '@blueprintjs/core';
 import './styles.css';
 import EllipsisMiddle from '../EllipsisMiddle';
-import { Dropdown, Menu, message, RadioChangeEvent, Space } from 'antd';
-import { Radio, Modal } from 'antd';
+import { Dropdown, Menu, message, Space } from 'antd';
+import { Modal } from 'antd';
 import CodeDetails from '../CodeDetails';
 import type { DiffEditDetailItems, FeedbackList, HunkEntityItems } from '@/pages/editor/data';
 import { postRegressionCodeModified } from '@/pages/editor/service';
@@ -130,19 +130,35 @@ class CodeEditor extends React.Component<IProps, IState> {
     } // 显示部分 ConsoleView，固定为 30px
     this.setState({ monacoSize: { width, height } });
   };
-  private handleVersionChange = ({ target }: RadioChangeEvent) => {
-    this.setState({
-      version: target.value as 'firstOp' | 'secondOp',
-    });
-  };
-  private handleRunClick = async () => {
+  // private handleVersionChange = ({ target }: RadioChangeEvent) => {
+  //   this.setState({
+  //     version: target.value as 'firstOp' | 'secondOp',
+  //   });
+  // };
+  // private handleRunClick = async () => {
+  //   let content: string | undefined = (
+  //     this.state.version === 'firstOp'
+  //       ? this.editorRef.current?.editor?.getOriginalEditor()
+  //       : this.editorRef.current?.editor?.getModifiedEditor()
+  //   )?.getValue();
+  //   const version =
+  //     this.state.version === 'firstOp'
+  //       ? this.props.oldVersionText ?? 'firstOp'
+  //       : this.props.newVersionText ?? 'secondOp';
+  //   if (typeof content === 'undefined') content = '';
+  //   this.props.onRunCode?.call(this, content, version);
+  //   if (!this.state.showConsole) {
+  //     this.handleShowConsole();
+  //   }
+  // };
+  private handleRunClick = async (option: string) => {
     let content: string | undefined = (
-      this.state.version === 'firstOp'
+      option === 'firstOp'
         ? this.editorRef.current?.editor?.getOriginalEditor()
         : this.editorRef.current?.editor?.getModifiedEditor()
     )?.getValue();
     const version =
-      this.state.version === 'firstOp'
+      option === 'firstOp'
         ? this.props.oldVersionText ?? 'firstOp'
         : this.props.newVersionText ?? 'secondOp';
     if (typeof content === 'undefined') content = '';
@@ -314,9 +330,9 @@ class CodeEditor extends React.Component<IProps, IState> {
                   Revert
                 </Button>
               </div>
-              <div className="run-button" style={{ border: 'solid', borderColor: 'green' }}>
+              <div className="run-button">
                 {extra}
-                <Button
+                {/* <Button
                   id="run-code-btn"
                   data-imitate
                   style={{ height: '30px', marginRight: '5px' }}
@@ -334,19 +350,39 @@ class CodeEditor extends React.Component<IProps, IState> {
                 >
                   <Radio value="firstOp">{oldVersionText ?? 'firstOp'}</Radio>
                   <Radio value="secondOp">{newVersionText ?? 'secondOp'}</Radio>
-                </Radio.Group>
+                </Radio.Group> */}
                 <Dropdown
                   overlay={
                     <Menu
                       selectable
                       defaultSelectedKeys={[version]}
-                      onClick={(v) => {
-                        console.log('run', v.key);
-                      }}
+                      onClick={(v) => this.handleRunClick(v.key)}
                       items={[
-                        { label: oldVersionText ?? 'firstOp', key: 'firstOp' },
-                        { label: newVersionText ?? 'secondOp', key: 'secondOp' },
-                        { label: 'bug introduce with new code', key: 'thirdOp', disabled: true },
+                        {
+                          label: (
+                            <span style={{ fontSize: 16, fontWeight: 'bolder' }}>
+                              {oldVersionText ?? 'firstOp'}
+                            </span>
+                          ),
+                          key: 'firstOp',
+                        },
+                        {
+                          label: (
+                            <span style={{ fontSize: 16, fontWeight: 'bolder' }}>
+                              {newVersionText ?? 'secondOp'}
+                            </span>
+                          ),
+                          key: 'secondOp',
+                        },
+                        {
+                          label: (
+                            <span style={{ fontSize: 16, fontWeight: 'bolder' }}>
+                              bug introduce with new code
+                            </span>
+                          ),
+                          key: 'thirdOp',
+                          disabled: true,
+                        },
                       ]}
                     />
                   }
