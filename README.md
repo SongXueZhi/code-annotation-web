@@ -59,7 +59,7 @@ npm install react-redux@7.2.4
 9. Run project (support and suggest to use mock data )
 
 ```
-npm start
+yarn start
 ```
 
 ## Q & A
