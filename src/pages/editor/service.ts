@@ -180,3 +180,22 @@ export async function postRegressionCodeModified(
     return data;
   }
 }
+
+// 传参改为驼峰法
+export async function postClearCache(params: {
+  userToken: string;
+  projectFullName: string;
+  regressionUuid: string;
+}) {
+  const { code, msg, data } = await request<API.RegResponse<null>>('/api/regression/clearCache', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    params: { ...params },
+  });
+  if (code !== 200) {
+    message.error(msg);
+    return null;
+  } else {
+    return data;
+  }
+}

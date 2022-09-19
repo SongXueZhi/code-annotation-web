@@ -25,6 +25,7 @@ import {
   getCriticalChangeByUuid,
   putCriticalChangeByUuid,
   deleteCriticalChangeById,
+  postClearCache,
 } from './service';
 import type { CommitItem, DiffEditDetailItems, FeedbackList, HunkEntityItems } from './data';
 import { parse } from 'query-string';
@@ -114,6 +115,7 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
   const [BFCFeedbackList, setBFCFeedbackList] = useState<FeedbackList[]>([]);
   const [BICCriticalChanges, setBICCriticalChanges] = useState<HunkEntityItems[]>([]);
   const [BFCCriticalChanges, setBFCCriticalChanges] = useState<HunkEntityItems[]>([]);
+  const [loadingClearCache, setLoadingClearCache] = useState<boolean>(false);
 
   const getFile = async (params: {
     commit: string;
@@ -476,7 +478,13 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
         setBFCCriticalChanges(resp.hunkEntityList);
       }
     });
-  }, [BICFeedbackList, BFCFeedbackList, BICCriticalChanges, BFCCriticalChanges]);
+  }, [
+    BICFeedbackList,
+    BFCFeedbackList,
+    HISTORY_SEARCH.regressionUuid,
+    BICCriticalChanges,
+    BFCCriticalChanges,
+  ]);
 
   const handleWithdrawFeedbacks = useCallback(
     (decorationKey, hunkData, revision) => {
@@ -516,6 +524,23 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
       </Button>
     ),
     features: <Typography.Text strong>N.A.</Typography.Text>,
+  };
+
+  const handleClearCacheClick = async () => {
+    setLoadingClearCache(true);
+    await postClearCache({
+      userToken: '123',
+      regressionUuid: HISTORY_SEARCH.regressionUuid,
+      projectFullName: projectFullName ?? '',
+    })
+      .then(() => {
+        message.success('Cache Cleared');
+        setLoadingClearCache(false);
+      })
+      .catch(() => {
+        message.error('Failed to clear cache');
+        setLoadingClearCache(false);
+      });
   };
 
   useEffect(() => {
@@ -603,11 +628,14 @@ const EditorPage: React.FC<IRouteComponentProps> = ({ location }) => {
                     <Typography.Text>{regressionDescription}</Typography.Text>
                   </Descriptions.Item>
                 </Descriptions>
-                <Radio.Group defaultValue="a" buttonStyle="solid">
+                {/* <Radio.Group defaultValue="a" buttonStyle="solid">
                   <Radio.Button value="a">confirmed</Radio.Button>
                   <Radio.Button value="b">rejected</Radio.Button>
                   <Radio.Button value="c">undecided</Radio.Button>
-                </Radio.Group>
+                </Radio.Group> */}
+                <Button onClick={handleClearCacheClick} loading={loadingClearCache}>
+                  Clear Cache
+                </Button>
               </div>
             ),
           }}
